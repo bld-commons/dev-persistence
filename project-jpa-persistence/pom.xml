@@ -55,7 +55,7 @@
 		</dependency>
 		<dependency>
 			<groupId>com.github.bld-commons</groupId>
-			<artifactId>persistence-common</artifactId>
+			<artifactId>common-persistence</artifactId>
 		</dependency>
 	</dependencies>
 

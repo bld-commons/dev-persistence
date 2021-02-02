@@ -46,7 +46,7 @@ public class JpaServiceGeneratorPlugin extends AbstractMojo {
 			String outputDirectory = this.project.getBuild().getOutputDirectory();
 			List<String> runtimeClasspathElements = this.project.getRuntimeClasspathElements();
 
-			List<File> files = ClassGeneratorUtils.getFiles(outputDirectory + "/com/bld/persistence/core/domain","class");
+			List<File> files = ClassGeneratorUtils.getFiles(outputDirectory + "/bld/persistence/core/domain","class");
 			URL[] urls = new URL[runtimeClasspathElements.size()];
 
 			for (int i = 0; i < runtimeClasspathElements.size(); i++)

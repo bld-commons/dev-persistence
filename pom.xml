@@ -75,7 +75,7 @@
 	</scm>
 
 	<modules>
-		<module>persistence-common</module>
+		<module>common-persistence</module>
 		<module>project-jpa-persistence</module>
 		<module>jpa-service-generator-plugin</module>
 	</modules>
@@ -84,7 +84,7 @@
 		<dependencies>
 			<dependency>
 				<groupId>com.github.bld-commons</groupId>
-				<artifactId>persistence-common</artifactId>
+				<artifactId>common-persistence</artifactId>
 				<version>${project.version}</version>
 			</dependency>
 			<dependency>
