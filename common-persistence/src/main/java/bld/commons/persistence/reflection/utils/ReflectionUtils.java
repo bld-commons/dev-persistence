@@ -78,6 +78,8 @@ public class ReflectionUtils {
 	/** The Constant SAVE. */
 	public static final String SAVE = "save";
 
+	public final static Map<Class<?>, Class<?>> mapPrimitiveToObject = mapFromPrimitiveToObject();
+
 	/**
 	 * Save generic.
 	 *
@@ -97,6 +99,20 @@ public class ReflectionUtils {
 
 	}
 
+	private static Map<Class<?>, Class<?>> mapFromPrimitiveToObject() {
+		Map<Class<?>, Class<?>> map = new HashMap<>();
+		map.put(int.class, Integer.class);
+		map.put(byte.class, Byte.class);
+		map.put(char.class, Character.class);
+		map.put(boolean.class, Boolean.class);
+		map.put(double.class, Double.class);
+		map.put(float.class, Float.class);
+		map.put(long.class, Long.class);
+		map.put(short.class, Short.class);
+		map.put(void.class, Void.class);
+		return map;
+	}
+
 	/**
 	 * Data to map.
 	 *
@@ -111,9 +127,7 @@ public class ReflectionUtils {
 		Map<String, Object> mapParameters = new HashMap<String, Object>();
 		Set<String> checkNullable = new HashSet<>();
 
-		Set<Field> campi = ReflectionUtils.getListField(obj);
-		Class<?> classApp = obj.getClass();
-		
+		Set<Field> campi = ReflectionUtils.getListField(obj.getClass());
 
 		for (Field f : campi) {
 			if (!f.isAnnotationPresent(ExcludeFromMap.class)) {
@@ -257,23 +271,21 @@ public class ReflectionUtils {
 	 * @return the string
 	 */
 	public static String removeExtraSpace(String join) {
-		join=join.trim();
-		if(join.contains("  "))
-			join=removeExtraSpace(join.replace("  ", " "));
+		join = join.trim();
+		if (join.contains("  "))
+			join = removeExtraSpace(join.replace("  ", " "));
 		return join;
 	}
 
-	public static Set<Field> getListField(Object obj){
-		Class<?> classApp = obj.getClass();
-		Set<Field> listField=new HashSet<>();
+	public static Set<Field> getListField(Class<?> classApp) {
+		Set<Field> listField = new HashSet<>();
 		do {
-			for(Field field:classApp.getDeclaredFields())
-				if(!listField.contains(field))
+			for (Field field : classApp.getDeclaredFields())
+				if (!listField.contains(field))
 					listField.add(field);
 			classApp = classApp.getSuperclass();
 		} while (classApp != null && !classApp.getName().equals(Object.class.getName()));
 		return listField;
 	}
-	
-	
+
 }
