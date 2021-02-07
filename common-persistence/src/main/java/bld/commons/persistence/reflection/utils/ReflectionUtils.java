@@ -44,6 +44,7 @@ import bld.commons.persistence.reflection.annotations.ListFilter;
 import bld.commons.persistence.reflection.annotations.ToCalendar;
 import bld.commons.persistence.reflection.model.QueryFilter;
 
+// TODO: Auto-generated Javadoc
 /**
  * The Class ReflectionUtils.
  */
@@ -78,15 +79,16 @@ public class ReflectionUtils {
 	/** The Constant SAVE. */
 	public static final String SAVE = "save";
 
+	/** The Constant mapPrimitiveToObject. */
 	public final static Map<Class<?>, Class<?>> mapPrimitiveToObject = mapFromPrimitiveToObject();
 
 	/**
 	 * Save generic.
 	 *
-	 * @param valore                 the valore
+	 * @param valore the valore
 	 * @param classCampoDestinatario the class campo destinatario
-	 * @throws NoSuchMethodException     the no such method exception
-	 * @throws IllegalAccessException    the illegal access exception
+	 * @throws NoSuchMethodException the no such method exception
+	 * @throws IllegalAccessException the illegal access exception
 	 * @throws InvocationTargetException the invocation target exception
 	 */
 	public void saveGeneric(Object valore, Class<?> classCampoDestinatario)
@@ -99,6 +101,11 @@ public class ReflectionUtils {
 
 	}
 
+	/**
+	 * Map from primitive to object.
+	 *
+	 * @return the map
+	 */
 	private static Map<Class<?>, Class<?>> mapFromPrimitiveToObject() {
 		Map<Class<?>, Class<?>> map = new HashMap<>();
 		map.put(int.class, Integer.class);
@@ -116,11 +123,11 @@ public class ReflectionUtils {
 	/**
 	 * Data to map.
 	 *
-	 * @param <T>         the generic type
-	 * @param <ID>        the generic type
-	 * @param obj         the obj
+	 * @param <T> the generic type
+	 * @param <ID> the generic type
+	 * @param obj the obj
 	 * @param queryFilter the query filter
-	 * @return the map
+	 * @return the query filter
 	 */
 	public <T, ID> QueryFilter<T, ID> dataToMap(Object obj, QueryFilter<T, ID> queryFilter) {
 
@@ -177,8 +184,8 @@ public class ReflectionUtils {
 	/**
 	 * Reflection.
 	 *
-	 * @param <T>       the generic type
-	 * @param t         the t
+	 * @param <T> the generic type
+	 * @param t the t
 	 * @param mapResult the map result
 	 * @throws Exception the exception
 	 */
@@ -200,7 +207,7 @@ public class ReflectionUtils {
 	/**
 	 * Gets the bean name.
 	 *
-	 * @param nomeClasse  the nome classe
+	 * @param nomeClasse the nome classe
 	 * @param rightConcat the right concat
 	 * @return the bean name
 	 */
@@ -235,33 +242,59 @@ public class ReflectionUtils {
 	}
 
 	/**
-	 * Gets the t class.
+	 * Gets the generic type class.
 	 *
-	 * @param <T>    the generic type
+	 * @param <T> the generic type
 	 * @param entity the entity
-	 * @return the t class
+	 * @return the generic type class
 	 */
-	public static <T> Class<T> getTClass(Object entity) {
-		return getTClass(entity, 0);
+	public static <T>Class<T> getGenericTypeClass(Object entity) {
+		return getGenericTypeClass(entity, 0);
 	}
 
 	/**
-	 * Gets the t class.
+	 * Gets the generic type class.
 	 *
-	 * @param <T>    the generic type
+	 * @param <T> the generic type
 	 * @param entity the entity
-	 * @param i      the i
-	 * @return the t class
+	 * @param i the i
+	 * @return the generic type class
 	 */
-	public static <T> Class<T> getTClass(Object entity, int i) {
+	public static <T>Class<T> getGenericTypeClass(Object entity, int i) {
 		ParameterizedType parameterizedType = null;
 		try {
 			parameterizedType = (ParameterizedType) entity.getClass().getGenericSuperclass();
 		} catch (Exception e) {
 			parameterizedType = (ParameterizedType) entity.getClass().getSuperclass().getGenericSuperclass();
 		}
-		Class<T> classT = (Class<T>) parameterizedType.getActualTypeArguments()[i];
-		return classT;
+		Class<T> clazz = (Class<T>) parameterizedType.getActualTypeArguments()[i];
+		return clazz;
+	}
+
+	/**
+	 * Gets the generic type field.
+	 *
+	 * @param <T> the generic type
+	 * @param field the field
+	 * @return the generic type field
+	 */
+	public static <T>Class<T> getGenericTypeField(Field field) {
+		return getGenericTypeField(field, 0);
+	}
+
+	/**
+	 * Gets the generic type field.
+	 *
+	 * @param <T> the generic type
+	 * @param field the field
+	 * @param i the i
+	 * @return the generic type field
+	 */
+	public static <T>Class<T> getGenericTypeField(Field field, int i) {
+		ParameterizedType parameterizedType = null;
+		parameterizedType = (ParameterizedType) field.getGenericType();
+		Class<T> clazz = (Class<T>) parameterizedType.getActualTypeArguments()[i];
+		return clazz;
 	}
 
 	/**
@@ -277,6 +310,12 @@ public class ReflectionUtils {
 		return join;
 	}
 
+	/**
+	 * Gets the list field.
+	 *
+	 * @param classApp the class app
+	 * @return the list field
+	 */
 	public static Set<Field> getListField(Class<?> classApp) {
 		Set<Field> listField = new HashSet<>();
 		do {
@@ -286,6 +325,23 @@ public class ReflectionUtils {
 			classApp = classApp.getSuperclass();
 		} while (classApp != null && !classApp.getName().equals(Object.class.getName()));
 		return listField;
+	}
+
+	/**
+	 * Gets the map field.
+	 *
+	 * @param classApp the class app
+	 * @return the map field
+	 */
+	public static Map<String, Field> getMapField(Class<?> classApp) {
+		Map<String, Field> mapField = new HashMap<>();
+		do {
+			for (Field field : classApp.getDeclaredFields())
+				if (!mapField.containsKey(field.getName()))
+					mapField.put(field.getName(), field);
+			classApp = classApp.getSuperclass();
+		} while (classApp != null && !classApp.getName().equals(Object.class.getName()));
+		return mapField;
 	}
 
 }

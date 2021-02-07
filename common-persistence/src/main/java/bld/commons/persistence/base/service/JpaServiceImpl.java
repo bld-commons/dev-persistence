@@ -24,7 +24,7 @@ import bld.commons.persistence.reflection.utils.ReflectionUtils;
 public abstract class JpaServiceImpl<T, ID> extends BaseJpaService implements JpaService<T, ID> {
 
 	/** The classe. */
-	protected Class<T> clazz = ReflectionUtils.getTClass(this);
+	protected Class<T> clazz = ReflectionUtils.getGenericTypeClass(this);
 
 	/** The map one to many. */
 	private Map<String, LinkedHashSet<String>> mapOneToMany;
