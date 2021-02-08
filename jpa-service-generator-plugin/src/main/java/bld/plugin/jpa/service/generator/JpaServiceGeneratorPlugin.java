@@ -23,6 +23,7 @@ import bld.commons.generator.config.ConfigurationClassGenerator;
 import bld.commons.yaml.model.ModelClasses;
 import bld.commons.yaml.utils.ClassGeneratorUtils;
 import bld.plugin.jpa.service.generator.classes.Generator;
+import bld.plugin.jpa.service.generator.utils.FileUtils;
 
 @Mojo(name = "jpa-service-generator", defaultPhase = LifecyclePhase.GENERATE_SOURCES, requiresDependencyResolution = ResolutionScope.COMPILE, requiresDependencyCollection = ResolutionScope.COMPILE)
 @SuppressWarnings("resource")
@@ -34,7 +35,7 @@ public class JpaServiceGeneratorPlugin extends AbstractMojo {
 	@Parameter(required = true)
 	private String persistencePackage;
 //	
-	@Parameter(defaultValue = "${project.basedir}/target/generated-sources/classes")
+	@Parameter(defaultValue = "target/generated-sources/classes")
 	private String outputDirectory;
 	
 	
@@ -44,19 +45,28 @@ public class JpaServiceGeneratorPlugin extends AbstractMojo {
 	
 	public void execute() throws MojoExecutionException, MojoFailureException {
 		try {
-			project.addCompileSourceRoot(new File(outputDirectory).getAbsolutePath());
+			outputDirectory=this.project.getBasedir()+"/"+outputDirectory;
+			String classesDirectory = this.project.getBuild().getOutputDirectory();
+		
 			
+			
+			project.addCompileSourceRoot(new File(this.project.getBasedir()+"/target/generated-sources/classes").getAbsolutePath());
+			
+			String slash="/";
+			if(System.getProperty("os.name").toLowerCase().contains("win"))
+				slash="\\";
 			if(!persistencePackage.endsWith("."))
 				persistencePackage=persistencePackage+".";
 			ModelClasses modelClasses=new ModelClasses();
-			String classesDirectory = this.project.getBuild().getOutputDirectory();
-			File dir=new File(this.project.getBuild().getOutputDirectory());
+			
+			File dir=new File(classesDirectory);
 			if(!dir.exists())
 				dir.mkdirs();
 			String importJar="";
 			for(Artifact artifact:this.project.getArtifacts()) 
 				importJar+=":"+artifact.getFile().getPath();
-			String command="javac -cp ."+importJar+" -d "+classesDirectory +" "+this.project.getBasedir() + "/src/main/java/com/bld/persistence/core/domain/*.java";
+			
+			String command="javac -cp ."+importJar+" -d "+classesDirectory +" "+this.project.getCompileSourceRoots().get(0)+slash+persistencePackage.replace(".", slash)+"*.java";
 			getLog().info(command);
 			
 
@@ -75,14 +85,12 @@ public class JpaServiceGeneratorPlugin extends AbstractMojo {
 			
 
 			URLClassLoader urlClassLoader = new URLClassLoader(urls,Thread.currentThread().getContextClassLoader());
-			List<File> files = ClassGeneratorUtils.getFiles(classesDirectory + "/com/bld/persistence/core/domain","class");
+			List<File> files = ClassGeneratorUtils.getFiles(classesDirectory +slash+persistencePackage.replace(".", slash),"class");
 			for (File file : files) {
 				String nameClass=persistencePackage.replace("/", ".")+ file.getName().replace(".class", "");
 				Class<?>entityClass=urlClassLoader.loadClass(nameClass);
-				if(entityClass.isAnnotationPresent(Entity.class)) {
+				if(entityClass.isAnnotationPresent(Entity.class)) 
 					Generator.generateClass(modelClasses, entityClass, classesDirectory);
-				}
-					
 			} 
 				
 
@@ -92,10 +100,12 @@ public class JpaServiceGeneratorPlugin extends AbstractMojo {
 			GeneratorClass generatorClass=new GeneratorClassImpl(ConfigurationClassGenerator.configClassGenerator(resourceTemplateDirectory));
 			generatorClass.writeClass(modelClasses, outputDirectory);
 			
-
+			//FileUtils.deleteFile(classesDirectory +slash+persistencePackage.replace(".", slash));
+			
 
 			getLog().info("----------------End reflection--------------------");
-			this.project.addLifecyclePhase("install");
+			
+			//this.project.addLifecyclePhase("install");
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

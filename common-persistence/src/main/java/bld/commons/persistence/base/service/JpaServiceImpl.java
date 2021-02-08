@@ -26,8 +26,6 @@ public abstract class JpaServiceImpl<T, ID> extends BaseJpaService implements Jp
 	/** The classe. */
 	protected Class<T> clazz = ReflectionUtils.getGenericTypeClass(this);
 
-	/** The map one to many. */
-	private Map<String, LinkedHashSet<String>> mapOneToMany;
 
 	/**
 	 * Gets the jpa repository.
@@ -59,7 +57,7 @@ public abstract class JpaServiceImpl<T, ID> extends BaseJpaService implements Jp
 	 * @return the builds the query filter
 	 */
 	private BuildQueryFilter<T, ID> baseConfigureQueryFilter(QueryFilter<T, ID> queryFilter, String query) {
-		return new BuildQueryFilter<>(mapConditions(), this.mapOneToMany, queryFilter, query);
+		return new BuildQueryFilter<>(mapConditions(), queryFilter, query);
 	}
 	
 	
@@ -77,11 +75,6 @@ public abstract class JpaServiceImpl<T, ID> extends BaseJpaService implements Jp
 	 */
 	protected abstract String countByFilter();
 
-
-	/**
-	 * Map one to many.
-	 */
-	protected abstract void mapOneToMany();
 
 	/**
 	 * Map condizioni.

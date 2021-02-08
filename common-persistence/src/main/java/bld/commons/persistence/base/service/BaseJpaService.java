@@ -36,6 +36,9 @@ public abstract class BaseJpaService  {
 	
 	/** The Constant ONE_TO_MANY. */
 	public static final CharSequence ONE_TO_MANY = "<ONE_TO_MANY>";
+	
+	/** The map one to many. */
+	protected Map<String, LinkedHashSet<String>> mapOneToMany;
 
 	/**
 	 * Gets the entity manager.
@@ -50,6 +53,12 @@ public abstract class BaseJpaService  {
 	 * @return the jdbc template
 	 */
 	protected abstract NamedParameterJdbcTemplate getJdbcTemplate();
+	
+	
+	/**
+	 * Map one to many.
+	 */
+	protected abstract void mapOneToMany();
 	
 	/** The reflection utils. */
 	@Autowired	
@@ -148,7 +157,7 @@ public abstract class BaseJpaService  {
 		QueryFilter<T,ID>queryFilter=buildQueryFilter.getQueryFilter();
 		Map<String, Object> mapParameters = queryFilter.getMapParameters();
 		String select = makeQuery(mapParameters, buildQueryFilter.getSql(), buildQueryFilter.getMapConditions(), queryFilter.getCheckNullable());
-		select = addRelationshipsOneToMany(mapParameters, select, buildQueryFilter.getMapOneToMany(),queryFilter.getCheckNullable());
+		select = addRelationshipsOneToMany(mapParameters, select, queryFilter.getCheckNullable());
 		String orderBy = getOrderBy(queryFilter.getSortKey(), queryFilter.getSortOrder());
 		if (StringUtils.isNotBlank(orderBy)) {
 			if (select.contains(ORDER_BY)) {
@@ -211,11 +220,11 @@ public abstract class BaseJpaService  {
 	 * @param checkNullable the check nullable
 	 * @return the string
 	 */
-	private String addRelationshipsOneToMany(Map<String, Object> mapParameters, String select,Map<String, LinkedHashSet<String>> mapOneToMany, Set<String> checkNullable) {
+	private String addRelationshipsOneToMany(Map<String, Object> mapParameters, String select, Set<String> checkNullable) {
 		String innerJoin = " ";
 		Set<String> listJoin=new HashSet<>();
 		
-		for (String key : mapOneToMany.keySet()) {
+		for (String key : this.mapOneToMany.keySet()) {
 			if (mapParameters.containsKey(key) || (checkNullable != null && checkNullable.contains(key))) {
 				Set<String> joins = mapOneToMany.get(key);
 				for(String join:joins) {
@@ -244,7 +253,7 @@ public abstract class BaseJpaService  {
 	public <T,ID> Long countByFilter(BuildQueryFilter<T,ID> buildQueryFilter) {
 		QueryFilter<T,ID>queryFilter=buildQueryFilter.getQueryFilter();
 		String count = buildQueryFilter.getSql().replaceAll(fetch, "");
-		count = addRelationshipsOneToMany(queryFilter.getMapParameters(), count, buildQueryFilter.getMapOneToMany(),queryFilter.getCheckNullable());
+		count = addRelationshipsOneToMany(queryFilter.getMapParameters(), count,queryFilter.getCheckNullable());
 		count = makeQuery(queryFilter.getMapParameters(), count, buildQueryFilter.getMapConditions(),queryFilter.getCheckNullable());
 		Query query = this.getEntityManager().createQuery(count, Long.class);
 		query = setQueryParameters(queryFilter.getMapParameters(), query);

@@ -84,6 +84,7 @@
 							<goal>jpa-service-generator</goal>
 						</goals>
 						<configuration>
+							<outputDirectory>src/main/java</outputDirectory>
 							<persistencePackage>com.bld.persistence.core.domain</persistencePackage>
 						</configuration>
 					</execution>

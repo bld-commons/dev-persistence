@@ -103,12 +103,13 @@ public class Generator {
 		List<String> mapConditions = new ArrayList<>();
 		List<String> mapOneToMany=new ArrayList<>();
 		mapConditions.add(SPACE+"Map<String,String> map=new HashMap<>();");
-
+		
+		boolean checkOneToMany=false;
+		
 		for (Field field : listField) {
 
 			if (field.isAnnotationPresent(Id.class) || field.isAnnotationPresent(EmbeddedId.class)) {
 				Class<?> classType = field.getType();
-				logger.info("ID name: " + field.getName() + " --- type: " + classType.getSimpleName());
 				if (ReflectionUtils.mapPrimitiveToObject.containsKey(classType))
 					classType = ReflectionUtils.mapPrimitiveToObject.get(classType);
 				genericTypeId.setName(classType.getSimpleName());
@@ -150,6 +151,7 @@ public class Generator {
 					}
 				}
 			}else if (field.isAnnotationPresent(OneToMany.class)) {
+				checkOneToMany=true;
 				OneToMany oneToMany=field.getAnnotation(OneToMany.class);
 				Class<?>classReferenceField=ReflectionUtils.getGenericTypeField(field);
 				Map<String,Field>mapField=ReflectionUtils.getMapField(classReferenceField);
@@ -171,7 +173,7 @@ public class Generator {
 			}
 
 		}
-		fromByFilter+=" where 1=1 ";
+		fromByFilter+=(checkOneToMany?" \"+ONE_TO_MANY+\" where 1=1 ":" where 1=1 ");
 		ModelField fromByFilterField = finalStaticField(FROM_BY_FILTER, STRING, fromByFilter,true);
 		ModelField countByFilterField = finalStaticField(COUNT_BY_FILTER, STRING, countByFilter + "+" + FROM_BY_FILTER,false);
 		ModelField selectByFilterField = finalStaticField(SELECT_BY_FILTER, STRING,
