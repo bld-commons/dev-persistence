@@ -23,7 +23,6 @@ import bld.commons.generator.config.ConfigurationClassGenerator;
 import bld.commons.yaml.model.ModelClasses;
 import bld.commons.yaml.utils.ClassGeneratorUtils;
 import bld.plugin.jpa.service.generator.classes.Generator;
-import bld.plugin.jpa.service.generator.utils.FileUtils;
 
 @Mojo(name = "jpa-service-generator", defaultPhase = LifecyclePhase.GENERATE_SOURCES, requiresDependencyResolution = ResolutionScope.COMPILE, requiresDependencyCollection = ResolutionScope.COMPILE)
 @SuppressWarnings("resource")

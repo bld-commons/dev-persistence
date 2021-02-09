@@ -19,7 +19,6 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -34,14 +33,14 @@ import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;
 
-import bld.commons.persistence.reflection.annotations.ExcludeFromMap;
+import bld.commons.persistence.reflection.annotations.IgnoreMapping;
 import bld.commons.persistence.reflection.annotations.LikeString;
 import bld.commons.persistence.reflection.annotations.ListFilter;
 import bld.commons.persistence.reflection.annotations.ToCalendar;
+import bld.commons.persistence.reflection.model.ParameterFilter;
 import bld.commons.persistence.reflection.model.QueryFilter;
 
 // TODO: Auto-generated Javadoc
@@ -55,13 +54,6 @@ public class ReflectionUtils {
 	/** The Constant PK. */
 	public static final String PK = "PK";
 
-	/** The base package persistence. */
-	@Value("#{'${com.bld.common.base.package.persistence}'.split(',')}")
-	private List<String> basePackagePersistence;
-
-	/** The base package project. */
-	@Value("${com.bld.common.base.package.project:com.bld}")
-	private String basePackageProject;
 
 	/** The context. */
 	@Autowired
@@ -120,26 +112,18 @@ public class ReflectionUtils {
 		return map;
 	}
 
-	/**
-	 * Data to map.
-	 *
-	 * @param <T> the generic type
-	 * @param <ID> the generic type
-	 * @param obj the obj
-	 * @param queryFilter the query filter
-	 * @return the query filter
-	 */
-	public <T, ID> QueryFilter<T, ID> dataToMap(Object obj, QueryFilter<T, ID> queryFilter) {
+
+	public <T, ID> QueryFilter<T, ID> dataToMap(QueryFilter<T, ID> queryFilter) {
 
 		Map<String, Object> mapParameters = new HashMap<String, Object>();
 		Set<String> checkNullable = new HashSet<>();
-
+		ParameterFilter obj=queryFilter.getParameterFilter();
 		Set<Field> campi = ReflectionUtils.getListField(obj.getClass());
 
 		for (Field f : campi) {
-			if (!f.isAnnotationPresent(ExcludeFromMap.class)) {
+			if (!f.isAnnotationPresent(IgnoreMapping.class)) {
 				try {
-					Object value = BeanUtils.getProperty(obj, f.getName());
+					Object value = PropertyUtils.getProperty(obj, f.getName());
 					if (value != null && value instanceof String && StringUtils.isBlank((String) value))
 						value = null;
 					if (value != null) {

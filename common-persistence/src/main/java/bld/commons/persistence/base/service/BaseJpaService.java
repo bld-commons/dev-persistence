@@ -106,8 +106,15 @@ public abstract class BaseJpaService  {
 	 * @return the t
 	 */
 	private <T extends Query> T setQueryParameters(Map<String, Object> mapParameters, T query) {
-		for (String key : mapParameters.keySet())
+		for (String key : mapParameters.keySet()) {
+			Object value=mapParameters.get(key);
+			logger.info("----------------------------------------------------------");
+			logger.info("Key: "+key);
+			logger.info("Value: "+value);
+			logger.info("Class: "+value.getClass().getName());
 			query.setParameter(key, mapParameters.get(key));
+		}
+			
 		return query;
 	}
 
@@ -121,9 +128,9 @@ public abstract class BaseJpaService  {
 	 */
 	private String getWhereConditionNullOrNotNull(Set<String> checkNullable, String select,Map<String, String> mapConditions) {
 		if (checkNullable != null) {
-			for (String isNullAndIsNotNull : checkNullable) {
-				logger.info("String isNullAndIsNotNull: " + isNullAndIsNotNull);
-				select += mapConditions.get(isNullAndIsNotNull);
+			for (String key : checkNullable) {
+				logger.info("String checkNullable: " + key);
+				select += mapConditions.get(key);
 			}
 		}
 		return select;

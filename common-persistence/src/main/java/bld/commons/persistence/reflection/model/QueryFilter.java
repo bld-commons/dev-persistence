@@ -41,16 +41,7 @@ public class QueryFilter <T, ID>{
 	/** The class filter. */
 	private Class<T> classFilter;
 	
-	
-
-	/**
-	 * Instantiates a new query filter.
-	 */
-	public QueryFilter() {
-		super();
-		this.checkNullable=new HashSet<>();
-		this.mapParameters=new HashMap<>();
-	}
+	private ParameterFilter parameterFilter;
 	
 	
 	/**
@@ -67,10 +58,11 @@ public class QueryFilter <T, ID>{
 	 *
 	 * @param filter the filter
 	 */
-	public QueryFilter(BaseFilterRequest filter) {
+	public QueryFilter(ParameterFilter filter) {
 		super();
 		this.checkNullable = new HashSet<>();
 		this.mapParameters=new HashMap<>();
+		this.parameterFilter=filter;
 		if (filter != null) {
 			this.sortKey = filter.getSortKey();
 			this.sortOrder = filter.getSortOrder();
@@ -235,9 +227,16 @@ public class QueryFilter <T, ID>{
 	public void setClassFilter(Class<T> classFilter) {
 		this.classFilter = classFilter;
 	}
-	
-	
-	
+
+
+	public ParameterFilter getParameterFilter() {
+		return parameterFilter;
+	}
+
+
+	public void setParameterFilter(ParameterFilter parameterFilter) {
+		this.parameterFilter = parameterFilter;
+	}
 	
 	
 	

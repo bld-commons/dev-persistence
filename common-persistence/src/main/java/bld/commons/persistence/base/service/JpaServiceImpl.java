@@ -8,6 +8,7 @@ import java.util.Map;
 
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.collections4.CollectionUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import bld.commons.persistence.reflection.model.BuildQueryFilter;
@@ -26,6 +27,8 @@ public abstract class JpaServiceImpl<T, ID> extends BaseJpaService implements Jp
 	/** The classe. */
 	protected Class<T> clazz = ReflectionUtils.getGenericTypeClass(this);
 
+	@Autowired
+	private ReflectionUtils reflectionUtils;
 
 	/**
 	 * Gets the jpa repository.
@@ -46,6 +49,9 @@ public abstract class JpaServiceImpl<T, ID> extends BaseJpaService implements Jp
 			this.mapOneToMany=new HashMap<>();
 			mapOneToMany();
 		}
+		if(queryFilter.getParameterFilter()!=null)
+			queryFilter=reflectionUtils.dataToMap(queryFilter);
+		queryFilter.setClassFilter(clazz);
 		return baseConfigureQueryFilter(queryFilter, query);
 	}
 

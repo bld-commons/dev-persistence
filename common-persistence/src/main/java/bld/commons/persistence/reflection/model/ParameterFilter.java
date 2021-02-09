@@ -10,29 +10,29 @@
  ***************************************************************************/
 package bld.commons.persistence.reflection.model;
 
-import bld.commons.persistence.reflection.annotations.ExcludeFromMap;
+import bld.commons.persistence.reflection.annotations.IgnoreMapping;
 
 // TODO: Auto-generated Javadoc
 /**
  * The Class BaseFilterRequest.
  *
  */
-public abstract class BaseFilterRequest {
+public abstract class ParameterFilter {
 
 	/** The sort key. */
-	@ExcludeFromMap
+	@IgnoreMapping
 	protected String sortKey;
 
 	/** The sort order. */
-	@ExcludeFromMap
+	@IgnoreMapping
 	protected String sortOrder;
 
 	/** The page size. */
-	@ExcludeFromMap
+	@IgnoreMapping
 	protected Integer pageSize;
 
 	/** The page number. */
-	@ExcludeFromMap
+	@IgnoreMapping
 	protected Integer pageNumber;
 
 	/**

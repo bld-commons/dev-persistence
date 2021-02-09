@@ -1,0 +1,15 @@
+package com.bld.persistence.core.service;
+
+import com.bld.persistence.core.domain.TipoUtente;
+import bld.commons.persistence.base.service.JpaService;
+
+public  interface TipoUtenteService extends JpaService<TipoUtente,Long>{
+
+
+	
+
+	
+    
+    
+
+}

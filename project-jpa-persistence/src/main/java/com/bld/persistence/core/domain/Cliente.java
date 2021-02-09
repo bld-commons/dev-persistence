@@ -69,24 +69,19 @@ public class Cliente implements Serializable {
 
 	private Long version;
 
-	//bi-directional many-to-one association to TipoToponimo
 	@ManyToOne(fetch=FetchType.LAZY)
 	@JoinColumn(name="id_tipo_toponimo", nullable=false)
 	private TipoToponimo tipoToponimo;
 
-	//bi-directional many-to-one association to ContattoCliente
 	@OneToMany(mappedBy="cliente")
 	private Set<ContattoCliente> contattoClientes;
 
-	//bi-directional many-to-one association to Ordine
 	@OneToMany(mappedBy="cliente")
 	private Set<Ordine> ordines;
 
-	//bi-directional many-to-one association to StoricoOrdine
 	@OneToMany(mappedBy="cliente")
 	private Set<StoricoOrdine> storicoOrdines;
 
-	//bi-directional many-to-one association to Utente
 	@OneToMany(mappedBy="cliente")
 	private Set<Utente> utentes;
 
