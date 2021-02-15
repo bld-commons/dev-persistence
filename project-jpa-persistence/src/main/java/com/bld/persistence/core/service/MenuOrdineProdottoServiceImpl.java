@@ -42,12 +42,8 @@ public  class MenuOrdineProdottoServiceImpl extends JpaServiceImpl<MenuOrdinePro
     
     
 	@Override
-    protected  NamedParameterJdbcTemplate getJdbcTemplate() {
-        return jdbcTemplate;
-    }
-	@Override
-    protected  String countByFilter() {
-        return COUNT_BY_FILTER;
+    protected  JpaRepository<MenuOrdineProdotto,MenuOrdineProdottoPK> getJpaRepository() {
+        return menuOrdineProdottoRepository;
     }
 	@Override
     protected  EntityManager getEntityManager() {
@@ -65,19 +61,23 @@ public  class MenuOrdineProdottoServiceImpl extends JpaServiceImpl<MenuOrdinePro
         return map;
     }
 	@Override
+    protected  void mapOneToMany() {
+    }
+	@Override
     protected  Map<String,String> mapConditions() {
         return MAP_CONDITIONS;
     }
 	@Override
-    protected  void mapOneToMany() {
+    protected  NamedParameterJdbcTemplate getJdbcTemplate() {
+        return jdbcTemplate;
+    }
+	@Override
+    protected  String countByFilter() {
+        return COUNT_BY_FILTER;
     }
 	@Override
     protected  String selectByFilter() {
         return SELECT_BY_FILTER;
-    }
-	@Override
-    protected  JpaRepository<MenuOrdineProdotto,MenuOrdineProdottoPK> getJpaRepository() {
-        return menuOrdineProdottoRepository;
     }
 
 }

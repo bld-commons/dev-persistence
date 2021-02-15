@@ -41,8 +41,16 @@ public  class TipoStatoOrdineServiceImpl extends JpaServiceImpl<TipoStatoOrdine,
     
     
 	@Override
-    protected  Map<String,String> mapConditions() {
-        return MAP_CONDITIONS;
+    protected  void mapOneToMany() {
+        addJoinOneToMany("idOrdine", "  join fetch tipoStatoOrdine.ordines ordines ");
+    }
+	@Override
+    protected  JpaRepository<TipoStatoOrdine,Long> getJpaRepository() {
+        return tipoStatoOrdineRepository;
+    }
+	@Override
+    protected  EntityManager getEntityManager() {
+        return entityManager;
     }
     private static  Map<String,String> getMapConditions() {
         Map<String,String> map=new HashMap<>();
@@ -53,6 +61,10 @@ public  class TipoStatoOrdineServiceImpl extends JpaServiceImpl<TipoStatoOrdine,
         return map;
     }
 	@Override
+    protected  Map<String,String> mapConditions() {
+        return MAP_CONDITIONS;
+    }
+	@Override
     protected  NamedParameterJdbcTemplate getJdbcTemplate() {
         return jdbcTemplate;
     }
@@ -61,20 +73,8 @@ public  class TipoStatoOrdineServiceImpl extends JpaServiceImpl<TipoStatoOrdine,
         return COUNT_BY_FILTER;
     }
 	@Override
-    protected  EntityManager getEntityManager() {
-        return entityManager;
-    }
-	@Override
     protected  String selectByFilter() {
         return SELECT_BY_FILTER;
-    }
-	@Override
-    protected  JpaRepository<TipoStatoOrdine,Long> getJpaRepository() {
-        return tipoStatoOrdineRepository;
-    }
-	@Override
-    protected  void mapOneToMany() {
-        addJoinOneToMany("idOrdine", "  join fetch tipoStatoOrdine.ordines ordines ");
     }
 
 }

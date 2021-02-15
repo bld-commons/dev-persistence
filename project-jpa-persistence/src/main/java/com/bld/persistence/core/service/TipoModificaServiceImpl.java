@@ -41,20 +41,11 @@ public  class TipoModificaServiceImpl extends JpaServiceImpl<TipoModifica,Long> 
     
     
 	@Override
-    protected  NamedParameterJdbcTemplate getJdbcTemplate() {
-        return jdbcTemplate;
-    }
-	@Override
-    protected  String countByFilter() {
-        return COUNT_BY_FILTER;
-    }
-	@Override
-    protected  JpaRepository<TipoModifica,Long> getJpaRepository() {
-        return tipoModificaRepository;
-    }
-	@Override
     protected  Map<String,String> mapConditions() {
         return MAP_CONDITIONS;
+    }
+	@Override
+    protected  void mapOneToMany() {
     }
 	@Override
     protected  EntityManager getEntityManager() {
@@ -68,11 +59,20 @@ public  class TipoModificaServiceImpl extends JpaServiceImpl<TipoModifica,Long> 
         return map;
     }
 	@Override
-    protected  String selectByFilter() {
-        return SELECT_BY_FILTER;
+    protected  JpaRepository<TipoModifica,Long> getJpaRepository() {
+        return tipoModificaRepository;
     }
 	@Override
-    protected  void mapOneToMany() {
+    protected  NamedParameterJdbcTemplate getJdbcTemplate() {
+        return jdbcTemplate;
+    }
+	@Override
+    protected  String countByFilter() {
+        return COUNT_BY_FILTER;
+    }
+	@Override
+    protected  String selectByFilter() {
+        return SELECT_BY_FILTER;
     }
 
 }

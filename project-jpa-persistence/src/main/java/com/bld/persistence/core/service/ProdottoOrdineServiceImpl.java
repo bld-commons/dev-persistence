@@ -41,12 +41,16 @@ public  class ProdottoOrdineServiceImpl extends JpaServiceImpl<ProdottoOrdine,Lo
     
     
 	@Override
-    protected  NamedParameterJdbcTemplate getJdbcTemplate() {
-        return jdbcTemplate;
+    protected  JpaRepository<ProdottoOrdine,Long> getJpaRepository() {
+        return prodottoOrdineRepository;
     }
 	@Override
-    protected  String countByFilter() {
-        return COUNT_BY_FILTER;
+    protected  void mapOneToMany() {
+        addJoinOneToMany("idModificaProdottoOrdine", "  join fetch prodottoOrdine.modificaProdottoOrdines modificaProdottoOrdines ");
+    }
+	@Override
+    protected  EntityManager getEntityManager() {
+        return entityManager;
     }
     private static  Map<String,String> getMapConditions() {
         Map<String,String> map=new HashMap<>();
@@ -67,24 +71,20 @@ public  class ProdottoOrdineServiceImpl extends JpaServiceImpl<ProdottoOrdine,Lo
         return map;
     }
 	@Override
+    protected  NamedParameterJdbcTemplate getJdbcTemplate() {
+        return jdbcTemplate;
+    }
+	@Override
+    protected  String countByFilter() {
+        return COUNT_BY_FILTER;
+    }
+	@Override
     protected  Map<String,String> mapConditions() {
         return MAP_CONDITIONS;
     }
 	@Override
-    protected  EntityManager getEntityManager() {
-        return entityManager;
-    }
-	@Override
     protected  String selectByFilter() {
         return SELECT_BY_FILTER;
-    }
-	@Override
-    protected  void mapOneToMany() {
-        addJoinOneToMany("idModificaProdottoOrdine", "  join fetch prodottoOrdine.modificaProdottoOrdines modificaProdottoOrdines ");
-    }
-	@Override
-    protected  JpaRepository<ProdottoOrdine,Long> getJpaRepository() {
-        return prodottoOrdineRepository;
     }
 
 }

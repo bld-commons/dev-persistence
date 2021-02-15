@@ -41,12 +41,28 @@ public  class GenereServiceImpl extends JpaServiceImpl<Genere,Long> implements G
     
     
 	@Override
+    protected  EntityManager getEntityManager() {
+        return entityManager;
+    }
+	@Override
+    protected  JpaRepository<Genere,Long> getJpaRepository() {
+        return genereRepository;
+    }
+	@Override
     protected  NamedParameterJdbcTemplate getJdbcTemplate() {
         return jdbcTemplate;
     }
 	@Override
     protected  String countByFilter() {
         return COUNT_BY_FILTER;
+    }
+	@Override
+    protected  Map<String,String> mapConditions() {
+        return MAP_CONDITIONS;
+    }
+	@Override
+    protected  String selectByFilter() {
+        return SELECT_BY_FILTER;
     }
     private static  Map<String,String> getMapConditions() {
         Map<String,String> map=new HashMap<>();
@@ -69,22 +85,6 @@ public  class GenereServiceImpl extends JpaServiceImpl<Genere,Long> implements G
     protected  void mapOneToMany() {
         addJoinOneToMany("idConfiguraMenu", "  join fetch genere.configuraMenus configuraMenus ");
         addJoinOneToMany("idProdotto", "  join fetch genere.prodottos prodottos ");
-    }
-	@Override
-    protected  EntityManager getEntityManager() {
-        return entityManager;
-    }
-	@Override
-    protected  String selectByFilter() {
-        return SELECT_BY_FILTER;
-    }
-	@Override
-    protected  JpaRepository<Genere,Long> getJpaRepository() {
-        return genereRepository;
-    }
-	@Override
-    protected  Map<String,String> mapConditions() {
-        return MAP_CONDITIONS;
     }
 
 }

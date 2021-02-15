@@ -40,6 +40,14 @@ public  class ClienteServiceImpl extends JpaServiceImpl<Cliente,Long> implements
 	
     
     
+	@Override
+    protected  EntityManager getEntityManager() {
+        return entityManager;
+    }
+	@Override
+    protected  JpaRepository<Cliente,Long> getJpaRepository() {
+        return clienteRepository;
+    }
     private static  Map<String,String> getMapConditions() {
         Map<String,String> map=new HashMap<>();
         map.put("cap", " and cliente.cap like :cap ");
@@ -64,24 +72,8 @@ public  class ClienteServiceImpl extends JpaServiceImpl<Cliente,Long> implements
         return map;
     }
 	@Override
-    protected  NamedParameterJdbcTemplate getJdbcTemplate() {
-        return jdbcTemplate;
-    }
-	@Override
-    protected  String countByFilter() {
-        return COUNT_BY_FILTER;
-    }
-	@Override
-    protected  EntityManager getEntityManager() {
-        return entityManager;
-    }
-	@Override
-    protected  JpaRepository<Cliente,Long> getJpaRepository() {
-        return clienteRepository;
-    }
-	@Override
-    protected  String selectByFilter() {
-        return SELECT_BY_FILTER;
+    protected  Map<String,String> mapConditions() {
+        return MAP_CONDITIONS;
     }
 	@Override
     protected  void mapOneToMany() {
@@ -90,8 +82,16 @@ public  class ClienteServiceImpl extends JpaServiceImpl<Cliente,Long> implements
         addJoinOneToMany("contatto", "  join fetch cliente.contattoClientes contattoClientes ");
     }
 	@Override
-    protected  Map<String,String> mapConditions() {
-        return MAP_CONDITIONS;
+    protected  NamedParameterJdbcTemplate getJdbcTemplate() {
+        return jdbcTemplate;
+    }
+	@Override
+    protected  String countByFilter() {
+        return COUNT_BY_FILTER;
+    }
+	@Override
+    protected  String selectByFilter() {
+        return SELECT_BY_FILTER;
     }
 
 }

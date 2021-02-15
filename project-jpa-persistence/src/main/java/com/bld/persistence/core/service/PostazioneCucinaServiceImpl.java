@@ -40,6 +40,30 @@ public  class PostazioneCucinaServiceImpl extends JpaServiceImpl<PostazioneCucin
 	
     
     
+	@Override
+    protected  JpaRepository<PostazioneCucina,Long> getJpaRepository() {
+        return postazioneCucinaRepository;
+    }
+	@Override
+    protected  Map<String,String> mapConditions() {
+        return MAP_CONDITIONS;
+    }
+	@Override
+    protected  EntityManager getEntityManager() {
+        return entityManager;
+    }
+	@Override
+    protected  void mapOneToMany() {
+        addJoinOneToMany("idGenere", "  join fetch postazioneCucina.generes generes ");
+    }
+	@Override
+    protected  NamedParameterJdbcTemplate getJdbcTemplate() {
+        return jdbcTemplate;
+    }
+	@Override
+    protected  String countByFilter() {
+        return COUNT_BY_FILTER;
+    }
     private static  Map<String,String> getMapConditions() {
         Map<String,String> map=new HashMap<>();
         map.put("createUser", " and postazioneCucina.createUser like :createUser ");
@@ -57,32 +81,8 @@ public  class PostazioneCucinaServiceImpl extends JpaServiceImpl<PostazioneCucin
         return map;
     }
 	@Override
-    protected  NamedParameterJdbcTemplate getJdbcTemplate() {
-        return jdbcTemplate;
-    }
-	@Override
-    protected  String countByFilter() {
-        return COUNT_BY_FILTER;
-    }
-	@Override
-    protected  Map<String,String> mapConditions() {
-        return MAP_CONDITIONS;
-    }
-	@Override
-    protected  EntityManager getEntityManager() {
-        return entityManager;
-    }
-	@Override
-    protected  void mapOneToMany() {
-        addJoinOneToMany("idGenere", "  join fetch postazioneCucina.generes generes ");
-    }
-	@Override
     protected  String selectByFilter() {
         return SELECT_BY_FILTER;
-    }
-	@Override
-    protected  JpaRepository<PostazioneCucina,Long> getJpaRepository() {
-        return postazioneCucinaRepository;
     }
 
 }

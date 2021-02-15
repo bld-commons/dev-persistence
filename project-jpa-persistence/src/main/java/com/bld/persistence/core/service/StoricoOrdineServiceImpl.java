@@ -41,33 +41,6 @@ public  class StoricoOrdineServiceImpl extends JpaServiceImpl<StoricoOrdine,Stor
 	
     
     
-	@Override
-    protected  JpaRepository<StoricoOrdine,StoricoOrdinePK> getJpaRepository() {
-        return storicoOrdineRepository;
-    }
-	@Override
-    protected  NamedParameterJdbcTemplate getJdbcTemplate() {
-        return jdbcTemplate;
-    }
-	@Override
-    protected  String countByFilter() {
-        return COUNT_BY_FILTER;
-    }
-	@Override
-    protected  EntityManager getEntityManager() {
-        return entityManager;
-    }
-	@Override
-    protected  String selectByFilter() {
-        return SELECT_BY_FILTER;
-    }
-	@Override
-    protected  Map<String,String> mapConditions() {
-        return MAP_CONDITIONS;
-    }
-	@Override
-    protected  void mapOneToMany() {
-    }
     private static  Map<String,String> getMapConditions() {
         Map<String,String> map=new HashMap<>();
         map.put("createUser", " and storicoOrdine.createUser like :createUser ");
@@ -85,6 +58,33 @@ public  class StoricoOrdineServiceImpl extends JpaServiceImpl<StoricoOrdine,Stor
         map.put("idCliente", " and cliente.idCliente in (:idCliente) ");
         map.put("idRistorante", " and ristorante.idRistorante in (:idRistorante) ");
         return map;
+    }
+	@Override
+    protected  EntityManager getEntityManager() {
+        return entityManager;
+    }
+	@Override
+    protected  void mapOneToMany() {
+    }
+	@Override
+    protected  Map<String,String> mapConditions() {
+        return MAP_CONDITIONS;
+    }
+	@Override
+    protected  NamedParameterJdbcTemplate getJdbcTemplate() {
+        return jdbcTemplate;
+    }
+	@Override
+    protected  String countByFilter() {
+        return COUNT_BY_FILTER;
+    }
+	@Override
+    protected  JpaRepository<StoricoOrdine,StoricoOrdinePK> getJpaRepository() {
+        return storicoOrdineRepository;
+    }
+	@Override
+    protected  String selectByFilter() {
+        return SELECT_BY_FILTER;
     }
 
 }

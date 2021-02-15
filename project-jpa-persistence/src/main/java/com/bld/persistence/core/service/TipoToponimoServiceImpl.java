@@ -45,12 +45,17 @@ public  class TipoToponimoServiceImpl extends JpaServiceImpl<TipoToponimo,Long> 
         return MAP_CONDITIONS;
     }
 	@Override
-    protected  NamedParameterJdbcTemplate getJdbcTemplate() {
-        return jdbcTemplate;
+    protected  void mapOneToMany() {
+        addJoinOneToMany("idRistorante", "  join fetch tipoToponimo.ristorantes ristorantes ");
+        addJoinOneToMany("idCliente", "  join fetch tipoToponimo.clientes clientes ");
     }
 	@Override
-    protected  String countByFilter() {
-        return COUNT_BY_FILTER;
+    protected  EntityManager getEntityManager() {
+        return entityManager;
+    }
+	@Override
+    protected  JpaRepository<TipoToponimo,Long> getJpaRepository() {
+        return tipoToponimoRepository;
     }
     private static  Map<String,String> getMapConditions() {
         Map<String,String> map=new HashMap<>();
@@ -63,21 +68,16 @@ public  class TipoToponimoServiceImpl extends JpaServiceImpl<TipoToponimo,Long> 
         return map;
     }
 	@Override
-    protected  EntityManager getEntityManager() {
-        return entityManager;
+    protected  NamedParameterJdbcTemplate getJdbcTemplate() {
+        return jdbcTemplate;
+    }
+	@Override
+    protected  String countByFilter() {
+        return COUNT_BY_FILTER;
     }
 	@Override
     protected  String selectByFilter() {
         return SELECT_BY_FILTER;
-    }
-	@Override
-    protected  JpaRepository<TipoToponimo,Long> getJpaRepository() {
-        return tipoToponimoRepository;
-    }
-	@Override
-    protected  void mapOneToMany() {
-        addJoinOneToMany("idRistorante", "  join fetch tipoToponimo.ristorantes ristorantes ");
-        addJoinOneToMany("idCliente", "  join fetch tipoToponimo.clientes clientes ");
     }
 
 }

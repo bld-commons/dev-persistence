@@ -42,15 +42,17 @@ public  class AssoMdfProdottoOrdineIngredienteServiceImpl extends JpaServiceImpl
     
     
 	@Override
-    protected  void mapOneToMany() {
+    protected  JpaRepository<AssoMdfProdottoOrdineIngrediente,AssoMdfProdottoOrdineIngredientePK> getJpaRepository() {
+        return assoMdfProdottoOrdineIngredienteRepository;
     }
-	@Override
-    protected  NamedParameterJdbcTemplate getJdbcTemplate() {
-        return jdbcTemplate;
-    }
-	@Override
-    protected  String countByFilter() {
-        return COUNT_BY_FILTER;
+    private static  Map<String,String> getMapConditions() {
+        Map<String,String> map=new HashMap<>();
+        map.put("idIngrediente", " and ingrediente.idIngrediente in (:idIngrediente) ");
+        map.put("idTipoModifica", " and tipoModifica.idTipoModifica in (:idTipoModifica) ");
+        map.put("idModificaProdottoOrdine", " and modificaProdottoOrdine.idModificaProdottoOrdine in (:idModificaProdottoOrdine) ");
+        map.put("idModificaProdottoOrdine", " and assoMdfProdottoOrdineIngrediente.id.idModificaProdottoOrdine in (:idModificaProdottoOrdine) ");
+        map.put("idIngrediente", " and assoMdfProdottoOrdineIngrediente.id.idIngrediente in (:idIngrediente) ");
+        return map;
     }
 	@Override
     protected  Map<String,String> mapConditions() {
@@ -61,21 +63,19 @@ public  class AssoMdfProdottoOrdineIngredienteServiceImpl extends JpaServiceImpl
         return entityManager;
     }
 	@Override
-    protected  JpaRepository<AssoMdfProdottoOrdineIngrediente,AssoMdfProdottoOrdineIngredientePK> getJpaRepository() {
-        return assoMdfProdottoOrdineIngredienteRepository;
+    protected  NamedParameterJdbcTemplate getJdbcTemplate() {
+        return jdbcTemplate;
+    }
+	@Override
+    protected  String countByFilter() {
+        return COUNT_BY_FILTER;
     }
 	@Override
     protected  String selectByFilter() {
         return SELECT_BY_FILTER;
     }
-    private static  Map<String,String> getMapConditions() {
-        Map<String,String> map=new HashMap<>();
-        map.put("idIngrediente", " and ingrediente.idIngrediente in (:idIngrediente) ");
-        map.put("idTipoModifica", " and tipoModifica.idTipoModifica in (:idTipoModifica) ");
-        map.put("idModificaProdottoOrdine", " and modificaProdottoOrdine.idModificaProdottoOrdine in (:idModificaProdottoOrdine) ");
-        map.put("idModificaProdottoOrdine", " and assoMdfProdottoOrdineIngrediente.id.idModificaProdottoOrdine in (:idModificaProdottoOrdine) ");
-        map.put("idIngrediente", " and assoMdfProdottoOrdineIngrediente.id.idIngrediente in (:idIngrediente) ");
-        return map;
+	@Override
+    protected  void mapOneToMany() {
     }
 
 }

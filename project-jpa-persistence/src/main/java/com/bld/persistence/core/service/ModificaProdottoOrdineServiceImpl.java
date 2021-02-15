@@ -41,7 +41,19 @@ public  class ModificaProdottoOrdineServiceImpl extends JpaServiceImpl<ModificaP
     
     
 	@Override
+    protected  EntityManager getEntityManager() {
+        return entityManager;
+    }
+	@Override
     protected  void mapOneToMany() {
+    }
+	@Override
+    protected  NamedParameterJdbcTemplate getJdbcTemplate() {
+        return jdbcTemplate;
+    }
+	@Override
+    protected  String countByFilter() {
+        return COUNT_BY_FILTER;
     }
     private static  Map<String,String> getMapConditions() {
         Map<String,String> map=new HashMap<>();
@@ -59,28 +71,16 @@ public  class ModificaProdottoOrdineServiceImpl extends JpaServiceImpl<ModificaP
         return map;
     }
 	@Override
-    protected  NamedParameterJdbcTemplate getJdbcTemplate() {
-        return jdbcTemplate;
-    }
-	@Override
-    protected  String countByFilter() {
-        return COUNT_BY_FILTER;
-    }
-	@Override
-    protected  EntityManager getEntityManager() {
-        return entityManager;
-    }
-	@Override
-    protected  String selectByFilter() {
-        return SELECT_BY_FILTER;
-    }
-	@Override
     protected  Map<String,String> mapConditions() {
         return MAP_CONDITIONS;
     }
 	@Override
     protected  JpaRepository<ModificaProdottoOrdine,Long> getJpaRepository() {
         return modificaProdottoOrdineRepository;
+    }
+	@Override
+    protected  String selectByFilter() {
+        return SELECT_BY_FILTER;
     }
 
 }

@@ -41,32 +41,8 @@ public  class CalendarioSpeedyServiceImpl extends JpaServiceImpl<CalendarioSpeed
     
     
 	@Override
-    protected  void mapOneToMany() {
-        addJoinOneToMany("idOrdine", " left join fetch calendarioSpeedy.ordines ordines ");
-    }
-	@Override
-    protected  JpaRepository<CalendarioSpeedy,Long> getJpaRepository() {
-        return calendarioSpeedyRepository;
-    }
-	@Override
-    protected  NamedParameterJdbcTemplate getJdbcTemplate() {
-        return jdbcTemplate;
-    }
-	@Override
-    protected  String countByFilter() {
-        return COUNT_BY_FILTER;
-    }
-	@Override
-    protected  Map<String,String> mapConditions() {
-        return MAP_CONDITIONS;
-    }
-	@Override
     protected  EntityManager getEntityManager() {
         return entityManager;
-    }
-	@Override
-    protected  String selectByFilter() {
-        return SELECT_BY_FILTER;
     }
     private static  Map<String,String> getMapConditions() {
         Map<String,String> map=new HashMap<>();
@@ -77,6 +53,30 @@ public  class CalendarioSpeedyServiceImpl extends JpaServiceImpl<CalendarioSpeed
         map.put("id", " and calendarioSpeedy.idCalendarioSpeedy in (:idCalendarioSpeedy) ");
         map.put("idOrdine", " and ordines.idOrdine in (:ordines) ");
         return map;
+    }
+	@Override
+    protected  Map<String,String> mapConditions() {
+        return MAP_CONDITIONS;
+    }
+	@Override
+    protected  NamedParameterJdbcTemplate getJdbcTemplate() {
+        return jdbcTemplate;
+    }
+	@Override
+    protected  String countByFilter() {
+        return COUNT_BY_FILTER;
+    }
+	@Override
+    protected  void mapOneToMany() {
+        addJoinOneToMany("idOrdine", " left join fetch calendarioSpeedy.ordines ordines ");
+    }
+	@Override
+    protected  JpaRepository<CalendarioSpeedy,Long> getJpaRepository() {
+        return calendarioSpeedyRepository;
+    }
+	@Override
+    protected  String selectByFilter() {
+        return SELECT_BY_FILTER;
     }
 
 }

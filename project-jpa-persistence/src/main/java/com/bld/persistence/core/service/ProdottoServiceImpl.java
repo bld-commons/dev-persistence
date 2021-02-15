@@ -45,14 +45,6 @@ public  class ProdottoServiceImpl extends JpaServiceImpl<Prodotto,Long> implemen
         return prodottoRepository;
     }
 	@Override
-    protected  NamedParameterJdbcTemplate getJdbcTemplate() {
-        return jdbcTemplate;
-    }
-	@Override
-    protected  String countByFilter() {
-        return COUNT_BY_FILTER;
-    }
-	@Override
     protected  EntityManager getEntityManager() {
         return entityManager;
     }
@@ -60,10 +52,6 @@ public  class ProdottoServiceImpl extends JpaServiceImpl<Prodotto,Long> implemen
     protected  void mapOneToMany() {
         addJoinOneToMany("idConfiguraMenu", "  join fetch prodotto.configuraMenus1 configuraMenus1 ");
         addJoinOneToMany("idProdottoOrdine", "  join fetch prodotto.prodottoOrdines prodottoOrdines ");
-    }
-	@Override
-    protected  String selectByFilter() {
-        return SELECT_BY_FILTER;
     }
     private static  Map<String,String> getMapConditions() {
         Map<String,String> map=new HashMap<>();
@@ -86,6 +74,18 @@ public  class ProdottoServiceImpl extends JpaServiceImpl<Prodotto,Long> implemen
 	@Override
     protected  Map<String,String> mapConditions() {
         return MAP_CONDITIONS;
+    }
+	@Override
+    protected  NamedParameterJdbcTemplate getJdbcTemplate() {
+        return jdbcTemplate;
+    }
+	@Override
+    protected  String countByFilter() {
+        return COUNT_BY_FILTER;
+    }
+	@Override
+    protected  String selectByFilter() {
+        return SELECT_BY_FILTER;
     }
 
 }

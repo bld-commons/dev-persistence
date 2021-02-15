@@ -52,8 +52,12 @@ public class JpaServiceGeneratorPlugin extends AbstractMojo {
 			project.addCompileSourceRoot(new File(this.project.getBasedir()+"/target/generated-sources/classes").getAbsolutePath());
 			
 			String slash="/";
-			if(System.getProperty("os.name").toLowerCase().contains("win"))
+			String shell="bash";
+			if(System.getProperty("os.name").toLowerCase().contains("win")) {
 				slash="\\";
+				shell="cmd.exe";
+			}
+				
 			if(!persistencePackage.endsWith("."))
 				persistencePackage=persistencePackage+".";
 			ModelClasses modelClasses=new ModelClasses();
@@ -69,7 +73,7 @@ public class JpaServiceGeneratorPlugin extends AbstractMojo {
 			getLog().info(command);
 			
 
-			ProcessBuilder processBuilder=new ProcessBuilder(new String[]{"bash","-c",command});
+			ProcessBuilder processBuilder=new ProcessBuilder(new String[]{shell,"-c",command});
 			processBuilder.redirectOutput(new File(this.project.getBuild().getOutputDirectory()+"/out.txt"));
 			processBuilder.redirectError(new File("out-error.txt"));
 			processBuilder.start().waitFor();

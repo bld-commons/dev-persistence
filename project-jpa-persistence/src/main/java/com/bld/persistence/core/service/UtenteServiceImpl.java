@@ -41,32 +41,12 @@ public  class UtenteServiceImpl extends JpaServiceImpl<Utente,Long> implements U
     
     
 	@Override
-    protected  NamedParameterJdbcTemplate getJdbcTemplate() {
-        return jdbcTemplate;
-    }
-	@Override
-    protected  String countByFilter() {
-        return COUNT_BY_FILTER;
-    }
-	@Override
     protected  EntityManager getEntityManager() {
         return entityManager;
     }
 	@Override
-    protected  Map<String,String> mapConditions() {
-        return MAP_CONDITIONS;
-    }
-	@Override
     protected  void mapOneToMany() {
         addJoinOneToMany("idSpeedy", "  join fetch utente.speedies speedies ");
-    }
-	@Override
-    protected  String selectByFilter() {
-        return SELECT_BY_FILTER;
-    }
-	@Override
-    protected  JpaRepository<Utente,Long> getJpaRepository() {
-        return utenteRepository;
     }
     private static  Map<String,String> getMapConditions() {
         Map<String,String> map=new HashMap<>();
@@ -90,6 +70,26 @@ public  class UtenteServiceImpl extends JpaServiceImpl<Utente,Long> implements U
         map.put("codFiscale", " and utente.codFiscale like :codFiscale ");
         map.put("idTipoUtente", " and tipoUtente.idTipoUtente in (:idTipoUtente) ");
         return map;
+    }
+	@Override
+    protected  JpaRepository<Utente,Long> getJpaRepository() {
+        return utenteRepository;
+    }
+	@Override
+    protected  Map<String,String> mapConditions() {
+        return MAP_CONDITIONS;
+    }
+	@Override
+    protected  NamedParameterJdbcTemplate getJdbcTemplate() {
+        return jdbcTemplate;
+    }
+	@Override
+    protected  String countByFilter() {
+        return COUNT_BY_FILTER;
+    }
+	@Override
+    protected  String selectByFilter() {
+        return SELECT_BY_FILTER;
     }
 
 }

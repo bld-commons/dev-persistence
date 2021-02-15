@@ -41,12 +41,15 @@ public  class IngredienteServiceImpl extends JpaServiceImpl<Ingrediente,Long> im
     
     
 	@Override
-    protected  NamedParameterJdbcTemplate getJdbcTemplate() {
-        return jdbcTemplate;
+    protected  void mapOneToMany() {
     }
 	@Override
-    protected  String countByFilter() {
-        return COUNT_BY_FILTER;
+    protected  EntityManager getEntityManager() {
+        return entityManager;
+    }
+	@Override
+    protected  JpaRepository<Ingrediente,Long> getJpaRepository() {
+        return ingredienteRepository;
     }
     private static  Map<String,String> getMapConditions() {
         Map<String,String> map=new HashMap<>();
@@ -64,23 +67,20 @@ public  class IngredienteServiceImpl extends JpaServiceImpl<Ingrediente,Long> im
         return map;
     }
 	@Override
-    protected  void mapOneToMany() {
+    protected  NamedParameterJdbcTemplate getJdbcTemplate() {
+        return jdbcTemplate;
     }
 	@Override
-    protected  EntityManager getEntityManager() {
-        return entityManager;
-    }
-	@Override
-    protected  String selectByFilter() {
-        return SELECT_BY_FILTER;
-    }
-	@Override
-    protected  JpaRepository<Ingrediente,Long> getJpaRepository() {
-        return ingredienteRepository;
+    protected  String countByFilter() {
+        return COUNT_BY_FILTER;
     }
 	@Override
     protected  Map<String,String> mapConditions() {
         return MAP_CONDITIONS;
+    }
+	@Override
+    protected  String selectByFilter() {
+        return SELECT_BY_FILTER;
     }
 
 }

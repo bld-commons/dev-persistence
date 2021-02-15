@@ -40,6 +40,14 @@ public  class SpeedyServiceImpl extends JpaServiceImpl<Speedy,Long> implements S
 	
     
     
+	@Override
+    protected  EntityManager getEntityManager() {
+        return entityManager;
+    }
+	@Override
+    protected  JpaRepository<Speedy,Long> getJpaRepository() {
+        return speedyRepository;
+    }
     private static  Map<String,String> getMapConditions() {
         Map<String,String> map=new HashMap<>();
         map.put("idSpeedy", " and speedy.idSpeedy in (:idSpeedy) ");
@@ -58,6 +66,10 @@ public  class SpeedyServiceImpl extends JpaServiceImpl<Speedy,Long> implements S
         return map;
     }
 	@Override
+    protected  void mapOneToMany() {
+        addJoinOneToMany("idCalendarioSpeedy", "  join fetch speedy.calendarioSpeedies calendarioSpeedies ");
+    }
+	@Override
     protected  NamedParameterJdbcTemplate getJdbcTemplate() {
         return jdbcTemplate;
     }
@@ -66,20 +78,8 @@ public  class SpeedyServiceImpl extends JpaServiceImpl<Speedy,Long> implements S
         return COUNT_BY_FILTER;
     }
 	@Override
-    protected  void mapOneToMany() {
-        addJoinOneToMany("idCalendarioSpeedy", "  join fetch speedy.calendarioSpeedies calendarioSpeedies ");
-    }
-	@Override
-    protected  JpaRepository<Speedy,Long> getJpaRepository() {
-        return speedyRepository;
-    }
-	@Override
     protected  Map<String,String> mapConditions() {
         return MAP_CONDITIONS;
-    }
-	@Override
-    protected  EntityManager getEntityManager() {
-        return entityManager;
     }
 	@Override
     protected  String selectByFilter() {

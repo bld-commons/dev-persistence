@@ -41,6 +41,14 @@ public  class TipoRuoloServiceImpl extends JpaServiceImpl<TipoRuolo,Long> implem
     
     
 	@Override
+    protected  JpaRepository<TipoRuolo,Long> getJpaRepository() {
+        return tipoRuoloRepository;
+    }
+	@Override
+    protected  EntityManager getEntityManager() {
+        return entityManager;
+    }
+	@Override
     protected  NamedParameterJdbcTemplate getJdbcTemplate() {
         return jdbcTemplate;
     }
@@ -49,12 +57,11 @@ public  class TipoRuoloServiceImpl extends JpaServiceImpl<TipoRuolo,Long> implem
         return COUNT_BY_FILTER;
     }
 	@Override
-    protected  EntityManager getEntityManager() {
-        return entityManager;
+    protected  Map<String,String> mapConditions() {
+        return MAP_CONDITIONS;
     }
 	@Override
-    protected  String selectByFilter() {
-        return SELECT_BY_FILTER;
+    protected  void mapOneToMany() {
     }
     private static  Map<String,String> getMapConditions() {
         Map<String,String> map=new HashMap<>();
@@ -65,15 +72,8 @@ public  class TipoRuoloServiceImpl extends JpaServiceImpl<TipoRuolo,Long> implem
         return map;
     }
 	@Override
-    protected  JpaRepository<TipoRuolo,Long> getJpaRepository() {
-        return tipoRuoloRepository;
-    }
-	@Override
-    protected  void mapOneToMany() {
-    }
-	@Override
-    protected  Map<String,String> mapConditions() {
-        return MAP_CONDITIONS;
+    protected  String selectByFilter() {
+        return SELECT_BY_FILTER;
     }
 
 }

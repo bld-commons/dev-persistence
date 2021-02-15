@@ -17,6 +17,9 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional
 public  class ConfiguraMenuServiceImpl extends JpaServiceImpl<ConfiguraMenu,Long> implements ConfiguraMenuService{
 
+
+	
+
 	@Autowired
     private ConfiguraMenuRepository configuraMenuRepository;
     
@@ -37,15 +40,12 @@ public  class ConfiguraMenuServiceImpl extends JpaServiceImpl<ConfiguraMenu,Long
 	
     
     
-    private static  Map<String,String> getMapConditions() {
-        Map<String,String> map=new HashMap<>();
-        map.put("idGenere", " and genere.idGenere in (:idGenere) ");
-        map.put("desGenere", " and genere.desGenere like :desGenere ");
-        map.put("idProdotto", " and prodotto.idProdotto in (:idProdotto) ");
-        map.put("quantita", " and configuraMenu.quantita in (:quantita) ");
-        map.put("idConfiguraMenu", " and configuraMenu.idConfiguraMenu in (:idConfiguraMenu) ");
-        map.put("id", " and configuraMenu.idConfiguraMenu in (:idConfiguraMenu) ");
-        return map;
+	@Override
+    protected  EntityManager getEntityManager() {
+        return entityManager;
+    }
+	@Override
+    protected  void mapOneToMany() {
     }
 	@Override
     protected  JpaRepository<ConfiguraMenu,Long> getJpaRepository() {
@@ -56,23 +56,25 @@ public  class ConfiguraMenuServiceImpl extends JpaServiceImpl<ConfiguraMenu,Long
         return jdbcTemplate;
     }
 	@Override
+    protected  Map<String,String> mapConditions() {
+        return MAP_CONDITIONS;
+    }
+	@Override
     protected  String countByFilter() {
         return COUNT_BY_FILTER;
     }
-	@Override
-    protected  void mapOneToMany() {
-    }
-	@Override
-    protected  EntityManager getEntityManager() {
-        return entityManager;
+    private static  Map<String,String> getMapConditions() {
+        Map<String,String> map=new HashMap<>();
+        map.put("idGenere", " and genere.idGenere in (:idGenere) ");
+        map.put("idProdotto", " and prodotto.idProdotto in (:idProdotto) ");
+        map.put("quantita", " and configuraMenu.quantita in (:quantita) ");
+        map.put("idConfiguraMenu", " and configuraMenu.idConfiguraMenu in (:idConfiguraMenu) ");
+        map.put("id", " and configuraMenu.idConfiguraMenu in (:idConfiguraMenu) ");
+        return map;
     }
 	@Override
     protected  String selectByFilter() {
         return SELECT_BY_FILTER;
-    }
-	@Override
-    protected  Map<String,String> mapConditions() {
-        return MAP_CONDITIONS;
     }
 
 }

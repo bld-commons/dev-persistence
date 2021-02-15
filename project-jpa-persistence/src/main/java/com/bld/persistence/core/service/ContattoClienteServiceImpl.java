@@ -41,11 +41,16 @@ public  class ContattoClienteServiceImpl extends JpaServiceImpl<ContattoCliente,
     
     
 	@Override
-    protected  void mapOneToMany() {
+    protected  EntityManager getEntityManager() {
+        return entityManager;
     }
 	@Override
     protected  JpaRepository<ContattoCliente,String> getJpaRepository() {
         return contattoClienteRepository;
+    }
+	@Override
+    protected  NamedParameterJdbcTemplate getJdbcTemplate() {
+        return jdbcTemplate;
     }
     private static  Map<String,String> getMapConditions() {
         Map<String,String> map=new HashMap<>();
@@ -56,24 +61,19 @@ public  class ContattoClienteServiceImpl extends JpaServiceImpl<ContattoCliente,
         return map;
     }
 	@Override
-    protected  NamedParameterJdbcTemplate getJdbcTemplate() {
-        return jdbcTemplate;
+    protected  Map<String,String> mapConditions() {
+        return MAP_CONDITIONS;
     }
 	@Override
     protected  String countByFilter() {
         return COUNT_BY_FILTER;
     }
 	@Override
-    protected  EntityManager getEntityManager() {
-        return entityManager;
+    protected  void mapOneToMany() {
     }
 	@Override
     protected  String selectByFilter() {
         return SELECT_BY_FILTER;
-    }
-	@Override
-    protected  Map<String,String> mapConditions() {
-        return MAP_CONDITIONS;
     }
 
 }

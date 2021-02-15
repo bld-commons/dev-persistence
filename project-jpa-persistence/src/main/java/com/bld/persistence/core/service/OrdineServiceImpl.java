@@ -41,8 +41,8 @@ public  class OrdineServiceImpl extends JpaServiceImpl<Ordine,Long> implements O
     
     
 	@Override
-    protected  JpaRepository<Ordine,Long> getJpaRepository() {
-        return ordineRepository;
+    protected  void mapOneToMany() {
+        addJoinOneToMany("idProdottoOrdine", "  join fetch ordine.prodottoOrdines prodottoOrdines ");
     }
     private static  Map<String,String> getMapConditions() {
         Map<String,String> map=new HashMap<>();
@@ -65,6 +65,10 @@ public  class OrdineServiceImpl extends JpaServiceImpl<Ordine,Long> implements O
         return map;
     }
 	@Override
+    protected  EntityManager getEntityManager() {
+        return entityManager;
+    }
+	@Override
     protected  NamedParameterJdbcTemplate getJdbcTemplate() {
         return jdbcTemplate;
     }
@@ -73,20 +77,16 @@ public  class OrdineServiceImpl extends JpaServiceImpl<Ordine,Long> implements O
         return COUNT_BY_FILTER;
     }
 	@Override
-    protected  Map<String,String> mapConditions() {
-        return MAP_CONDITIONS;
-    }
-	@Override
-    protected  EntityManager getEntityManager() {
-        return entityManager;
-    }
-	@Override
-    protected  void mapOneToMany() {
-        addJoinOneToMany("idProdottoOrdine", "  join fetch ordine.prodottoOrdines prodottoOrdines ");
+    protected  JpaRepository<Ordine,Long> getJpaRepository() {
+        return ordineRepository;
     }
 	@Override
     protected  String selectByFilter() {
         return SELECT_BY_FILTER;
+    }
+	@Override
+    protected  Map<String,String> mapConditions() {
+        return MAP_CONDITIONS;
     }
 
 }

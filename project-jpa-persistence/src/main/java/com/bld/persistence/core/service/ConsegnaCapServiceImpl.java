@@ -42,24 +42,23 @@ public  class ConsegnaCapServiceImpl extends JpaServiceImpl<ConsegnaCap,Consegna
     
     
 	@Override
-    protected  NamedParameterJdbcTemplate getJdbcTemplate() {
-        return jdbcTemplate;
-    }
-	@Override
-    protected  String countByFilter() {
-        return COUNT_BY_FILTER;
+    protected  Map<String,String> mapConditions() {
+        return MAP_CONDITIONS;
     }
 	@Override
     protected  EntityManager getEntityManager() {
         return entityManager;
     }
 	@Override
-    protected  Map<String,String> mapConditions() {
-        return MAP_CONDITIONS;
+    protected  JpaRepository<ConsegnaCap,ConsegnaCapPK> getJpaRepository() {
+        return consegnaCapRepository;
     }
 	@Override
-    protected  String selectByFilter() {
-        return SELECT_BY_FILTER;
+    protected  void mapOneToMany() {
+    }
+	@Override
+    protected  NamedParameterJdbcTemplate getJdbcTemplate() {
+        return jdbcTemplate;
     }
     private static  Map<String,String> getMapConditions() {
         Map<String,String> map=new HashMap<>();
@@ -76,11 +75,12 @@ public  class ConsegnaCapServiceImpl extends JpaServiceImpl<ConsegnaCap,Consegna
         return map;
     }
 	@Override
-    protected  void mapOneToMany() {
+    protected  String countByFilter() {
+        return COUNT_BY_FILTER;
     }
 	@Override
-    protected  JpaRepository<ConsegnaCap,ConsegnaCapPK> getJpaRepository() {
-        return consegnaCapRepository;
+    protected  String selectByFilter() {
+        return SELECT_BY_FILTER;
     }
 
 }
