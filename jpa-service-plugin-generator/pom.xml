@@ -108,7 +108,7 @@
 					<descriptorRefs>
 						<descriptorRef>jar-with-dependencies</descriptorRef>
 					</descriptorRefs>
-					<finalName>jpa-service-generator-plugin-${project.version}</finalName>
+					<finalName>jpa-service-plugin-generator-${project.version}</finalName>
 					<appendAssemblyId>false</appendAssemblyId>
 				</configuration>
 
