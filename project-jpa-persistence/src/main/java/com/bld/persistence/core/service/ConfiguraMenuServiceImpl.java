@@ -66,6 +66,7 @@ public  class ConfiguraMenuServiceImpl extends JpaServiceImpl<ConfiguraMenu,Long
     private static  Map<String,String> getMapConditions() {
         Map<String,String> map=new HashMap<>();
         map.put("idGenere", " and genere.idGenere in (:idGenere) ");
+        map.put("desGenere", " and genere.desGenere in (:desGenere) ");
         map.put("idProdotto", " and prodotto.idProdotto in (:idProdotto) ");
         map.put("quantita", " and configuraMenu.quantita in (:quantita) ");
         map.put("idConfiguraMenu", " and configuraMenu.idConfiguraMenu in (:idConfiguraMenu) ");
