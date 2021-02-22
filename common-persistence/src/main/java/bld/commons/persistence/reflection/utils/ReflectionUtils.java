@@ -36,10 +36,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;
 
+import bld.commons.persistence.reflection.annotations.DateFilter;
 import bld.commons.persistence.reflection.annotations.IgnoreMapping;
 import bld.commons.persistence.reflection.annotations.LikeString;
 import bld.commons.persistence.reflection.annotations.ListFilter;
-import bld.commons.persistence.reflection.annotations.DateFilter;
 import bld.commons.persistence.reflection.model.ParameterFilter;
 import bld.commons.persistence.reflection.model.QueryFilter;
 
@@ -127,13 +127,26 @@ public class ReflectionUtils {
 					if (value != null) {
 						if (value instanceof Date && f.isAnnotationPresent(DateFilter.class)) {
 							DateFilter dateFilter = f.getAnnotation(DateFilter.class);
-							if (dateFilter.toCalendar()) {
+							switch(dateFilter.dateType()) {
+							case CALENDAR:
 								Calendar calendar = DateUtils.dateToCalendar((Date) value);
-								value = DateUtils.sumDate(calendar, dateFilter.addDay(), dateFilter.addMonth(),
-										dateFilter.addYear());
-							} else
-								value = DateUtils.sumDate((Date) value, dateFilter.addDay(), dateFilter.addMonth(),
-										dateFilter.addYear());
+								value = DateUtils.sumDate(calendar, dateFilter.addDay(), dateFilter.addMonth(),	dateFilter.addYear());
+								break;
+							case DATE:
+								value = DateUtils.sumDate((Date) value, dateFilter.addDay(), dateFilter.addMonth(),	dateFilter.addYear());
+								break;
+							case TIMESTAMP:
+								Date date=DateUtils.sumDate((Date) value, dateFilter.addDay(), dateFilter.addMonth(),	dateFilter.addYear());
+								value=DateUtils.dateToTimestamp(date);
+								break;
+							default:
+								break;
+							
+							}
+							
+							
+							
+								
 
 						} else if (value instanceof String && f.isAnnotationPresent(LikeString.class)) {
 							LikeString likeString = f.getAnnotation(LikeString.class);

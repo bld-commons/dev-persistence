@@ -6,6 +6,8 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 
+import bld.commons.persistence.reflection.type.DateType;
+
 /**
  * The Interface ToCalendar.
  */
@@ -13,7 +15,7 @@ import java.lang.annotation.Target;
 @Target(FIELD)
 public @interface DateFilter {
 
-	public boolean toCalendar() default false;
+	public DateType dateType() default DateType.DATE;
 	
 	public int addDay() default 0;
 	

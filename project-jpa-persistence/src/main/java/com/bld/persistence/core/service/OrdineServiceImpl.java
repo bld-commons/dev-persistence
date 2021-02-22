@@ -40,10 +40,6 @@ public  class OrdineServiceImpl extends JpaServiceImpl<Ordine,Long> implements O
 	
     
     
-	@Override
-    protected  void mapOneToMany() {
-        addJoinOneToMany("idProdottoOrdine", "  join fetch ordine.prodottoOrdines prodottoOrdines ");
-    }
     private static  Map<String,String> getMapConditions() {
         Map<String,String> map=new HashMap<>();
         map.put("idOrdine", " and ordine.idOrdine in (:idOrdine) ");
@@ -56,37 +52,47 @@ public  class OrdineServiceImpl extends JpaServiceImpl<Ordine,Long> implements O
         map.put("idCalendarioSpeedy", " and calendarioSpeedy.idCalendarioSpeedy in (:idCalendarioSpeedy) ");
         map.put("idRistorante", " and ristorante.idRistorante in (:idRistorante) ");
         map.put("sconto", " and ordine.sconto in (:sconto) ");
-        map.put("updateTimestampBefore", " and ordine.updateTimestamp>= :updateTimestampBefore ");
-        map.put("updateTimestampAfter", " and ordine.updateTimestamp<= :updateTimestampAfter ");
+        map.put("updateTimestampBeforeEqual", " and ordine.updateTimestamp>= :updateTimestampBeforeEqual ");
+        map.put("updateTimestampAfterEqual", " and ordine.updateTimestamp<= :updateTimestampAfterEqual ");
+        map.put("updateTimestampBefore", " and ordine.updateTimestamp> :updateTimestampBefore ");
+        map.put("updateTimestampAfter", " and ordine.updateTimestamp< :updateTimestampAfter ");
+        map.put("updateTimestamp", " and ordine.updateTimestamp= :updateTimestamp ");
         map.put("idProdottoOrdine", " and prodottoOrdines.idProdottoOrdine in (:prodottoOrdines) ");
-        map.put("createTimestampBefore", " and ordine.createTimestamp>= :createTimestampBefore ");
-        map.put("createTimestampAfter", " and ordine.createTimestamp<= :createTimestampAfter ");
+        map.put("createTimestampBeforeEqual", " and ordine.createTimestamp>= :createTimestampBeforeEqual ");
+        map.put("createTimestampAfterEqual", " and ordine.createTimestamp<= :createTimestampAfterEqual ");
+        map.put("createTimestampBefore", " and ordine.createTimestamp> :createTimestampBefore ");
+        map.put("createTimestampAfter", " and ordine.createTimestamp< :createTimestampAfter ");
+        map.put("createTimestamp", " and ordine.createTimestamp= :createTimestamp ");
         map.put("updateUser", " and ordine.updateUser like :updateUser ");
         return map;
+    }
+	@Override
+    protected  Map<String,String> mapConditions() {
+        return MAP_CONDITIONS;
     }
 	@Override
     protected  EntityManager getEntityManager() {
         return entityManager;
     }
 	@Override
-    protected  NamedParameterJdbcTemplate getJdbcTemplate() {
-        return jdbcTemplate;
-    }
-	@Override
-    protected  String countByFilter() {
-        return COUNT_BY_FILTER;
-    }
-	@Override
-    protected  JpaRepository<Ordine,Long> getJpaRepository() {
-        return ordineRepository;
+    protected  void mapOneToMany() {
+        addJoinOneToMany("idProdottoOrdine", "  join fetch ordine.prodottoOrdines prodottoOrdines ");
     }
 	@Override
     protected  String selectByFilter() {
         return SELECT_BY_FILTER;
     }
 	@Override
-    protected  Map<String,String> mapConditions() {
-        return MAP_CONDITIONS;
+    protected  NamedParameterJdbcTemplate getJdbcTemplate() {
+        return jdbcTemplate;
+    }
+	@Override
+    protected  JpaRepository<Ordine,Long> getJpaRepository() {
+        return ordineRepository;
+    }
+	@Override
+    protected  String countByFilter() {
+        return COUNT_BY_FILTER;
     }
 
 }

@@ -10,6 +10,7 @@
  ***************************************************************************/
 package bld.commons.persistence.reflection.utils;
 
+import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
@@ -278,5 +279,12 @@ public class DateUtils {
 
 		}
 		return calendar;
+	}
+
+	public static Timestamp dateToTimestamp(Date date) {
+		Timestamp timestamp=null;
+		if(date!=null)
+			timestamp=new Timestamp(date.getTime());
+		return timestamp;
 	}
 }
