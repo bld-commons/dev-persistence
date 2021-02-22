@@ -134,9 +134,9 @@ public class ClassBuilding {
 				if(Calendar.class.isAssignableFrom(field.getType()) || Date.class.isAssignableFrom(field.getType()) || Timestamp.class.isAssignableFrom(field.getType())) {
 					mapConditions.add(SPACE+"map.put(\"" + field.getName()+"BeforeEqual\", \" and "+fieldEntity+"."+field.getName()+">= :"+field.getName()+"BeforeEqual \");");
 					mapConditions.add(SPACE+"map.put(\"" + field.getName()+"AfterEqual\", \" and "+fieldEntity+"."+field.getName()+"<= :"+field.getName()+"AfterEqual \");");
-					mapConditions.add(SPACE+"map.put(\"" + field.getName()+"Before\", \" and "+fieldEntity+"."+field.getName()+"> :"+field.getName()+"Before \");");
-					mapConditions.add(SPACE+"map.put(\"" + field.getName()+"After\", \" and "+fieldEntity+"."+field.getName()+"< :"+field.getName()+"After \");");
-					mapConditions.add(SPACE+"map.put(\"" + field.getName()+"\", \" and "+fieldEntity+"."+field.getName()+"= :"+field.getName()+" \");");
+					mapConditions.add(SPACE+"map.put(\"" + field.getName()+"Before\", \" and "+fieldEntity+"."+field.getName()+">:"+field.getName()+"Before \");");
+					mapConditions.add(SPACE+"map.put(\"" + field.getName()+"After\", \" and "+fieldEntity+"."+field.getName()+"<:"+field.getName()+"After \");");
+					mapConditions.add(SPACE+"map.put(\"" + field.getName()+"\", \" and "+fieldEntity+"."+field.getName()+"=:"+field.getName()+" \");");
 					
 				}else if(String.class.isAssignableFrom(field.getType())){
 					mapConditions.add(SPACE+"map.put(\"" + field.getName()+"\", \" and "+fieldEntity+"."+field.getName()+" like :"+field.getName()+" \");");
