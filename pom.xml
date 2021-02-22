@@ -6,9 +6,8 @@
 	<groupId>com.github.bld-commons</groupId>
 	<artifactId>dev-persistence</artifactId>
 	<packaging>pom</packaging>
-	<version>0.0.1-SNAPSHOT</version>
-	<name>Dev classes by yaml file</name>
-	<url>https://github.com/bld-commons/dev-yaml-class</url>
+	<version>1.0.0</version>
+	<url>https://github.com/bld-commons/dev-persistence.git</url>
 
 	<licenses>
 		<license>
@@ -64,13 +63,13 @@
 		<org.apache.maven.shared-version>3.2.1</org.apache.maven.shared-version>
 		<org.codehaus.plexus-version>3.0.5</org.codehaus.plexus-version>
 		<maven-javadoc-plugin.version>3.1.1</maven-javadoc-plugin.version>
-		<yaml-generate-class-structure.version>0.0.1-SNAPSHOT</yaml-generate-class-structure.version>
+		<class-generator.version>1.0.0</class-generator.version>
 	</properties>
 
 	<scm>
-		<connection>scm:git:git@github.com:bld-commons/dev-yaml-class.git</connection>
-		<developerConnection>scm:git:git@github.com:bld-commons/dev-yaml-class.git</developerConnection>
-		<url>https://github.com/bld-commons/dev-yaml-class</url>
+		<connection>scm:git:git@github.com:bld-commons/dev-persistence.git</connection>
+		<developerConnection>scm:git:git@github.com:bld-commons/dev-persistence.git</developerConnection>
+		<url>https://github.com/bld-commons/dev-persistence</url>
 		<tag>HEAD</tag>
 	</scm>
 
@@ -124,8 +123,8 @@
 			</dependency>
 			<dependency>
 				<groupId>com.github.bld-commons</groupId>
-				<artifactId>yaml-generate-class-structure</artifactId>
-				<version>${yaml-generate-class-structure.version}</version>
+				<artifactId>class-generator</artifactId>
+				<version>${class-generator.version}</version>
 			</dependency>
 			<dependency>
 				<groupId>org.apache.commons</groupId>

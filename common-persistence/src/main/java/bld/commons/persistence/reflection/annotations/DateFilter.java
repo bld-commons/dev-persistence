@@ -11,6 +11,14 @@ import java.lang.annotation.Target;
  */
 @Retention(RUNTIME)
 @Target(FIELD)
-public @interface ToCalendar {
+public @interface DateFilter {
 
+	public boolean toCalendar() default false;
+	
+	public int addDay() default 0;
+	
+	public int addMonth() default 0;
+	
+	public int addYear() default 0;
+	
 }

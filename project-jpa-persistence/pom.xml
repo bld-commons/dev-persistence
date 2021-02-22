@@ -6,7 +6,7 @@
 	<parent>
 		<groupId>com.github.bld-commons</groupId>
 		<artifactId>dev-persistence</artifactId>
-		<version>0.0.1-SNAPSHOT</version>
+		<version>1.0.0</version>
 	</parent>
 	<groupId>com.bld.persistence</groupId>
 	<artifactId>project-jpa-persistence</artifactId>
@@ -77,14 +77,14 @@
 			<plugin>
 				<groupId>com.github.bld-commons</groupId>
 				<artifactId>jpa-service-generator-plugin</artifactId>
-				<version>0.0.1-SNAPSHOT</version>
+				<version>1.0.0</version>
 				<executions>
 					<execution>
 						<goals>
 							<goal>jpa-service-generator</goal>
 						</goals>
 						<configuration>
-							<outputDirectory>src/main/java</outputDirectory>
+							<outputDirectory>SRC</outputDirectory> 
 							<persistencePackage>com.bld.persistence.core.domain</persistencePackage>
 						</configuration>
 					</execution>

@@ -39,7 +39,7 @@ import org.springframework.stereotype.Component;
 import bld.commons.persistence.reflection.annotations.IgnoreMapping;
 import bld.commons.persistence.reflection.annotations.LikeString;
 import bld.commons.persistence.reflection.annotations.ListFilter;
-import bld.commons.persistence.reflection.annotations.ToCalendar;
+import bld.commons.persistence.reflection.annotations.DateFilter;
 import bld.commons.persistence.reflection.model.ParameterFilter;
 import bld.commons.persistence.reflection.model.QueryFilter;
 
@@ -53,7 +53,6 @@ public class ReflectionUtils {
 
 	/** The Constant PK. */
 	public static final String PK = "PK";
-
 
 	/** The context. */
 	@Autowired
@@ -77,10 +76,10 @@ public class ReflectionUtils {
 	/**
 	 * Save generic.
 	 *
-	 * @param valore the valore
+	 * @param valore                 the valore
 	 * @param classCampoDestinatario the class campo destinatario
-	 * @throws NoSuchMethodException the no such method exception
-	 * @throws IllegalAccessException the illegal access exception
+	 * @throws NoSuchMethodException     the no such method exception
+	 * @throws IllegalAccessException    the illegal access exception
 	 * @throws InvocationTargetException the invocation target exception
 	 */
 	public void saveGeneric(Object valore, Class<?> classCampoDestinatario)
@@ -112,12 +111,11 @@ public class ReflectionUtils {
 		return map;
 	}
 
-
 	public <T, ID> QueryFilter<T, ID> dataToMap(QueryFilter<T, ID> queryFilter) {
 
 		Map<String, Object> mapParameters = new HashMap<String, Object>();
 		Set<String> checkNullable = new HashSet<>();
-		ParameterFilter obj=queryFilter.getParameterFilter();
+		ParameterFilter obj = queryFilter.getParameterFilter();
 		Set<Field> campi = ReflectionUtils.getListField(obj.getClass());
 
 		for (Field f : campi) {
@@ -127,9 +125,17 @@ public class ReflectionUtils {
 					if (value != null && value instanceof String && StringUtils.isBlank((String) value))
 						value = null;
 					if (value != null) {
-						if (value instanceof Date && f.isAnnotationPresent(ToCalendar.class))
-							value = DateUtils.dateToCalendar((Date) value);
-						else if (value instanceof String && f.isAnnotationPresent(LikeString.class)) {
+						if (value instanceof Date && f.isAnnotationPresent(DateFilter.class)) {
+							DateFilter dateFilter = f.getAnnotation(DateFilter.class);
+							if (dateFilter.toCalendar()) {
+								Calendar calendar = DateUtils.dateToCalendar((Date) value);
+								value = DateUtils.sumDate(calendar, dateFilter.addDay(), dateFilter.addMonth(),
+										dateFilter.addYear());
+							} else
+								value = DateUtils.sumDate((Date) value, dateFilter.addDay(), dateFilter.addMonth(),
+										dateFilter.addYear());
+
+						} else if (value instanceof String && f.isAnnotationPresent(LikeString.class)) {
 							LikeString likeString = f.getAnnotation(LikeString.class);
 							switch (likeString.likeType()) {
 							case LEFT:
@@ -168,8 +174,8 @@ public class ReflectionUtils {
 	/**
 	 * Reflection.
 	 *
-	 * @param <T> the generic type
-	 * @param t the t
+	 * @param <T>       the generic type
+	 * @param t         the t
 	 * @param mapResult the map result
 	 * @throws Exception the exception
 	 */
@@ -191,7 +197,7 @@ public class ReflectionUtils {
 	/**
 	 * Gets the bean name.
 	 *
-	 * @param nomeClasse the nome classe
+	 * @param nomeClasse  the nome classe
 	 * @param rightConcat the right concat
 	 * @return the bean name
 	 */
@@ -228,23 +234,23 @@ public class ReflectionUtils {
 	/**
 	 * Gets the generic type class.
 	 *
-	 * @param <T> the generic type
+	 * @param <T>    the generic type
 	 * @param entity the entity
 	 * @return the generic type class
 	 */
-	public static <T>Class<T> getGenericTypeClass(Object entity) {
+	public static <T> Class<T> getGenericTypeClass(Object entity) {
 		return getGenericTypeClass(entity, 0);
 	}
 
 	/**
 	 * Gets the generic type class.
 	 *
-	 * @param <T> the generic type
+	 * @param <T>    the generic type
 	 * @param entity the entity
-	 * @param i the i
+	 * @param i      the i
 	 * @return the generic type class
 	 */
-	public static <T>Class<T> getGenericTypeClass(Object entity, int i) {
+	public static <T> Class<T> getGenericTypeClass(Object entity, int i) {
 		ParameterizedType parameterizedType = null;
 		try {
 			parameterizedType = (ParameterizedType) entity.getClass().getGenericSuperclass();
@@ -258,23 +264,23 @@ public class ReflectionUtils {
 	/**
 	 * Gets the generic type field.
 	 *
-	 * @param <T> the generic type
+	 * @param <T>   the generic type
 	 * @param field the field
 	 * @return the generic type field
 	 */
-	public static <T>Class<T> getGenericTypeField(Field field) {
+	public static <T> Class<T> getGenericTypeField(Field field) {
 		return getGenericTypeField(field, 0);
 	}
 
 	/**
 	 * Gets the generic type field.
 	 *
-	 * @param <T> the generic type
+	 * @param <T>   the generic type
 	 * @param field the field
-	 * @param i the i
+	 * @param i     the i
 	 * @return the generic type field
 	 */
-	public static <T>Class<T> getGenericTypeField(Field field, int i) {
+	public static <T> Class<T> getGenericTypeField(Field field, int i) {
 		ParameterizedType parameterizedType = null;
 		parameterizedType = (ParameterizedType) field.getGenericType();
 		Class<T> clazz = (Class<T>) parameterizedType.getActualTypeArguments()[i];

@@ -1,6 +1,7 @@
 package bld.plugin.jpa.service.generator.classes;
 
 import java.lang.reflect.Field;
+import java.security.Timestamp;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
@@ -18,18 +19,18 @@ import javax.persistence.OneToMany;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import bld.commons.classes.attributes.ClassType;
+import bld.commons.classes.attributes.LevelType;
+import bld.commons.classes.model.ModelAnnotation;
+import bld.commons.classes.model.ModelClass;
+import bld.commons.classes.model.ModelClasses;
+import bld.commons.classes.model.ModelField;
+import bld.commons.classes.model.ModelGenericType;
+import bld.commons.classes.model.ModelMethod;
+import bld.commons.classes.model.ModelSuperClass;
 import bld.commons.persistence.reflection.utils.ReflectionUtils;
-import bld.commons.yaml.costant.ClassType;
-import bld.commons.yaml.costant.LevelType;
-import bld.commons.yaml.model.ModelAnnotation;
-import bld.commons.yaml.model.ModelClass;
-import bld.commons.yaml.model.ModelClasses;
-import bld.commons.yaml.model.ModelField;
-import bld.commons.yaml.model.ModelGenericType;
-import bld.commons.yaml.model.ModelMethod;
-import bld.commons.yaml.model.ModelSuperClass;
 
-public class Generator {
+public class ClassBuilding {
 
 	private static final String SPACE="        ";
 	private static final String OVERRIDE = "Override";
@@ -42,7 +43,7 @@ public class Generator {
 	private static final String AUTOWIRED = "Autowired";
 	private static final String TRANSACTIONAL = "Transactional";
 	private static final String ENTITY_MANAGER = "EntityManager";
-	private final static Log logger = LogFactory.getLog(Generator.class);
+	private final static Log logger = LogFactory.getLog(ClassBuilding.class);
 	private static final String SERVICE = "Service";
 	private static final String REPOSITORY = "Repository";
 	private static final String SERVICE_IMPL = SERVICE + "Impl";
@@ -71,8 +72,9 @@ public class Generator {
 		String packageName = classEntity.getName().replace("." + className, "");
 		String packageService = packageName.substring(0, packageName.lastIndexOf(".") + 1) + SERVICE.toLowerCase();
 
-		logger.info(packageName);
-		logger.info(packageService);
+		logger.info("Class building: "+classEntity.getName()+REPOSITORY);
+		logger.info("Class building: "+packageService+"."+className+SERVICE);
+		logger.info("Class building: "+packageService+"."+className+SERVICE_IMPL);
 
 		interfaceRepository.getImports().add(classEntity.getName());
 		interfaceService.getImports().add(classEntity.getName());
@@ -129,9 +131,13 @@ public class Generator {
 				}
 				
 			}else if (field.isAnnotationPresent(Column.class)) {
-				if(Calendar.class.isAssignableFrom(field.getType()) || Date.class.isAssignableFrom(field.getType())) {
-					mapConditions.add(SPACE+"map.put(\"" + field.getName()+"Before\", \" and "+fieldEntity+"."+field.getName()+">= :"+field.getName()+"Before \");");
-					mapConditions.add(SPACE+"map.put(\"" + field.getName()+"After\", \" and "+fieldEntity+"."+field.getName()+"<= :"+field.getName()+"After \");");
+				if(Calendar.class.isAssignableFrom(field.getType()) || Date.class.isAssignableFrom(field.getType()) || Timestamp.class.isAssignableFrom(field.getType())) {
+					mapConditions.add(SPACE+"map.put(\"" + field.getName()+"BeforeEqual\", \" and "+fieldEntity+"."+field.getName()+">= :"+field.getName()+"BeforeEqual \");");
+					mapConditions.add(SPACE+"map.put(\"" + field.getName()+"AfterEqual\", \" and "+fieldEntity+"."+field.getName()+"<= :"+field.getName()+"AfterEqual \");");
+					mapConditions.add(SPACE+"map.put(\"" + field.getName()+"Before\", \" and "+fieldEntity+"."+field.getName()+"> :"+field.getName()+"Before \");");
+					mapConditions.add(SPACE+"map.put(\"" + field.getName()+"After\", \" and "+fieldEntity+"."+field.getName()+"< :"+field.getName()+"After \");");
+					mapConditions.add(SPACE+"map.put(\"" + field.getName()+"\", \" and "+fieldEntity+"."+field.getName()+"= :"+field.getName()+" \");");
+					
 				}else if(String.class.isAssignableFrom(field.getType())){
 					mapConditions.add(SPACE+"map.put(\"" + field.getName()+"\", \" and "+fieldEntity+"."+field.getName()+" like :"+field.getName()+" \");");
 				}else if(Boolean.class.isAssignableFrom(field.getType())){

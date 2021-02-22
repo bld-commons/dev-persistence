@@ -8,7 +8,7 @@
 	<parent>
 		<groupId>com.github.bld-commons</groupId>
 		<artifactId>dev-persistence</artifactId>
-		<version>0.0.1-SNAPSHOT</version>
+		<version>1.0.0</version>
 	</parent>
 
 	<artifactId>jpa-service-generator-plugin</artifactId>
@@ -61,7 +61,7 @@
 		</dependency>
 		<dependency>
 			<groupId>com.github.bld-commons</groupId>
-			<artifactId>yaml-generate-class-structure</artifactId>
+			<artifactId>class-generator</artifactId>
 		</dependency>
 	</dependencies>
 	<build>

@@ -17,25 +17,28 @@ import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.plugins.annotations.ResolutionScope;
 import org.apache.maven.project.MavenProject;
 
-import bld.commons.generator.classes.GeneratorClass;
-import bld.commons.generator.classes.impl.GeneratorClassImpl;
-import bld.commons.generator.config.ConfigurationClassGenerator;
-import bld.commons.yaml.model.ModelClasses;
-import bld.commons.yaml.utils.ClassGeneratorUtils;
-import bld.plugin.jpa.service.generator.classes.Generator;
+import bld.commons.classes.generator.ClassesGenerator;
+import bld.commons.classes.generator.config.ConfigurationClassGenerator;
+import bld.commons.classes.generator.impl.ClassesGeneratorImpl;
+import bld.commons.classes.generator.utils.ClassGeneratorUtils;
+import bld.commons.classes.model.ModelClasses;
+import bld.plugin.jpa.service.generator.classes.ClassBuilding;
+import bld.plugin.jpa.service.property.OutputDirectoryType;
 
 @Mojo(name = "jpa-service-generator", defaultPhase = LifecyclePhase.GENERATE_SOURCES, requiresDependencyResolution = ResolutionScope.COMPILE, requiresDependencyCollection = ResolutionScope.COMPILE)
 @SuppressWarnings("resource")
 public class JpaServiceGeneratorPlugin extends AbstractMojo {
+
+	private static final String TARGET_GENERATED_SOURCES_CLASSES = "/target/generated-sources/classes";
 
 	@Parameter(property = "project", readonly = true)
 	private MavenProject project;
 
 	@Parameter(required = true)
 	private String persistencePackage;
-//	
-	@Parameter(defaultValue = "target/generated-sources/classes")
-	private String outputDirectory;
+
+	@Parameter(defaultValue = "TARGET")
+	private OutputDirectoryType outputDirectory;
 	
 	
 	@Parameter(defaultValue = "/template")
@@ -44,12 +47,12 @@ public class JpaServiceGeneratorPlugin extends AbstractMojo {
 	
 	public void execute() throws MojoExecutionException, MojoFailureException {
 		try {
-			outputDirectory=this.project.getBasedir()+"/"+outputDirectory;
+			String outputDirectory=this.project.getBasedir()+"/"+this.outputDirectory.getValue();
 			String classesDirectory = this.project.getBuild().getOutputDirectory();
 		
 			
 			
-			project.addCompileSourceRoot(new File(this.project.getBasedir()+"/target/generated-sources/classes").getAbsolutePath());
+			project.addCompileSourceRoot(new File(this.project.getBasedir()+TARGET_GENERATED_SOURCES_CLASSES).getAbsolutePath());
 			
 			String slash="/";
 			String shell="bash";
@@ -70,7 +73,7 @@ public class JpaServiceGeneratorPlugin extends AbstractMojo {
 				importJar+=":"+artifact.getFile().getPath();
 			
 			String command="javac -cp ."+importJar+" -d "+classesDirectory +" "+this.project.getCompileSourceRoots().get(0)+slash+persistencePackage.replace(".", slash)+"*.java";
-			getLog().info(command);
+			getLog().debug(command);
 			
 
 			ProcessBuilder processBuilder=new ProcessBuilder(new String[]{shell,"-c",command});
@@ -93,22 +96,16 @@ public class JpaServiceGeneratorPlugin extends AbstractMojo {
 				String nameClass=persistencePackage.replace("/", ".")+ file.getName().replace(".class", "");
 				Class<?>entityClass=urlClassLoader.loadClass(nameClass);
 				if(entityClass.isAnnotationPresent(Entity.class)) 
-					Generator.generateClass(modelClasses, entityClass, classesDirectory);
+					ClassBuilding.generateClass(modelClasses, entityClass, classesDirectory);
 			} 
 				
 
-			getLog().info("size entities: " + modelClasses.getClasses().size());
+			getLog().info("Entities size: " + modelClasses.getClasses().size());
 			
 			
-			GeneratorClass generatorClass=new GeneratorClassImpl(ConfigurationClassGenerator.configClassGenerator(resourceTemplateDirectory));
+			ClassesGenerator generatorClass=new ClassesGeneratorImpl(ConfigurationClassGenerator.configClassGenerator(resourceTemplateDirectory));
 			generatorClass.writeClass(modelClasses, outputDirectory);
 			
-			//FileUtils.deleteFile(classesDirectory +slash+persistencePackage.replace(".", slash));
-			
-
-			getLog().info("----------------End reflection--------------------");
-			
-			//this.project.addLifecyclePhase("install");
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
