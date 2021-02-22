@@ -38,7 +38,6 @@ import bld.commons.persistence.reflection.annotations.ListFilter;
 import bld.commons.persistence.reflection.model.ParameterFilter;
 import bld.commons.persistence.reflection.model.QueryFilter;
 
-// TODO: Auto-generated Javadoc
 /**
  * The Class ReflectionUtils.
  */

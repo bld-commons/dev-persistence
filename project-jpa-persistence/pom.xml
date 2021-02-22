@@ -76,7 +76,7 @@
 			</plugin>
 			<plugin>
 				<groupId>com.github.bld-commons</groupId>
-				<artifactId>jpa-service-generator-plugin</artifactId>
+				<artifactId>jpa-service-plugin-generator</artifactId>
 				<version>1.0.0</version>
 				<executions>
 					<execution>

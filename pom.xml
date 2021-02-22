@@ -79,7 +79,7 @@
 	<modules>
 		<module>common-persistence</module>
 		<module>project-jpa-persistence</module>
-		<module>jpa-service-generator-plugin</module>
+		<module>jpa-service-plugin-generator</module>
 	</modules>
 
 	<dependencyManagement>

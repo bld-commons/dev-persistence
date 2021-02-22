@@ -27,7 +27,6 @@ import bld.commons.persistence.reflection.model.BuildQueryFilter;
 import bld.commons.persistence.reflection.model.QueryFilter;
 import bld.commons.persistence.reflection.utils.ReflectionUtils;
 
-// TODO: Auto-generated Javadoc
 /**
  * The Class BaseJpaService.
  */

@@ -9,7 +9,6 @@ import org.apache.commons.lang.WordUtils;
 
 import bld.commons.persistence.reflection.type.UpperLowerType;
 
-// TODO: Auto-generated Javadoc
 /**
  * The Class CamelCaseUtils.
  */

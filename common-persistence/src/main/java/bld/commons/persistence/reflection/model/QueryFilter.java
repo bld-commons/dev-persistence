@@ -13,7 +13,6 @@ import java.util.Set;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 
-// TODO: Auto-generated Javadoc
 /**
  * The Class QueryFilter.
  *

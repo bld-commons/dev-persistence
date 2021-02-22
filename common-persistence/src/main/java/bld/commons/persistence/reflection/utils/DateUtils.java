@@ -17,7 +17,6 @@ import org.apache.commons.logging.LogFactory;
 
 import bld.commons.persistence.reflection.type.TimeUnitMeasureType;
 
-// TODO: Auto-generated Javadoc
 /**
  * The Class DateUtils.
  */

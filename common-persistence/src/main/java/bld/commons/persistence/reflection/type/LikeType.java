@@ -5,7 +5,6 @@
  */
 package bld.commons.persistence.reflection.type;
 
-// TODO: Auto-generated Javadoc
 /**
  * The Enum LikeType.
  */

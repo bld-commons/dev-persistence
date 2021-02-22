@@ -7,7 +7,6 @@ package bld.commons.persistence.reflection.model;
 
 import bld.commons.persistence.reflection.annotations.IgnoreMapping;
 
-// TODO: Auto-generated Javadoc
 /**
  * The Class BaseFilterRequest.
  *

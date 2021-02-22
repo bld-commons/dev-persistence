@@ -10,7 +10,6 @@ import java.util.Map;
 
 import bld.commons.persistence.reflection.model.QueryFilter;
 
-// TODO: Auto-generated Javadoc
 /**
  * The Interface JdbcService.
  *

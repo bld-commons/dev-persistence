@@ -8,7 +8,6 @@ package bld.commons.persistence.reflection.model;
 import java.util.HashMap;
 import java.util.Map;
 
-// TODO: Auto-generated Javadoc
 /**
  * The Class BuildQueryFilter.
  *

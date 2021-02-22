@@ -10,7 +10,6 @@ import java.util.List;
 
 import bld.commons.persistence.reflection.model.QueryFilter;
 
-// TODO: Auto-generated Javadoc
 /**
  * The Interface BaseEntityService.
  *

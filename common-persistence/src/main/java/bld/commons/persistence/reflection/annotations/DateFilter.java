@@ -13,7 +13,6 @@ import java.lang.annotation.Target;
 
 import bld.commons.persistence.reflection.type.DateType;
 
-// TODO: Auto-generated Javadoc
 /**
  * The Interface ToCalendar.
  */
