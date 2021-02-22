@@ -1,3 +1,8 @@
+/**
+ * @author Francesco Baldi
+ * @mail francesco.baldi1987@gmail.com
+ * @class bld.commons.persistence.base.service.BaseJpaService.java
+ */
 package bld.commons.persistence.base.service;
 
 import java.util.ArrayList;
@@ -22,6 +27,7 @@ import bld.commons.persistence.reflection.model.BuildQueryFilter;
 import bld.commons.persistence.reflection.model.QueryFilter;
 import bld.commons.persistence.reflection.utils.ReflectionUtils;
 
+// TODO: Auto-generated Javadoc
 /**
  * The Class BaseJpaService.
  */
@@ -221,9 +227,8 @@ public abstract class BaseJpaService  {
 	/**
 	 * Adds the relationships one to many.
 	 *
-	 * @param mapParameters           the map parametri
-	 * @param select                 the select
-	 * @param mapOneToMany the map one to many
+	 * @param mapParameters the map parametri
+	 * @param select        the select
 	 * @param checkNullable the check nullable
 	 * @return the string
 	 */

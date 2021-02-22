@@ -1,3 +1,8 @@
+/**
+ * @author Francesco Baldi
+ * @mail francesco.baldi1987@gmail.com
+ * @class bld.commons.persistence.base.service.QueryListener.java
+ */
 package bld.commons.persistence.base.service;
 
 import org.aspectj.lang.annotation.Aspect;
@@ -5,6 +10,15 @@ import org.springframework.stereotype.Component;
 
 
 
+/**
+ * The listener interface for receiving query events. The class that is
+ * interested in processing a query event implements this interface, and the
+ * object created with that class is registered with a component using the
+ * component's <code>addQueryListener<code> method. When the query event occurs,
+ * that object's appropriate method is invoked.
+ *
+ * @see QueryEvent
+ */
 @Aspect
 @Component
 public class QueryListener {

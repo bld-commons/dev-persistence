@@ -77,8 +77,8 @@ public class JpaServiceGeneratorPlugin extends AbstractMojo {
 			
 
 			ProcessBuilder processBuilder=new ProcessBuilder(new String[]{shell,"-c",command});
-			processBuilder.redirectOutput(new File(this.project.getBuild().getOutputDirectory()+"/out.txt"));
-			processBuilder.redirectError(new File("out-error.txt"));
+			processBuilder.redirectOutput(new File(this.project.getBuild().getOutputDirectory()+"/out.log"));
+			processBuilder.redirectError(new File(this.project.getBuild().getOutputDirectory()+"/out-error.log"));
 			processBuilder.start().waitFor();
 			
 			

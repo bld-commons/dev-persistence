@@ -1,3 +1,8 @@
+/**
+ * @author Francesco Baldi
+ * @mail francesco.baldi1987@gmail.com
+ * @class bld.commons.persistence.reflection.model.InfoClass.java
+ */
 package bld.commons.persistence.reflection.model;
 
 import java.lang.reflect.Field;
@@ -81,7 +86,7 @@ public class InfoClass {
 	/**
 	 * Gets the map method.
 	 *
-	 * @return the mapMethod
+	 * @return the map method
 	 */
 	public Map<String, List<Method>> getMapMethod() {
 		return mapMethod;
@@ -90,7 +95,7 @@ public class InfoClass {
 	/**
 	 * Gets the list method.
 	 *
-	 * @return the listMethod
+	 * @return the list method
 	 */
 	public List<Method> getListMethod() {
 		return listMethod;
@@ -99,7 +104,7 @@ public class InfoClass {
 	/**
 	 * Gets the map field.
 	 *
-	 * @return the mapField
+	 * @return the map field
 	 */
 	public Map<String, Field> getMapField() {
 		return mapField;
@@ -108,7 +113,7 @@ public class InfoClass {
 	/**
 	 * Sets the classe.
 	 *
-	 * @param classe the classe to set
+	 * @param classe the new classe
 	 */
 	public void setClasse(Class<?> classe) {
 		this.classe = classe;
@@ -117,7 +122,7 @@ public class InfoClass {
 	/**
 	 * Sets the map method.
 	 *
-	 * @param mapMethod the mapMethod to set
+	 * @param mapMethod the new map method
 	 */
 	public void setMapMethod(Map<String, List<Method>> mapMethod) {
 		this.mapMethod = mapMethod;
@@ -126,7 +131,7 @@ public class InfoClass {
 	/**
 	 * Sets the list method.
 	 *
-	 * @param listMethod the listMethod to set
+	 * @param listMethod the new list method
 	 */
 	public void setListMethod(List<Method> listMethod) {
 		this.listMethod = listMethod;
@@ -135,7 +140,7 @@ public class InfoClass {
 	/**
 	 * Sets the map field.
 	 *
-	 * @param mapField the mapField to set
+	 * @param mapField the new map field
 	 */
 	public void setMapField(Map<String, Field> mapField) {
 		this.mapField = mapField;
@@ -144,7 +149,7 @@ public class InfoClass {
 	/**
 	 * Gets the list only set method.
 	 *
-	 * @return the lsitOnlySetMethod
+	 * @return the list only set method
 	 */
 	public List<Method> getListOnlySetMethod() {
 		return listOnlySetMethod;
@@ -153,7 +158,7 @@ public class InfoClass {
 	/**
 	 * Sets the list only set method.
 	 *
-	 * @param lsitOnlySetMethod the lsitOnlySetMethod to set
+	 * @param lsitOnlySetMethod the new list only set method
 	 */
 	public void setListOnlySetMethod(List<Method> lsitOnlySetMethod) {
 		this.listOnlySetMethod = lsitOnlySetMethod;

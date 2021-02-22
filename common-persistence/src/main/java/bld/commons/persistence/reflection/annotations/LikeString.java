@@ -1,3 +1,8 @@
+/**
+ * @author Francesco Baldi
+ * @mail francesco.baldi1987@gmail.com
+ * @class bld.commons.persistence.reflection.annotations.LikeString.java
+ */
 package bld.commons.persistence.reflection.annotations;
 
 import static java.lang.annotation.ElementType.FIELD;

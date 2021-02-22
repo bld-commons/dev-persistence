@@ -1,13 +1,8 @@
-/**************************************************************************
- * 
- * Copyright 2018 (C) DXC Technology
- * 
- * Author      : DXC Technology
- * Project Name: pmg-common
- * Package     : com.bld.pmg.utils
- * File Name   : ReflectionUtils.java
- *
- ***************************************************************************/
+/**
+ * @author Francesco Baldi
+ * @mail francesco.baldi1987@gmail.com
+ * @class bld.commons.persistence.reflection.utils.ReflectionUtils.java
+ */
 package bld.commons.persistence.reflection.utils;
 
 import java.lang.reflect.Field;
@@ -111,6 +106,14 @@ public class ReflectionUtils {
 		return map;
 	}
 
+	/**
+	 * Data to map.
+	 *
+	 * @param <T>         the generic type
+	 * @param <ID>        the generic type
+	 * @param queryFilter the query filter
+	 * @return the query filter
+	 */
 	public <T, ID> QueryFilter<T, ID> dataToMap(QueryFilter<T, ID> queryFilter) {
 
 		Map<String, Object> mapParameters = new HashMap<String, Object>();
@@ -130,13 +133,13 @@ public class ReflectionUtils {
 							switch(dateFilter.dateType()) {
 							case CALENDAR:
 								Calendar calendar = DateUtils.dateToCalendar((Date) value);
-								value = DateUtils.sumDate(calendar, dateFilter.addDay(), dateFilter.addMonth(),	dateFilter.addYear());
+								value = DateUtils.sumDate(calendar,dateFilter.addYear(), dateFilter.addMonth(),dateFilter.addDay(),dateFilter.addHour(),dateFilter.addMinute(),dateFilter.addSecond());
 								break;
 							case DATE:
-								value = DateUtils.sumDate((Date) value, dateFilter.addDay(), dateFilter.addMonth(),	dateFilter.addYear());
+								value = DateUtils.sumDate((Date) value,dateFilter.addYear(), dateFilter.addMonth(),dateFilter.addDay(),dateFilter.addHour(),dateFilter.addMinute(),dateFilter.addSecond());
 								break;
 							case TIMESTAMP:
-								Date date=DateUtils.sumDate((Date) value, dateFilter.addDay(), dateFilter.addMonth(),	dateFilter.addYear());
+								Date date=DateUtils.sumDate((Date) value,dateFilter.addYear(), dateFilter.addMonth(),dateFilter.addDay(),dateFilter.addHour(),dateFilter.addMinute(),dateFilter.addSecond());
 								value=DateUtils.dateToTimestamp(date);
 								break;
 							default:

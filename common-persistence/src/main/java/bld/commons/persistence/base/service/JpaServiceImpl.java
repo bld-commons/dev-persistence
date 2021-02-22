@@ -1,3 +1,8 @@
+/**
+ * @author Francesco Baldi
+ * @mail francesco.baldi1987@gmail.com
+ * @class bld.commons.persistence.base.service.JpaServiceImpl.java
+ */
 package bld.commons.persistence.base.service;
 
 import java.util.Collection;
@@ -27,6 +32,7 @@ public abstract class JpaServiceImpl<T, ID> extends BaseJpaService implements Jp
 	/** The classe. */
 	protected Class<T> clazz = ReflectionUtils.getGenericTypeClass(this);
 
+	/** The reflection utils. */
 	@Autowired
 	private ReflectionUtils reflectionUtils;
 

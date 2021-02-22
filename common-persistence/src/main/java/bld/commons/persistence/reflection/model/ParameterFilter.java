@@ -1,13 +1,8 @@
-/**************************************************************************
- * 
- * Copyright 2018 (C) DXC Technology
- * 
- * Author      : DXC Technology
- * Project Name: pmg-common
- * Package     : com.bld.pmg.message.common.request
- * File Name   : BaseFilterRequest.java
- *
- ***************************************************************************/
+/**
+ * @author Francesco Baldi
+ * @mail francesco.baldi1987@gmail.com
+ * @class bld.commons.persistence.reflection.model.ParameterFilter.java
+ */
 package bld.commons.persistence.reflection.model;
 
 import bld.commons.persistence.reflection.annotations.IgnoreMapping;

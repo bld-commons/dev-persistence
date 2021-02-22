@@ -1,13 +1,8 @@
-/**************************************************************************
- * 
- * Copyright 2018 (C) DXC Technology
- * 
- * Author      : DXC Technology
- * Project Name: pmg-common
- * Package     : com.bld.pmg.utils
- * File Name   : DateUtils.java
- *
- ***************************************************************************/
+/**
+ * @author Francesco Baldi
+ * @mail francesco.baldi1987@gmail.com
+ * @class bld.commons.persistence.reflection.utils.DateUtils.java
+ */
 package bld.commons.persistence.reflection.utils;
 
 import java.sql.Timestamp;
@@ -246,41 +241,85 @@ public class DateUtils {
 
 
 
+
 	/**
 	 * Sum date.
 	 *
-	 * @param date  the date
-	 * @param day   the day
-	 * @param month the month
-	 * @param year  the year
+	 * @param date   the date
+	 * @param year   the year
+	 * @param month  the month
+	 * @param day    the day
+	 * @param hour   the hour
+	 * @param minute the minute
+	 * @param second the second
 	 * @return the date
 	 */
-	public static Date sumDate(Date date, int day, int month, int year) {
-		Calendar calendar=sumDate(dateToCalendar(date), day, month, year);
+	public static Date sumDate(Date date,int year, int month, int day,int hour,int minute,int second) {
+		Calendar calendar=sumDate(dateToCalendar(date), year, month, day,hour,minute,second);
 		if(calendar!=null)
 			date=calendar.getTime();
 		return date;
 	}
+	
+	/**
+	 * Sum date.
+	 *
+	 * @param date  the date
+	 * @param year  the year
+	 * @param month the month
+	 * @param day   the day
+	 * @return the date
+	 */
+	public static Date sumDate(Date date,int year, int month, int day) {
+		return sumDate(date, year, month, day,0,0,0);
+	}
 
+	
 	/**
 	 * Sum date.
 	 *
 	 * @param calendar the calendar
-	 * @param day      the day
-	 * @param month    the month
 	 * @param year     the year
+	 * @param month    the month
+	 * @param day      the day
 	 * @return the calendar
 	 */
-	public static Calendar sumDate(Calendar calendar, int day, int month, int year) {
+	public static Calendar sumDate(Calendar calendar,int year, int month, int day) {
+		return sumDate(calendar, year, month, day,0, 0, 0);
+	}
+	
+	
+	
+	/**
+	 * Sum date.
+	 *
+	 * @param calendar the calendar
+	 * @param year     the year
+	 * @param month    the month
+	 * @param day      the day
+	 * @param hour     the hour
+	 * @param minute   the minute
+	 * @param second   the second
+	 * @return the calendar
+	 */
+	public static Calendar sumDate(Calendar calendar,int year, int month, int day,int hour,int minute,int second) {
 		if (calendar != null) {
-			calendar.add(Calendar.DATE, day);
-			calendar.add(Calendar.MONTH, month);
 			calendar.add(Calendar.YEAR, year);
-
+			calendar.add(Calendar.MONTH, month);
+			calendar.add(Calendar.DATE, day);
+			calendar.add(Calendar.HOUR, hour);
+			calendar.add(Calendar.MINUTE, minute);
+			calendar.add(Calendar.SECOND, second);
 		}
 		return calendar;
 	}
 
+	/**
+	 * Date to timestamp.
+	 *
+	 * @param date the date
+	 * @return the timestamp
+	 */
 	public static Timestamp dateToTimestamp(Date date) {
 		Timestamp timestamp=null;
 		if(date!=null)

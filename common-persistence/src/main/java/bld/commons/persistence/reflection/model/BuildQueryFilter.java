@@ -1,3 +1,8 @@
+/**
+ * @author Francesco Baldi
+ * @mail francesco.baldi1987@gmail.com
+ * @class bld.commons.persistence.reflection.model.BuildQueryFilter.java
+ */
 package bld.commons.persistence.reflection.model;
 
 import java.util.HashMap;
@@ -56,7 +61,7 @@ public class BuildQueryFilter<T, ID> {
 	/**
 	 * Sets the map conditions.
 	 *
-	 * @param mapConditions the map conditions
+	 * @param mapConditions the new map conditions
 	 */
 	public void setMapConditions(Map<String, String> mapConditions) {
 		this.mapConditions = mapConditions;
@@ -74,7 +79,7 @@ public class BuildQueryFilter<T, ID> {
 	/**
 	 * Sets the query filter.
 	 *
-	 * @param queryFilter the query filter
+	 * @param queryFilter the new query filter
 	 */
 	public void setQueryFilter(QueryFilter<T, ID> queryFilter) {
 		this.queryFilter = queryFilter;
