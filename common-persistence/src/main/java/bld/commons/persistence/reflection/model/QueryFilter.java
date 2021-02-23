@@ -99,9 +99,10 @@ public class QueryFilter <T, ID>{
 	 * @param size the size
 	 * @param mapParametri the map parametri
 	 */
-	public QueryFilter(Integer page, Integer size, Map<String, Object> mapParametri) {
+	public QueryFilter(Integer page, Integer size, Map<String, Object> mapParameters) {
 		super();
 		this.checkNullable = new HashSet<>();
+		this.mapParameters=mapParameters;
 		if (page != null && size != null)
 			this.pageable = PageRequest.of(page, size);
 	}
