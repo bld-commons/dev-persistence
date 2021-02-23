@@ -5,6 +5,7 @@
  */
 package bld.commons.persistence.base.service;
 
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
@@ -226,11 +227,11 @@ public abstract class JpaServiceImpl<T, ID> extends BaseJpaService implements Jp
 	 * @param key the key
 	 * @param join the join
 	 */
-	protected void addJoinOneToMany(String key, String join) {
+	protected void addJoinOneToMany(String key, String... join) {
 		if (!this.mapOneToMany.containsKey(key)) {
 			this.mapOneToMany.put(key, new LinkedHashSet<>());
 		}
-		this.mapOneToMany.get(key).add(join);
+		this.mapOneToMany.get(key).addAll(Arrays.asList(join));
 	}
 
 	/**
