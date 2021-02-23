@@ -80,14 +80,15 @@ public class QueryFilter <T, ID>{
 	/**
 	 * Instantiates a new query filter.
 	 *
-	 * @param page the page
-	 * @param size the size
-	 * @param mapParametri the map parametri
-	 * @param checkNullable the check nullable
+	 * @param page          the page
+	 * @param size          the size
+	 * @param mapParameters the map parameters.
+	 * @param checkNullable the check nullable.
 	 */
-	public QueryFilter(Integer page, Integer size, Map<String, Object> mapParametri, Set<String> checkNullable) {
+	public QueryFilter(Integer page, Integer size, Map<String, Object> mapParameters, Set<String> checkNullable) {
 		super();
 		this.checkNullable = checkNullable;
+		this.mapParameters=mapParameters;
 		if (page != null && size != null)
 			this.pageable = PageRequest.of(page, size);
 	}
@@ -95,9 +96,9 @@ public class QueryFilter <T, ID>{
 	/**
 	 * Instantiates a new query filter.
 	 *
-	 * @param page the page
-	 * @param size the size
-	 * @param mapParametri the map parametri
+	 * @param page          the page
+	 * @param size          the size
+	 * @param mapParameters the map parameters.
 	 */
 	public QueryFilter(Integer page, Integer size, Map<String, Object> mapParameters) {
 		super();
