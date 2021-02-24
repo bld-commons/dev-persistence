@@ -150,4 +150,8 @@ public interface JpaService<T, ID> {
 	 */
 	public void deleteByFilter(QueryFilter<T, ID> queryFilter,String delete);
 
+	public T findSingleResultByFilter(QueryFilter<T, ID> queryFilter);
+
+	public T findSingleResultByFilter(QueryFilter<T, ID> queryFilter, String select);
+
 }

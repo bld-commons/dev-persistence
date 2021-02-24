@@ -244,6 +244,32 @@ public abstract class JpaServiceImpl<T, ID> extends BaseJpaService implements Jp
 	public List<T> findByFilter(QueryFilter<T, ID> queryFilter) {
 		return this.findByFilter(queryFilter,selectByFilter());
 	}
+	
+	
+	/**
+	 * Find single result by filter.
+	 *
+	 * @param queryFilter the query filter
+	 * @return the t
+	 */
+	@Override
+	public  T findSingleResultByFilter(QueryFilter<T, ID> queryFilter) {
+		return this.findSingleResultByFilter(queryFilter,selectByFilter());
+	}
+	
+	
+	/**
+	 * Find single result by filter.
+	 *
+	 * @param queryFilter the query filter
+	 * @param select      the select
+	 * @return the t
+	 */
+	@Override
+	public T findSingleResultByFilter(QueryFilter<T, ID> queryFilter,String select) {
+		BuildQueryFilter<T, ID> buildQueryFilter = configureQueryFilter(queryFilter, select);
+		return super.findById(buildQueryFilter);
+	}
 
 	/**
 	 * Count by filter.

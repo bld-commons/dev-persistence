@@ -6,7 +6,6 @@
 package bld.commons.persistence.base.service;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -166,6 +165,19 @@ public abstract class BaseJpaService  {
 	 * @return the list
 	 */
 	public <T, ID> List<T> findByFilter(BuildQueryFilter<T, ID> buildQueryFilter) {
+		TypedQuery<T> query = buildQuery(buildQueryFilter);
+		return query.getResultList();
+	}
+
+	/**
+	 * Builds the query.
+	 *
+	 * @param <T>              the generic type
+	 * @param <ID>             the generic type
+	 * @param buildQueryFilter the build query filter
+	 * @return the typed query
+	 */
+	private <T, ID> TypedQuery<T> buildQuery(BuildQueryFilter<T, ID> buildQueryFilter) {
 		QueryFilter<T,ID>queryFilter=buildQueryFilter.getQueryFilter();
 		Map<String, Object> mapParameters = queryFilter.getMapParameters();
 		String select = makeQuery(mapParameters, buildQueryFilter.getSql(), buildQueryFilter.getMapConditions(), queryFilter.getCheckNullable());
@@ -185,7 +197,7 @@ public abstract class BaseJpaService  {
 			query.setFirstResult(queryFilter.getPageable().getPageNumber() * queryFilter.getPageable().getPageSize());
 			query.setMaxResults(queryFilter.getPageable().getPageSize());
 		}
-		return query.getResultList();
+		return query;
 	}
 
 	/**
@@ -271,6 +283,22 @@ public abstract class BaseJpaService  {
 		return (Long) query.getSingleResult();
 	}
 
+	
+	
+	/**
+	 * Find single result by filter.
+	 *
+	 * @param <T>              the generic type
+	 * @param <ID>             the generic type
+	 * @param buildQueryFilter the build query filter
+	 * @return the t
+	 */
+	public <T,ID> T findSingleResultByFilter(BuildQueryFilter<T,ID> buildQueryFilter){
+		TypedQuery<T> query = buildQuery(buildQueryFilter);
+		return query.getSingleResult();
+	}
+	
+	
 	/**
 	 * Find by id.
 	 *
@@ -281,14 +309,8 @@ public abstract class BaseJpaService  {
 	 */
 	public <T, ID> T findById(BuildQueryFilter<T,ID> buildQueryFilter) {
 		QueryFilter<T,ID>queryFilter=buildQueryFilter.getQueryFilter();
-		Map<String, Object> mapParameters = new HashMap<>();
-		mapParameters.put(QueryFilter.ID, queryFilter.getId());
-		queryFilter.setMapParameters(mapParameters);
-		T entity = null;
-		List<T> listEntity = this.findByFilter(buildQueryFilter);
-		if (!listEntity.isEmpty())
-			entity = listEntity.get(0);
-		return entity;
+		queryFilter.getMapParameters().put(QueryFilter.ID, queryFilter.getId());
+		return findSingleResultByFilter(buildQueryFilter);
 	}
 
 	
