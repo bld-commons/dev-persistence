@@ -41,16 +41,32 @@ public  class TipoStatoOrdineServiceImpl extends JpaServiceImpl<TipoStatoOrdine,
     
     
 	@Override
-    protected  void mapOneToMany() {
-        addJoinOneToMany("idOrdine", "  join fetch tipoStatoOrdine.ordines ordines ");
+    protected  NamedParameterJdbcTemplate getJdbcTemplate() {
+        return jdbcTemplate;
     }
 	@Override
-    protected  JpaRepository<TipoStatoOrdine,Long> getJpaRepository() {
-        return tipoStatoOrdineRepository;
+    protected  String selectByFilter() {
+        return SELECT_BY_FILTER;
     }
 	@Override
     protected  EntityManager getEntityManager() {
         return entityManager;
+    }
+	@Override
+    protected  Map<String,String> mapConditions() {
+        return MAP_CONDITIONS;
+    }
+	@Override
+    protected  void mapOneToMany() {
+        addJoinOneToMany("idOrdine", "  join fetch tipoStatoOrdine.ordines ordines ");
+    }
+	@Override
+    protected  String countByFilter() {
+        return COUNT_BY_FILTER;
+    }
+	@Override
+    protected  JpaRepository<TipoStatoOrdine,Long> getJpaRepository() {
+        return tipoStatoOrdineRepository;
     }
     private static  Map<String,String> getMapConditions() {
         Map<String,String> map=new HashMap<>();
@@ -59,22 +75,6 @@ public  class TipoStatoOrdineServiceImpl extends JpaServiceImpl<TipoStatoOrdine,
         map.put("idTipoStatoOrdine", " and tipoStatoOrdine.idTipoStatoOrdine in (:idTipoStatoOrdine) ");
         map.put("id", " and tipoStatoOrdine.idTipoStatoOrdine in (:idTipoStatoOrdine) ");
         return map;
-    }
-	@Override
-    protected  Map<String,String> mapConditions() {
-        return MAP_CONDITIONS;
-    }
-	@Override
-    protected  NamedParameterJdbcTemplate getJdbcTemplate() {
-        return jdbcTemplate;
-    }
-	@Override
-    protected  String countByFilter() {
-        return COUNT_BY_FILTER;
-    }
-	@Override
-    protected  String selectByFilter() {
-        return SELECT_BY_FILTER;
     }
 
 }

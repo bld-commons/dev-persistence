@@ -41,6 +41,18 @@ public  class SpeedyServiceImpl extends JpaServiceImpl<Speedy,Long> implements S
     
     
 	@Override
+    protected  NamedParameterJdbcTemplate getJdbcTemplate() {
+        return jdbcTemplate;
+    }
+	@Override
+    protected  String selectByFilter() {
+        return SELECT_BY_FILTER;
+    }
+	@Override
+    protected  Map<String,String> mapConditions() {
+        return MAP_CONDITIONS;
+    }
+	@Override
     protected  EntityManager getEntityManager() {
         return entityManager;
     }
@@ -48,17 +60,27 @@ public  class SpeedyServiceImpl extends JpaServiceImpl<Speedy,Long> implements S
     protected  JpaRepository<Speedy,Long> getJpaRepository() {
         return speedyRepository;
     }
+	@Override
+    protected  String countByFilter() {
+        return COUNT_BY_FILTER;
+    }
     private static  Map<String,String> getMapConditions() {
         Map<String,String> map=new HashMap<>();
         map.put("idSpeedy", " and speedy.idSpeedy in (:idSpeedy) ");
         map.put("id", " and speedy.idSpeedy in (:idSpeedy) ");
         map.put("createUser", " and speedy.createUser like :createUser ");
         map.put("updateUser", " and speedy.updateUser like :updateUser ");
-        map.put("createTimestampBefore", " and speedy.createTimestamp>= :createTimestampBefore ");
-        map.put("createTimestampAfter", " and speedy.createTimestamp<= :createTimestampAfter ");
+        map.put("createTimestampBeforeEqual", " and speedy.createTimestamp<=:createTimestampBeforeEqual ");
+        map.put("createTimestampAfterEqual", " and speedy.createTimestamp>=:createTimestampAfterEqual ");
+        map.put("createTimestampBefore", " and speedy.createTimestamp<:createTimestampBefore ");
+        map.put("createTimestampAfter", " and speedy.createTimestamp>:createTimestampAfter ");
+        map.put("createTimestamp", " and speedy.createTimestamp=:createTimestamp ");
         map.put("flagValido", " and speedy.flagValido= :flagValido ");
-        map.put("updateTimestampBefore", " and speedy.updateTimestamp>= :updateTimestampBefore ");
-        map.put("updateTimestampAfter", " and speedy.updateTimestamp<= :updateTimestampAfter ");
+        map.put("updateTimestampBeforeEqual", " and speedy.updateTimestamp<=:updateTimestampBeforeEqual ");
+        map.put("updateTimestampAfterEqual", " and speedy.updateTimestamp>=:updateTimestampAfterEqual ");
+        map.put("updateTimestampBefore", " and speedy.updateTimestamp<:updateTimestampBefore ");
+        map.put("updateTimestampAfter", " and speedy.updateTimestamp>:updateTimestampAfter ");
+        map.put("updateTimestamp", " and speedy.updateTimestamp=:updateTimestamp ");
         map.put("idUtente", " and utente.idUtente in (:idUtente) ");
         map.put("idCalendarioSpeedy", " and calendarioSpeedies.idCalendarioSpeedy in (:calendarioSpeedies) ");
         map.put("idRistorante", " and ristorante.idRistorante in (:idRistorante) ");
@@ -68,22 +90,6 @@ public  class SpeedyServiceImpl extends JpaServiceImpl<Speedy,Long> implements S
 	@Override
     protected  void mapOneToMany() {
         addJoinOneToMany("idCalendarioSpeedy", "  join fetch speedy.calendarioSpeedies calendarioSpeedies ");
-    }
-	@Override
-    protected  NamedParameterJdbcTemplate getJdbcTemplate() {
-        return jdbcTemplate;
-    }
-	@Override
-    protected  String countByFilter() {
-        return COUNT_BY_FILTER;
-    }
-	@Override
-    protected  Map<String,String> mapConditions() {
-        return MAP_CONDITIONS;
-    }
-	@Override
-    protected  String selectByFilter() {
-        return SELECT_BY_FILTER;
     }
 
 }

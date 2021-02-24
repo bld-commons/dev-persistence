@@ -42,8 +42,23 @@ public  class AssoMdfProdottoOrdineIngredienteServiceImpl extends JpaServiceImpl
     
     
 	@Override
-    protected  JpaRepository<AssoMdfProdottoOrdineIngrediente,AssoMdfProdottoOrdineIngredientePK> getJpaRepository() {
-        return assoMdfProdottoOrdineIngredienteRepository;
+    protected  Map<String,String> mapConditions() {
+        return MAP_CONDITIONS;
+    }
+	@Override
+    protected  NamedParameterJdbcTemplate getJdbcTemplate() {
+        return jdbcTemplate;
+    }
+	@Override
+    protected  String selectByFilter() {
+        return SELECT_BY_FILTER;
+    }
+	@Override
+    protected  void mapOneToMany() {
+    }
+	@Override
+    protected  EntityManager getEntityManager() {
+        return entityManager;
     }
     private static  Map<String,String> getMapConditions() {
         Map<String,String> map=new HashMap<>();
@@ -55,27 +70,12 @@ public  class AssoMdfProdottoOrdineIngredienteServiceImpl extends JpaServiceImpl
         return map;
     }
 	@Override
-    protected  Map<String,String> mapConditions() {
-        return MAP_CONDITIONS;
-    }
-	@Override
-    protected  EntityManager getEntityManager() {
-        return entityManager;
-    }
-	@Override
-    protected  NamedParameterJdbcTemplate getJdbcTemplate() {
-        return jdbcTemplate;
-    }
-	@Override
     protected  String countByFilter() {
         return COUNT_BY_FILTER;
     }
 	@Override
-    protected  String selectByFilter() {
-        return SELECT_BY_FILTER;
-    }
-	@Override
-    protected  void mapOneToMany() {
+    protected  JpaRepository<AssoMdfProdottoOrdineIngrediente,AssoMdfProdottoOrdineIngredientePK> getJpaRepository() {
+        return assoMdfProdottoOrdineIngredienteRepository;
     }
 
 }

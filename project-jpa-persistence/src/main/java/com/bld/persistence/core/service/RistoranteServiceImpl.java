@@ -41,11 +41,12 @@ public  class RistoranteServiceImpl extends JpaServiceImpl<Ristorante,Long> impl
     
     
 	@Override
-    protected  void mapOneToMany() {
-        addJoinOneToMany("idOrdine", "  join fetch ristorante.ordines ordines ");
-        addJoinOneToMany("idPostazioneCucina", "  join fetch ristorante.postazioneCucinas postazioneCucinas ");
-        addJoinOneToMany("idSpeedy", "  join fetch ristorante.speedies speedies ");
-        addJoinOneToMany("idIngrediente", "  join fetch ristorante.ingredientes ingredientes ");
+    protected  NamedParameterJdbcTemplate getJdbcTemplate() {
+        return jdbcTemplate;
+    }
+	@Override
+    protected  String selectByFilter() {
+        return SELECT_BY_FILTER;
     }
 	@Override
     protected  EntityManager getEntityManager() {
@@ -56,16 +57,19 @@ public  class RistoranteServiceImpl extends JpaServiceImpl<Ristorante,Long> impl
         return MAP_CONDITIONS;
     }
 	@Override
-    protected  NamedParameterJdbcTemplate getJdbcTemplate() {
-        return jdbcTemplate;
-    }
-	@Override
     protected  JpaRepository<Ristorante,Long> getJpaRepository() {
         return ristoranteRepository;
     }
 	@Override
     protected  String countByFilter() {
         return COUNT_BY_FILTER;
+    }
+	@Override
+    protected  void mapOneToMany() {
+        addJoinOneToMany("idOrdine", "  join fetch ristorante.ordines ordines ");
+        addJoinOneToMany("idPostazioneCucina", "  join fetch ristorante.postazioneCucinas postazioneCucinas ");
+        addJoinOneToMany("idSpeedy", "  join fetch ristorante.speedies speedies ");
+        addJoinOneToMany("idIngrediente", "  join fetch ristorante.ingredientes ingredientes ");
     }
     private static  Map<String,String> getMapConditions() {
         Map<String,String> map=new HashMap<>();
@@ -81,10 +85,6 @@ public  class RistoranteServiceImpl extends JpaServiceImpl<Ristorante,Long> impl
         map.put("numCivico", " and ristorante.numCivico like :numCivico ");
         map.put("idIngrediente", " and ingredientes.idIngrediente in (:ingredientes) ");
         return map;
-    }
-	@Override
-    protected  String selectByFilter() {
-        return SELECT_BY_FILTER;
     }
 
 }

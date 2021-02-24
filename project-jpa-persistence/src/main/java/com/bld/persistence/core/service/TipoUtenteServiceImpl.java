@@ -41,12 +41,20 @@ public  class TipoUtenteServiceImpl extends JpaServiceImpl<TipoUtente,Long> impl
     
     
 	@Override
+    protected  NamedParameterJdbcTemplate getJdbcTemplate() {
+        return jdbcTemplate;
+    }
+	@Override
+    protected  String selectByFilter() {
+        return SELECT_BY_FILTER;
+    }
+	@Override
     protected  EntityManager getEntityManager() {
         return entityManager;
     }
 	@Override
-    protected  void mapOneToMany() {
-        addJoinOneToMany("idUtente", "  join fetch tipoUtente.utentes utentes ");
+    protected  String countByFilter() {
+        return COUNT_BY_FILTER;
     }
     private static  Map<String,String> getMapConditions() {
         Map<String,String> map=new HashMap<>();
@@ -61,20 +69,12 @@ public  class TipoUtenteServiceImpl extends JpaServiceImpl<TipoUtente,Long> impl
         return MAP_CONDITIONS;
     }
 	@Override
+    protected  void mapOneToMany() {
+        addJoinOneToMany("idUtente", "  join fetch tipoUtente.utentes utentes ");
+    }
+	@Override
     protected  JpaRepository<TipoUtente,Long> getJpaRepository() {
         return tipoUtenteRepository;
-    }
-	@Override
-    protected  NamedParameterJdbcTemplate getJdbcTemplate() {
-        return jdbcTemplate;
-    }
-	@Override
-    protected  String countByFilter() {
-        return COUNT_BY_FILTER;
-    }
-	@Override
-    protected  String selectByFilter() {
-        return SELECT_BY_FILTER;
     }
 
 }

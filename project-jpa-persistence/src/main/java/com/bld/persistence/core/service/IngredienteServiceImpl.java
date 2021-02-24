@@ -41,24 +41,27 @@ public  class IngredienteServiceImpl extends JpaServiceImpl<Ingrediente,Long> im
     
     
 	@Override
-    protected  void mapOneToMany() {
+    protected  NamedParameterJdbcTemplate getJdbcTemplate() {
+        return jdbcTemplate;
     }
 	@Override
-    protected  EntityManager getEntityManager() {
-        return entityManager;
-    }
-	@Override
-    protected  JpaRepository<Ingrediente,Long> getJpaRepository() {
-        return ingredienteRepository;
+    protected  String selectByFilter() {
+        return SELECT_BY_FILTER;
     }
     private static  Map<String,String> getMapConditions() {
         Map<String,String> map=new HashMap<>();
         map.put("idIngrediente", " and ingrediente.idIngrediente in (:idIngrediente) ");
         map.put("id", " and ingrediente.idIngrediente in (:idIngrediente) ");
-        map.put("updateTimestampBefore", " and ingrediente.updateTimestamp>= :updateTimestampBefore ");
-        map.put("updateTimestampAfter", " and ingrediente.updateTimestamp<= :updateTimestampAfter ");
-        map.put("createTimestampBefore", " and ingrediente.createTimestamp>= :createTimestampBefore ");
-        map.put("createTimestampAfter", " and ingrediente.createTimestamp<= :createTimestampAfter ");
+        map.put("updateTimestampBeforeEqual", " and ingrediente.updateTimestamp<=:updateTimestampBeforeEqual ");
+        map.put("updateTimestampAfterEqual", " and ingrediente.updateTimestamp>=:updateTimestampAfterEqual ");
+        map.put("updateTimestampBefore", " and ingrediente.updateTimestamp<:updateTimestampBefore ");
+        map.put("updateTimestampAfter", " and ingrediente.updateTimestamp>:updateTimestampAfter ");
+        map.put("updateTimestamp", " and ingrediente.updateTimestamp=:updateTimestamp ");
+        map.put("createTimestampBeforeEqual", " and ingrediente.createTimestamp<=:createTimestampBeforeEqual ");
+        map.put("createTimestampAfterEqual", " and ingrediente.createTimestamp>=:createTimestampAfterEqual ");
+        map.put("createTimestampBefore", " and ingrediente.createTimestamp<:createTimestampBefore ");
+        map.put("createTimestampAfter", " and ingrediente.createTimestamp>:createTimestampAfter ");
+        map.put("createTimestamp", " and ingrediente.createTimestamp=:createTimestamp ");
         map.put("flagValido", " and ingrediente.flagValido= :flagValido ");
         map.put("updateUser", " and ingrediente.updateUser like :updateUser ");
         map.put("createUser", " and ingrediente.createUser like :createUser ");
@@ -67,20 +70,23 @@ public  class IngredienteServiceImpl extends JpaServiceImpl<Ingrediente,Long> im
         return map;
     }
 	@Override
-    protected  NamedParameterJdbcTemplate getJdbcTemplate() {
-        return jdbcTemplate;
+    protected  void mapOneToMany() {
     }
 	@Override
-    protected  String countByFilter() {
-        return COUNT_BY_FILTER;
+    protected  EntityManager getEntityManager() {
+        return entityManager;
     }
 	@Override
     protected  Map<String,String> mapConditions() {
         return MAP_CONDITIONS;
     }
 	@Override
-    protected  String selectByFilter() {
-        return SELECT_BY_FILTER;
+    protected  JpaRepository<Ingrediente,Long> getJpaRepository() {
+        return ingredienteRepository;
+    }
+	@Override
+    protected  String countByFilter() {
+        return COUNT_BY_FILTER;
     }
 
 }

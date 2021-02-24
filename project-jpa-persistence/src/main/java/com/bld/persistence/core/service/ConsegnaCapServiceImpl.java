@@ -42,45 +42,51 @@ public  class ConsegnaCapServiceImpl extends JpaServiceImpl<ConsegnaCap,Consegna
     
     
 	@Override
-    protected  Map<String,String> mapConditions() {
-        return MAP_CONDITIONS;
+    protected  NamedParameterJdbcTemplate getJdbcTemplate() {
+        return jdbcTemplate;
+    }
+	@Override
+    protected  String selectByFilter() {
+        return SELECT_BY_FILTER;
     }
 	@Override
     protected  EntityManager getEntityManager() {
         return entityManager;
     }
 	@Override
-    protected  JpaRepository<ConsegnaCap,ConsegnaCapPK> getJpaRepository() {
-        return consegnaCapRepository;
-    }
-	@Override
     protected  void mapOneToMany() {
     }
 	@Override
-    protected  NamedParameterJdbcTemplate getJdbcTemplate() {
-        return jdbcTemplate;
-    }
-    private static  Map<String,String> getMapConditions() {
-        Map<String,String> map=new HashMap<>();
-        map.put("idRistorante", " and ristorante.idRistorante in (:idRistorante) ");
-        map.put("updateTimestampBefore", " and consegnaCap.updateTimestamp>= :updateTimestampBefore ");
-        map.put("updateTimestampAfter", " and consegnaCap.updateTimestamp<= :updateTimestampAfter ");
-        map.put("createTimestampBefore", " and consegnaCap.createTimestamp>= :createTimestampBefore ");
-        map.put("createTimestampAfter", " and consegnaCap.createTimestamp<= :createTimestampAfter ");
-        map.put("flagValido", " and consegnaCap.flagValido= :flagValido ");
-        map.put("updateUser", " and consegnaCap.updateUser like :updateUser ");
-        map.put("createUser", " and consegnaCap.createUser like :createUser ");
-        map.put("cap", " and consegnaCap.id.cap in (:cap) ");
-        map.put("idRistorante", " and consegnaCap.id.idRistorante in (:idRistorante) ");
-        return map;
+    protected  JpaRepository<ConsegnaCap,ConsegnaCapPK> getJpaRepository() {
+        return consegnaCapRepository;
     }
 	@Override
     protected  String countByFilter() {
         return COUNT_BY_FILTER;
     }
 	@Override
-    protected  String selectByFilter() {
-        return SELECT_BY_FILTER;
+    protected  Map<String,String> mapConditions() {
+        return MAP_CONDITIONS;
+    }
+    private static  Map<String,String> getMapConditions() {
+        Map<String,String> map=new HashMap<>();
+        map.put("idRistorante", " and ristorante.idRistorante in (:idRistorante) ");
+        map.put("updateTimestampBeforeEqual", " and consegnaCap.updateTimestamp<=:updateTimestampBeforeEqual ");
+        map.put("updateTimestampAfterEqual", " and consegnaCap.updateTimestamp>=:updateTimestampAfterEqual ");
+        map.put("updateTimestampBefore", " and consegnaCap.updateTimestamp<:updateTimestampBefore ");
+        map.put("updateTimestampAfter", " and consegnaCap.updateTimestamp>:updateTimestampAfter ");
+        map.put("updateTimestamp", " and consegnaCap.updateTimestamp=:updateTimestamp ");
+        map.put("createTimestampBeforeEqual", " and consegnaCap.createTimestamp<=:createTimestampBeforeEqual ");
+        map.put("createTimestampAfterEqual", " and consegnaCap.createTimestamp>=:createTimestampAfterEqual ");
+        map.put("createTimestampBefore", " and consegnaCap.createTimestamp<:createTimestampBefore ");
+        map.put("createTimestampAfter", " and consegnaCap.createTimestamp>:createTimestampAfter ");
+        map.put("createTimestamp", " and consegnaCap.createTimestamp=:createTimestamp ");
+        map.put("flagValido", " and consegnaCap.flagValido= :flagValido ");
+        map.put("updateUser", " and consegnaCap.updateUser like :updateUser ");
+        map.put("createUser", " and consegnaCap.createUser like :createUser ");
+        map.put("cap", " and consegnaCap.id.cap in (:cap) ");
+        map.put("idRistorante", " and consegnaCap.id.idRistorante in (:idRistorante) ");
+        return map;
     }
 
 }

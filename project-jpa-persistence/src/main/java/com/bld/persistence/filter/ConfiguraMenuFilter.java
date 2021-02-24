@@ -1,9 +1,9 @@
 package com.bld.persistence.filter;
 
 import bld.commons.persistence.reflection.annotations.LikeString;
-import bld.commons.persistence.reflection.model.ParameterFilter;
+import bld.commons.persistence.reflection.model.FilterParameter;
 
-public class ConfiguraMenuFilter extends ParameterFilter {
+public class ConfiguraMenuFilter extends FilterParameter {
 
 	
 	private Integer quantita;

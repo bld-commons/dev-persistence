@@ -41,12 +41,16 @@ public  class ProdottoOrdineServiceImpl extends JpaServiceImpl<ProdottoOrdine,Lo
     
     
 	@Override
-    protected  JpaRepository<ProdottoOrdine,Long> getJpaRepository() {
-        return prodottoOrdineRepository;
+    protected  NamedParameterJdbcTemplate getJdbcTemplate() {
+        return jdbcTemplate;
     }
 	@Override
-    protected  void mapOneToMany() {
-        addJoinOneToMany("idModificaProdottoOrdine", "  join fetch prodottoOrdine.modificaProdottoOrdines modificaProdottoOrdines ");
+    protected  String selectByFilter() {
+        return SELECT_BY_FILTER;
+    }
+	@Override
+    protected  Map<String,String> mapConditions() {
+        return MAP_CONDITIONS;
     }
 	@Override
     protected  EntityManager getEntityManager() {
@@ -63,28 +67,30 @@ public  class ProdottoOrdineServiceImpl extends JpaServiceImpl<ProdottoOrdine,Lo
         map.put("idProdotto", " and prodotto.idProdotto in (:idProdotto) ");
         map.put("flagValido", " and prodottoOrdine.flagValido= :flagValido ");
         map.put("updateUser", " and prodottoOrdine.updateUser like :updateUser ");
-        map.put("updateTimestampBefore", " and prodottoOrdine.updateTimestamp>= :updateTimestampBefore ");
-        map.put("updateTimestampAfter", " and prodottoOrdine.updateTimestamp<= :updateTimestampAfter ");
-        map.put("createTimestampBefore", " and prodottoOrdine.createTimestamp>= :createTimestampBefore ");
-        map.put("createTimestampAfter", " and prodottoOrdine.createTimestamp<= :createTimestampAfter ");
+        map.put("updateTimestampBeforeEqual", " and prodottoOrdine.updateTimestamp<=:updateTimestampBeforeEqual ");
+        map.put("updateTimestampAfterEqual", " and prodottoOrdine.updateTimestamp>=:updateTimestampAfterEqual ");
+        map.put("updateTimestampBefore", " and prodottoOrdine.updateTimestamp<:updateTimestampBefore ");
+        map.put("updateTimestampAfter", " and prodottoOrdine.updateTimestamp>:updateTimestampAfter ");
+        map.put("updateTimestamp", " and prodottoOrdine.updateTimestamp=:updateTimestamp ");
+        map.put("createTimestampBeforeEqual", " and prodottoOrdine.createTimestamp<=:createTimestampBeforeEqual ");
+        map.put("createTimestampAfterEqual", " and prodottoOrdine.createTimestamp>=:createTimestampAfterEqual ");
+        map.put("createTimestampBefore", " and prodottoOrdine.createTimestamp<:createTimestampBefore ");
+        map.put("createTimestampAfter", " and prodottoOrdine.createTimestamp>:createTimestampAfter ");
+        map.put("createTimestamp", " and prodottoOrdine.createTimestamp=:createTimestamp ");
         map.put("idOrdine", " and ordine.idOrdine in (:idOrdine) ");
         return map;
-    }
-	@Override
-    protected  NamedParameterJdbcTemplate getJdbcTemplate() {
-        return jdbcTemplate;
     }
 	@Override
     protected  String countByFilter() {
         return COUNT_BY_FILTER;
     }
 	@Override
-    protected  Map<String,String> mapConditions() {
-        return MAP_CONDITIONS;
+    protected  JpaRepository<ProdottoOrdine,Long> getJpaRepository() {
+        return prodottoOrdineRepository;
     }
 	@Override
-    protected  String selectByFilter() {
-        return SELECT_BY_FILTER;
+    protected  void mapOneToMany() {
+        addJoinOneToMany("idModificaProdottoOrdine", "  join fetch prodottoOrdine.modificaProdottoOrdines modificaProdottoOrdines ");
     }
 
 }

@@ -41,19 +41,19 @@ public  class ModificaProdottoOrdineServiceImpl extends JpaServiceImpl<ModificaP
     
     
 	@Override
+    protected  NamedParameterJdbcTemplate getJdbcTemplate() {
+        return jdbcTemplate;
+    }
+	@Override
+    protected  String selectByFilter() {
+        return SELECT_BY_FILTER;
+    }
+	@Override
     protected  EntityManager getEntityManager() {
         return entityManager;
     }
 	@Override
     protected  void mapOneToMany() {
-    }
-	@Override
-    protected  NamedParameterJdbcTemplate getJdbcTemplate() {
-        return jdbcTemplate;
-    }
-	@Override
-    protected  String countByFilter() {
-        return COUNT_BY_FILTER;
     }
     private static  Map<String,String> getMapConditions() {
         Map<String,String> map=new HashMap<>();
@@ -62,25 +62,31 @@ public  class ModificaProdottoOrdineServiceImpl extends JpaServiceImpl<ModificaP
         map.put("idModificaProdottoOrdine", " and modificaProdottoOrdine.idModificaProdottoOrdine in (:idModificaProdottoOrdine) ");
         map.put("id", " and modificaProdottoOrdine.idModificaProdottoOrdine in (:idModificaProdottoOrdine) ");
         map.put("updateUser", " and modificaProdottoOrdine.updateUser like :updateUser ");
-        map.put("createTimestampBefore", " and modificaProdottoOrdine.createTimestamp>= :createTimestampBefore ");
-        map.put("createTimestampAfter", " and modificaProdottoOrdine.createTimestamp<= :createTimestampAfter ");
+        map.put("createTimestampBeforeEqual", " and modificaProdottoOrdine.createTimestamp<=:createTimestampBeforeEqual ");
+        map.put("createTimestampAfterEqual", " and modificaProdottoOrdine.createTimestamp>=:createTimestampAfterEqual ");
+        map.put("createTimestampBefore", " and modificaProdottoOrdine.createTimestamp<:createTimestampBefore ");
+        map.put("createTimestampAfter", " and modificaProdottoOrdine.createTimestamp>:createTimestampAfter ");
+        map.put("createTimestamp", " and modificaProdottoOrdine.createTimestamp=:createTimestamp ");
         map.put("flagValido", " and modificaProdottoOrdine.flagValido= :flagValido ");
-        map.put("updateTimestampBefore", " and modificaProdottoOrdine.updateTimestamp>= :updateTimestampBefore ");
-        map.put("updateTimestampAfter", " and modificaProdottoOrdine.updateTimestamp<= :updateTimestampAfter ");
+        map.put("updateTimestampBeforeEqual", " and modificaProdottoOrdine.updateTimestamp<=:updateTimestampBeforeEqual ");
+        map.put("updateTimestampAfterEqual", " and modificaProdottoOrdine.updateTimestamp>=:updateTimestampAfterEqual ");
+        map.put("updateTimestampBefore", " and modificaProdottoOrdine.updateTimestamp<:updateTimestampBefore ");
+        map.put("updateTimestampAfter", " and modificaProdottoOrdine.updateTimestamp>:updateTimestampAfter ");
+        map.put("updateTimestamp", " and modificaProdottoOrdine.updateTimestamp=:updateTimestamp ");
         map.put("idProdottoOrdine", " and prodottoOrdine.idProdottoOrdine in (:idProdottoOrdine) ");
         return map;
-    }
-	@Override
-    protected  Map<String,String> mapConditions() {
-        return MAP_CONDITIONS;
     }
 	@Override
     protected  JpaRepository<ModificaProdottoOrdine,Long> getJpaRepository() {
         return modificaProdottoOrdineRepository;
     }
 	@Override
-    protected  String selectByFilter() {
-        return SELECT_BY_FILTER;
+    protected  String countByFilter() {
+        return COUNT_BY_FILTER;
+    }
+	@Override
+    protected  Map<String,String> mapConditions() {
+        return MAP_CONDITIONS;
     }
 
 }

@@ -41,24 +41,12 @@ public  class GenereServiceImpl extends JpaServiceImpl<Genere,Long> implements G
     
     
 	@Override
-    protected  EntityManager getEntityManager() {
-        return entityManager;
-    }
-	@Override
     protected  JpaRepository<Genere,Long> getJpaRepository() {
         return genereRepository;
     }
 	@Override
     protected  NamedParameterJdbcTemplate getJdbcTemplate() {
         return jdbcTemplate;
-    }
-	@Override
-    protected  String countByFilter() {
-        return COUNT_BY_FILTER;
-    }
-	@Override
-    protected  Map<String,String> mapConditions() {
-        return MAP_CONDITIONS;
     }
 	@Override
     protected  String selectByFilter() {
@@ -71,15 +59,33 @@ public  class GenereServiceImpl extends JpaServiceImpl<Genere,Long> implements G
         map.put("idPostazioneCucina", " and postazioneCucina.idPostazioneCucina in (:idPostazioneCucina) ");
         map.put("desGenere", " and genere.desGenere like :desGenere ");
         map.put("idConfiguraMenu", " and configuraMenus.idConfiguraMenu in (:configuraMenus) ");
-        map.put("updateTimestampBefore", " and genere.updateTimestamp>= :updateTimestampBefore ");
-        map.put("updateTimestampAfter", " and genere.updateTimestamp<= :updateTimestampAfter ");
-        map.put("createTimestampBefore", " and genere.createTimestamp>= :createTimestampBefore ");
-        map.put("createTimestampAfter", " and genere.createTimestamp<= :createTimestampAfter ");
+        map.put("updateTimestampBeforeEqual", " and genere.updateTimestamp<=:updateTimestampBeforeEqual ");
+        map.put("updateTimestampAfterEqual", " and genere.updateTimestamp>=:updateTimestampAfterEqual ");
+        map.put("updateTimestampBefore", " and genere.updateTimestamp<:updateTimestampBefore ");
+        map.put("updateTimestampAfter", " and genere.updateTimestamp>:updateTimestampAfter ");
+        map.put("updateTimestamp", " and genere.updateTimestamp=:updateTimestamp ");
+        map.put("createTimestampBeforeEqual", " and genere.createTimestamp<=:createTimestampBeforeEqual ");
+        map.put("createTimestampAfterEqual", " and genere.createTimestamp>=:createTimestampAfterEqual ");
+        map.put("createTimestampBefore", " and genere.createTimestamp<:createTimestampBefore ");
+        map.put("createTimestampAfter", " and genere.createTimestamp>:createTimestampAfter ");
+        map.put("createTimestamp", " and genere.createTimestamp=:createTimestamp ");
         map.put("flagValido", " and genere.flagValido= :flagValido ");
         map.put("idProdotto", " and prodottos.idProdotto in (:prodottos) ");
         map.put("createUser", " and genere.createUser like :createUser ");
         map.put("updateUser", " and genere.updateUser like :updateUser ");
         return map;
+    }
+	@Override
+    protected  EntityManager getEntityManager() {
+        return entityManager;
+    }
+	@Override
+    protected  Map<String,String> mapConditions() {
+        return MAP_CONDITIONS;
+    }
+	@Override
+    protected  String countByFilter() {
+        return COUNT_BY_FILTER;
     }
 	@Override
     protected  void mapOneToMany() {

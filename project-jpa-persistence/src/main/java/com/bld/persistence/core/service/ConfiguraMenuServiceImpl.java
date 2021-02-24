@@ -41,8 +41,12 @@ public  class ConfiguraMenuServiceImpl extends JpaServiceImpl<ConfiguraMenu,Long
     
     
 	@Override
-    protected  EntityManager getEntityManager() {
-        return entityManager;
+    protected  NamedParameterJdbcTemplate getJdbcTemplate() {
+        return jdbcTemplate;
+    }
+	@Override
+    protected  String selectByFilter() {
+        return SELECT_BY_FILTER;
     }
 	@Override
     protected  void mapOneToMany() {
@@ -52,12 +56,8 @@ public  class ConfiguraMenuServiceImpl extends JpaServiceImpl<ConfiguraMenu,Long
         return configuraMenuRepository;
     }
 	@Override
-    protected  NamedParameterJdbcTemplate getJdbcTemplate() {
-        return jdbcTemplate;
-    }
-	@Override
-    protected  Map<String,String> mapConditions() {
-        return MAP_CONDITIONS;
+    protected  EntityManager getEntityManager() {
+        return entityManager;
     }
 	@Override
     protected  String countByFilter() {
@@ -66,7 +66,6 @@ public  class ConfiguraMenuServiceImpl extends JpaServiceImpl<ConfiguraMenu,Long
     private static  Map<String,String> getMapConditions() {
         Map<String,String> map=new HashMap<>();
         map.put("idGenere", " and genere.idGenere in (:idGenere) ");
-        map.put("desGenere", " and genere.desGenere in (:desGenere) ");
         map.put("idProdotto", " and prodotto.idProdotto in (:idProdotto) ");
         map.put("quantita", " and configuraMenu.quantita in (:quantita) ");
         map.put("idConfiguraMenu", " and configuraMenu.idConfiguraMenu in (:idConfiguraMenu) ");
@@ -74,8 +73,8 @@ public  class ConfiguraMenuServiceImpl extends JpaServiceImpl<ConfiguraMenu,Long
         return map;
     }
 	@Override
-    protected  String selectByFilter() {
-        return SELECT_BY_FILTER;
+    protected  Map<String,String> mapConditions() {
+        return MAP_CONDITIONS;
     }
 
 }

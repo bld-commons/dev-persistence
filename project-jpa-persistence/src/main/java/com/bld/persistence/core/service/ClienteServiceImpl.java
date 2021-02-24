@@ -41,12 +41,12 @@ public  class ClienteServiceImpl extends JpaServiceImpl<Cliente,Long> implements
     
     
 	@Override
-    protected  EntityManager getEntityManager() {
-        return entityManager;
+    protected  NamedParameterJdbcTemplate getJdbcTemplate() {
+        return jdbcTemplate;
     }
 	@Override
-    protected  JpaRepository<Cliente,Long> getJpaRepository() {
-        return clienteRepository;
+    protected  String selectByFilter() {
+        return SELECT_BY_FILTER;
     }
     private static  Map<String,String> getMapConditions() {
         Map<String,String> map=new HashMap<>();
@@ -65,15 +65,29 @@ public  class ClienteServiceImpl extends JpaServiceImpl<Cliente,Long> implements
         map.put("updateUser", " and cliente.updateUser like :updateUser ");
         map.put("indirizzo", " and cliente.indirizzo like :indirizzo ");
         map.put("interno", " and cliente.interno like :interno ");
-        map.put("createTimestampBefore", " and cliente.createTimestamp>= :createTimestampBefore ");
-        map.put("createTimestampAfter", " and cliente.createTimestamp<= :createTimestampAfter ");
-        map.put("updateTimestampBefore", " and cliente.updateTimestamp>= :updateTimestampBefore ");
-        map.put("updateTimestampAfter", " and cliente.updateTimestamp<= :updateTimestampAfter ");
+        map.put("createTimestampBeforeEqual", " and cliente.createTimestamp<=:createTimestampBeforeEqual ");
+        map.put("createTimestampAfterEqual", " and cliente.createTimestamp>=:createTimestampAfterEqual ");
+        map.put("createTimestampBefore", " and cliente.createTimestamp<:createTimestampBefore ");
+        map.put("createTimestampAfter", " and cliente.createTimestamp>:createTimestampAfter ");
+        map.put("createTimestamp", " and cliente.createTimestamp=:createTimestamp ");
+        map.put("updateTimestampBeforeEqual", " and cliente.updateTimestamp<=:updateTimestampBeforeEqual ");
+        map.put("updateTimestampAfterEqual", " and cliente.updateTimestamp>=:updateTimestampAfterEqual ");
+        map.put("updateTimestampBefore", " and cliente.updateTimestamp<:updateTimestampBefore ");
+        map.put("updateTimestampAfter", " and cliente.updateTimestamp>:updateTimestampAfter ");
+        map.put("updateTimestamp", " and cliente.updateTimestamp=:updateTimestamp ");
         return map;
+    }
+	@Override
+    protected  EntityManager getEntityManager() {
+        return entityManager;
     }
 	@Override
     protected  Map<String,String> mapConditions() {
         return MAP_CONDITIONS;
+    }
+	@Override
+    protected  String countByFilter() {
+        return COUNT_BY_FILTER;
     }
 	@Override
     protected  void mapOneToMany() {
@@ -82,16 +96,8 @@ public  class ClienteServiceImpl extends JpaServiceImpl<Cliente,Long> implements
         addJoinOneToMany("contatto", "  join fetch cliente.contattoClientes contattoClientes ");
     }
 	@Override
-    protected  NamedParameterJdbcTemplate getJdbcTemplate() {
-        return jdbcTemplate;
-    }
-	@Override
-    protected  String countByFilter() {
-        return COUNT_BY_FILTER;
-    }
-	@Override
-    protected  String selectByFilter() {
-        return SELECT_BY_FILTER;
+    protected  JpaRepository<Cliente,Long> getJpaRepository() {
+        return clienteRepository;
     }
 
 }

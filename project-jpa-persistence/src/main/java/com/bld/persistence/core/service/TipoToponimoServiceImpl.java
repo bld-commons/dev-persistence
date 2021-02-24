@@ -41,8 +41,12 @@ public  class TipoToponimoServiceImpl extends JpaServiceImpl<TipoToponimo,Long> 
     
     
 	@Override
-    protected  Map<String,String> mapConditions() {
-        return MAP_CONDITIONS;
+    protected  NamedParameterJdbcTemplate getJdbcTemplate() {
+        return jdbcTemplate;
+    }
+	@Override
+    protected  String selectByFilter() {
+        return SELECT_BY_FILTER;
     }
 	@Override
     protected  void mapOneToMany() {
@@ -52,6 +56,10 @@ public  class TipoToponimoServiceImpl extends JpaServiceImpl<TipoToponimo,Long> 
 	@Override
     protected  EntityManager getEntityManager() {
         return entityManager;
+    }
+	@Override
+    protected  String countByFilter() {
+        return COUNT_BY_FILTER;
     }
 	@Override
     protected  JpaRepository<TipoToponimo,Long> getJpaRepository() {
@@ -68,16 +76,8 @@ public  class TipoToponimoServiceImpl extends JpaServiceImpl<TipoToponimo,Long> 
         return map;
     }
 	@Override
-    protected  NamedParameterJdbcTemplate getJdbcTemplate() {
-        return jdbcTemplate;
-    }
-	@Override
-    protected  String countByFilter() {
-        return COUNT_BY_FILTER;
-    }
-	@Override
-    protected  String selectByFilter() {
-        return SELECT_BY_FILTER;
+    protected  Map<String,String> mapConditions() {
+        return MAP_CONDITIONS;
     }
 
 }

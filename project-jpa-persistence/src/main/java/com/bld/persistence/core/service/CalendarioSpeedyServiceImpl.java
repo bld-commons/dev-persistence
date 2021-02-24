@@ -41,26 +41,33 @@ public  class CalendarioSpeedyServiceImpl extends JpaServiceImpl<CalendarioSpeed
     
     
 	@Override
-    protected  EntityManager getEntityManager() {
-        return entityManager;
+    protected  NamedParameterJdbcTemplate getJdbcTemplate() {
+        return jdbcTemplate;
+    }
+	@Override
+    protected  String selectByFilter() {
+        return SELECT_BY_FILTER;
     }
     private static  Map<String,String> getMapConditions() {
         Map<String,String> map=new HashMap<>();
         map.put("idSpeedy", " and speedy.idSpeedy in (:idSpeedy) ");
-        map.put("dataLavoroBefore", " and calendarioSpeedy.dataLavoro>= :dataLavoroBefore ");
-        map.put("dataLavoroAfter", " and calendarioSpeedy.dataLavoro<= :dataLavoroAfter ");
+        map.put("dataLavoroBeforeEqual", " and calendarioSpeedy.dataLavoro<=:dataLavoroBeforeEqual ");
+        map.put("dataLavoroAfterEqual", " and calendarioSpeedy.dataLavoro>=:dataLavoroAfterEqual ");
+        map.put("dataLavoroBefore", " and calendarioSpeedy.dataLavoro<:dataLavoroBefore ");
+        map.put("dataLavoroAfter", " and calendarioSpeedy.dataLavoro>:dataLavoroAfter ");
+        map.put("dataLavoro", " and calendarioSpeedy.dataLavoro=:dataLavoro ");
         map.put("idCalendarioSpeedy", " and calendarioSpeedy.idCalendarioSpeedy in (:idCalendarioSpeedy) ");
         map.put("id", " and calendarioSpeedy.idCalendarioSpeedy in (:idCalendarioSpeedy) ");
         map.put("idOrdine", " and ordines.idOrdine in (:ordines) ");
         return map;
     }
 	@Override
-    protected  Map<String,String> mapConditions() {
-        return MAP_CONDITIONS;
+    protected  EntityManager getEntityManager() {
+        return entityManager;
     }
 	@Override
-    protected  NamedParameterJdbcTemplate getJdbcTemplate() {
-        return jdbcTemplate;
+    protected  Map<String,String> mapConditions() {
+        return MAP_CONDITIONS;
     }
 	@Override
     protected  String countByFilter() {
@@ -73,10 +80,6 @@ public  class CalendarioSpeedyServiceImpl extends JpaServiceImpl<CalendarioSpeed
 	@Override
     protected  JpaRepository<CalendarioSpeedy,Long> getJpaRepository() {
         return calendarioSpeedyRepository;
-    }
-	@Override
-    protected  String selectByFilter() {
-        return SELECT_BY_FILTER;
     }
 
 }

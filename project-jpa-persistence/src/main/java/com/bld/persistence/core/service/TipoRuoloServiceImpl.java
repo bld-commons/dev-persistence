@@ -41,6 +41,14 @@ public  class TipoRuoloServiceImpl extends JpaServiceImpl<TipoRuolo,Long> implem
     
     
 	@Override
+    protected  NamedParameterJdbcTemplate getJdbcTemplate() {
+        return jdbcTemplate;
+    }
+	@Override
+    protected  String selectByFilter() {
+        return SELECT_BY_FILTER;
+    }
+	@Override
     protected  JpaRepository<TipoRuolo,Long> getJpaRepository() {
         return tipoRuoloRepository;
     }
@@ -49,8 +57,7 @@ public  class TipoRuoloServiceImpl extends JpaServiceImpl<TipoRuolo,Long> implem
         return entityManager;
     }
 	@Override
-    protected  NamedParameterJdbcTemplate getJdbcTemplate() {
-        return jdbcTemplate;
+    protected  void mapOneToMany() {
     }
 	@Override
     protected  String countByFilter() {
@@ -60,9 +67,6 @@ public  class TipoRuoloServiceImpl extends JpaServiceImpl<TipoRuolo,Long> implem
     protected  Map<String,String> mapConditions() {
         return MAP_CONDITIONS;
     }
-	@Override
-    protected  void mapOneToMany() {
-    }
     private static  Map<String,String> getMapConditions() {
         Map<String,String> map=new HashMap<>();
         map.put("desTipoRuolo", " and tipoRuolo.desTipoRuolo like :desTipoRuolo ");
@@ -70,10 +74,6 @@ public  class TipoRuoloServiceImpl extends JpaServiceImpl<TipoRuolo,Long> implem
         map.put("idTipoRuolo", " and tipoRuolo.idTipoRuolo in (:idTipoRuolo) ");
         map.put("id", " and tipoRuolo.idTipoRuolo in (:idTipoRuolo) ");
         return map;
-    }
-	@Override
-    protected  String selectByFilter() {
-        return SELECT_BY_FILTER;
     }
 
 }

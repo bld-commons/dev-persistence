@@ -41,27 +41,52 @@ public  class StoricoOrdineServiceImpl extends JpaServiceImpl<StoricoOrdine,Stor
 	
     
     
+	@Override
+    protected  NamedParameterJdbcTemplate getJdbcTemplate() {
+        return jdbcTemplate;
+    }
+	@Override
+    protected  String selectByFilter() {
+        return SELECT_BY_FILTER;
+    }
+	@Override
+    protected  JpaRepository<StoricoOrdine,StoricoOrdinePK> getJpaRepository() {
+        return storicoOrdineRepository;
+    }
+	@Override
+    protected  EntityManager getEntityManager() {
+        return entityManager;
+    }
     private static  Map<String,String> getMapConditions() {
         Map<String,String> map=new HashMap<>();
         map.put("createUser", " and storicoOrdine.createUser like :createUser ");
         map.put("codiceOrdine", " and storicoOrdine.id.codiceOrdine in (:codiceOrdine) ");
         map.put("idRistorante", " and storicoOrdine.id.idRistorante in (:idRistorante) ");
         map.put("idCliente", " and storicoOrdine.id.idCliente in (:idCliente) ");
-        map.put("dataRicevutaBefore", " and storicoOrdine.dataRicevuta>= :dataRicevutaBefore ");
-        map.put("dataRicevutaAfter", " and storicoOrdine.dataRicevuta<= :dataRicevutaAfter ");
+        map.put("dataRicevutaBeforeEqual", " and storicoOrdine.dataRicevuta<=:dataRicevutaBeforeEqual ");
+        map.put("dataRicevutaAfterEqual", " and storicoOrdine.dataRicevuta>=:dataRicevutaAfterEqual ");
+        map.put("dataRicevutaBefore", " and storicoOrdine.dataRicevuta<:dataRicevutaBefore ");
+        map.put("dataRicevutaAfter", " and storicoOrdine.dataRicevuta>:dataRicevutaAfter ");
+        map.put("dataRicevuta", " and storicoOrdine.dataRicevuta=:dataRicevuta ");
         map.put("updateUser", " and storicoOrdine.updateUser like :updateUser ");
-        map.put("updateTimestampBefore", " and storicoOrdine.updateTimestamp>= :updateTimestampBefore ");
-        map.put("updateTimestampAfter", " and storicoOrdine.updateTimestamp<= :updateTimestampAfter ");
-        map.put("createTimestampBefore", " and storicoOrdine.createTimestamp>= :createTimestampBefore ");
-        map.put("createTimestampAfter", " and storicoOrdine.createTimestamp<= :createTimestampAfter ");
+        map.put("updateTimestampBeforeEqual", " and storicoOrdine.updateTimestamp<=:updateTimestampBeforeEqual ");
+        map.put("updateTimestampAfterEqual", " and storicoOrdine.updateTimestamp>=:updateTimestampAfterEqual ");
+        map.put("updateTimestampBefore", " and storicoOrdine.updateTimestamp<:updateTimestampBefore ");
+        map.put("updateTimestampAfter", " and storicoOrdine.updateTimestamp>:updateTimestampAfter ");
+        map.put("updateTimestamp", " and storicoOrdine.updateTimestamp=:updateTimestamp ");
+        map.put("createTimestampBeforeEqual", " and storicoOrdine.createTimestamp<=:createTimestampBeforeEqual ");
+        map.put("createTimestampAfterEqual", " and storicoOrdine.createTimestamp>=:createTimestampAfterEqual ");
+        map.put("createTimestampBefore", " and storicoOrdine.createTimestamp<:createTimestampBefore ");
+        map.put("createTimestampAfter", " and storicoOrdine.createTimestamp>:createTimestampAfter ");
+        map.put("createTimestamp", " and storicoOrdine.createTimestamp=:createTimestamp ");
         map.put("ricevuta", " and storicoOrdine.ricevuta in (:ricevuta) ");
         map.put("idCliente", " and cliente.idCliente in (:idCliente) ");
         map.put("idRistorante", " and ristorante.idRistorante in (:idRistorante) ");
         return map;
     }
 	@Override
-    protected  EntityManager getEntityManager() {
-        return entityManager;
+    protected  String countByFilter() {
+        return COUNT_BY_FILTER;
     }
 	@Override
     protected  void mapOneToMany() {
@@ -69,22 +94,6 @@ public  class StoricoOrdineServiceImpl extends JpaServiceImpl<StoricoOrdine,Stor
 	@Override
     protected  Map<String,String> mapConditions() {
         return MAP_CONDITIONS;
-    }
-	@Override
-    protected  NamedParameterJdbcTemplate getJdbcTemplate() {
-        return jdbcTemplate;
-    }
-	@Override
-    protected  String countByFilter() {
-        return COUNT_BY_FILTER;
-    }
-	@Override
-    protected  JpaRepository<StoricoOrdine,StoricoOrdinePK> getJpaRepository() {
-        return storicoOrdineRepository;
-    }
-	@Override
-    protected  String selectByFilter() {
-        return SELECT_BY_FILTER;
     }
 
 }

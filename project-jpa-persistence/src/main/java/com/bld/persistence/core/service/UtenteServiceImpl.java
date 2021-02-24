@@ -41,12 +41,32 @@ public  class UtenteServiceImpl extends JpaServiceImpl<Utente,Long> implements U
     
     
 	@Override
+    protected  NamedParameterJdbcTemplate getJdbcTemplate() {
+        return jdbcTemplate;
+    }
+	@Override
+    protected  String selectByFilter() {
+        return SELECT_BY_FILTER;
+    }
+	@Override
     protected  EntityManager getEntityManager() {
         return entityManager;
     }
 	@Override
     protected  void mapOneToMany() {
         addJoinOneToMany("idSpeedy", "  join fetch utente.speedies speedies ");
+    }
+	@Override
+    protected  String countByFilter() {
+        return COUNT_BY_FILTER;
+    }
+	@Override
+    protected  Map<String,String> mapConditions() {
+        return MAP_CONDITIONS;
+    }
+	@Override
+    protected  JpaRepository<Utente,Long> getJpaRepository() {
+        return utenteRepository;
     }
     private static  Map<String,String> getMapConditions() {
         Map<String,String> map=new HashMap<>();
@@ -56,40 +76,29 @@ public  class UtenteServiceImpl extends JpaServiceImpl<Utente,Long> implements U
         map.put("createUser", " and utente.createUser like :createUser ");
         map.put("idCliente", " and cliente.idCliente in (:idCliente) ");
         map.put("password", " and utente.password like :password ");
-        map.put("updateTimestampBefore", " and utente.updateTimestamp>= :updateTimestampBefore ");
-        map.put("updateTimestampAfter", " and utente.updateTimestamp<= :updateTimestampAfter ");
-        map.put("createTimestampBefore", " and utente.createTimestamp>= :createTimestampBefore ");
-        map.put("createTimestampAfter", " and utente.createTimestamp<= :createTimestampAfter ");
+        map.put("updateTimestampBeforeEqual", " and utente.updateTimestamp<=:updateTimestampBeforeEqual ");
+        map.put("updateTimestampAfterEqual", " and utente.updateTimestamp>=:updateTimestampAfterEqual ");
+        map.put("updateTimestampBefore", " and utente.updateTimestamp<:updateTimestampBefore ");
+        map.put("updateTimestampAfter", " and utente.updateTimestamp>:updateTimestampAfter ");
+        map.put("updateTimestamp", " and utente.updateTimestamp=:updateTimestamp ");
+        map.put("createTimestampBeforeEqual", " and utente.createTimestamp<=:createTimestampBeforeEqual ");
+        map.put("createTimestampAfterEqual", " and utente.createTimestamp>=:createTimestampAfterEqual ");
+        map.put("createTimestampBefore", " and utente.createTimestamp<:createTimestampBefore ");
+        map.put("createTimestampAfter", " and utente.createTimestamp>:createTimestampAfter ");
+        map.put("createTimestamp", " and utente.createTimestamp=:createTimestamp ");
         map.put("idSpeedy", " and speedies.idSpeedy in (:speedies) ");
         map.put("confermaRegistrazione", " and utente.confermaRegistrazione= :confermaRegistrazione ");
         map.put("updateUser", " and utente.updateUser like :updateUser ");
         map.put("nome", " and utente.nome like :nome ");
-        map.put("dataNascitaBefore", " and utente.dataNascita>= :dataNascitaBefore ");
-        map.put("dataNascitaAfter", " and utente.dataNascita<= :dataNascitaAfter ");
+        map.put("dataNascitaBeforeEqual", " and utente.dataNascita<=:dataNascitaBeforeEqual ");
+        map.put("dataNascitaAfterEqual", " and utente.dataNascita>=:dataNascitaAfterEqual ");
+        map.put("dataNascitaBefore", " and utente.dataNascita<:dataNascitaBefore ");
+        map.put("dataNascitaAfter", " and utente.dataNascita>:dataNascitaAfter ");
+        map.put("dataNascita", " and utente.dataNascita=:dataNascita ");
         map.put("cognome", " and utente.cognome like :cognome ");
         map.put("codFiscale", " and utente.codFiscale like :codFiscale ");
         map.put("idTipoUtente", " and tipoUtente.idTipoUtente in (:idTipoUtente) ");
         return map;
-    }
-	@Override
-    protected  JpaRepository<Utente,Long> getJpaRepository() {
-        return utenteRepository;
-    }
-	@Override
-    protected  Map<String,String> mapConditions() {
-        return MAP_CONDITIONS;
-    }
-	@Override
-    protected  NamedParameterJdbcTemplate getJdbcTemplate() {
-        return jdbcTemplate;
-    }
-	@Override
-    protected  String countByFilter() {
-        return COUNT_BY_FILTER;
-    }
-	@Override
-    protected  String selectByFilter() {
-        return SELECT_BY_FILTER;
     }
 
 }

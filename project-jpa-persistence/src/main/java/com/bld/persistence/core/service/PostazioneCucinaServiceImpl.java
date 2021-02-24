@@ -41,37 +41,47 @@ public  class PostazioneCucinaServiceImpl extends JpaServiceImpl<PostazioneCucin
     
     
 	@Override
-    protected  JpaRepository<PostazioneCucina,Long> getJpaRepository() {
-        return postazioneCucinaRepository;
-    }
-	@Override
     protected  Map<String,String> mapConditions() {
         return MAP_CONDITIONS;
-    }
-	@Override
-    protected  EntityManager getEntityManager() {
-        return entityManager;
-    }
-	@Override
-    protected  void mapOneToMany() {
-        addJoinOneToMany("idGenere", "  join fetch postazioneCucina.generes generes ");
     }
 	@Override
     protected  NamedParameterJdbcTemplate getJdbcTemplate() {
         return jdbcTemplate;
     }
 	@Override
+    protected  String selectByFilter() {
+        return SELECT_BY_FILTER;
+    }
+	@Override
+    protected  JpaRepository<PostazioneCucina,Long> getJpaRepository() {
+        return postazioneCucinaRepository;
+    }
+	@Override
+    protected  EntityManager getEntityManager() {
+        return entityManager;
+    }
+	@Override
     protected  String countByFilter() {
         return COUNT_BY_FILTER;
+    }
+	@Override
+    protected  void mapOneToMany() {
+        addJoinOneToMany("idGenere", "  join fetch postazioneCucina.generes generes ");
     }
     private static  Map<String,String> getMapConditions() {
         Map<String,String> map=new HashMap<>();
         map.put("createUser", " and postazioneCucina.createUser like :createUser ");
         map.put("updateUser", " and postazioneCucina.updateUser like :updateUser ");
-        map.put("updateTimestampBefore", " and postazioneCucina.updateTimestamp>= :updateTimestampBefore ");
-        map.put("updateTimestampAfter", " and postazioneCucina.updateTimestamp<= :updateTimestampAfter ");
-        map.put("createTimestampBefore", " and postazioneCucina.createTimestamp>= :createTimestampBefore ");
-        map.put("createTimestampAfter", " and postazioneCucina.createTimestamp<= :createTimestampAfter ");
+        map.put("updateTimestampBeforeEqual", " and postazioneCucina.updateTimestamp<=:updateTimestampBeforeEqual ");
+        map.put("updateTimestampAfterEqual", " and postazioneCucina.updateTimestamp>=:updateTimestampAfterEqual ");
+        map.put("updateTimestampBefore", " and postazioneCucina.updateTimestamp<:updateTimestampBefore ");
+        map.put("updateTimestampAfter", " and postazioneCucina.updateTimestamp>:updateTimestampAfter ");
+        map.put("updateTimestamp", " and postazioneCucina.updateTimestamp=:updateTimestamp ");
+        map.put("createTimestampBeforeEqual", " and postazioneCucina.createTimestamp<=:createTimestampBeforeEqual ");
+        map.put("createTimestampAfterEqual", " and postazioneCucina.createTimestamp>=:createTimestampAfterEqual ");
+        map.put("createTimestampBefore", " and postazioneCucina.createTimestamp<:createTimestampBefore ");
+        map.put("createTimestampAfter", " and postazioneCucina.createTimestamp>:createTimestampAfter ");
+        map.put("createTimestamp", " and postazioneCucina.createTimestamp=:createTimestamp ");
         map.put("flagValido", " and postazioneCucina.flagValido= :flagValido ");
         map.put("idGenere", " and generes.idGenere in (:generes) ");
         map.put("idPostazioneCucina", " and postazioneCucina.idPostazioneCucina in (:idPostazioneCucina) ");
@@ -79,10 +89,6 @@ public  class PostazioneCucinaServiceImpl extends JpaServiceImpl<PostazioneCucin
         map.put("idRistorante", " and ristorante.idRistorante in (:idRistorante) ");
         map.put("desPostazioneCucina", " and postazioneCucina.desPostazioneCucina like :desPostazioneCucina ");
         return map;
-    }
-	@Override
-    protected  String selectByFilter() {
-        return SELECT_BY_FILTER;
     }
 
 }
