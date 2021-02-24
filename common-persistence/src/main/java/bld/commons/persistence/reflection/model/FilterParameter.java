@@ -11,7 +11,7 @@ import bld.commons.persistence.reflection.annotations.IgnoreMapping;
  * The Class BaseFilterRequest.
  *
  */
-public abstract class ParameterFilter {
+public abstract class FilterParameter {
 
 	/** The sort key. */
 	@IgnoreMapping

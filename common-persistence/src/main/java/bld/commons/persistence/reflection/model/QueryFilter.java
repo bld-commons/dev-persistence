@@ -46,7 +46,7 @@ public class QueryFilter <T, ID>{
 	private Class<T> classFilter;
 	
 	/** The parameter filter. */
-	private ParameterFilter parameterFilter;
+	private FilterParameter filterParameter;
 	
 	
 	/**
@@ -61,53 +61,29 @@ public class QueryFilter <T, ID>{
 	/**
 	 * Instantiates a new query filter.
 	 *
-	 * @param filter the filter
+	 * @param filterParameter the filter
 	 */
-	public QueryFilter(ParameterFilter filter) {
+	public QueryFilter(FilterParameter filterParameter) {
 		super();
 		this.checkNullable = new HashSet<>();
 		this.mapParameters=new HashMap<>();
-		this.parameterFilter=filter;
-		if (filter != null) {
-			this.sortKey = filter.getSortKey();
-			this.sortOrder = filter.getSortOrder();
-			if (filter.getPageNumber() != null && filter.getPageSize() != null)
-				this.pageable = PageRequest.of(filter.getPageNumber(), filter.getPageSize());
+		this.filterParameter=filterParameter;
+		if (filterParameter != null) {
+			this.sortKey = filterParameter.getSortKey();
+			this.sortOrder = filterParameter.getSortOrder();
+			if (filterParameter.getPageNumber() != null && filterParameter.getPageSize() != null)
+				this.pageable = PageRequest.of(filterParameter.getPageNumber(), filterParameter.getPageSize());
 		}
 
 	}
 
-	/**
-	 * Instantiates a new query filter.
-	 *
-	 * @param page          the page
-	 * @param size          the size
-	 * @param mapParameters the map parameters.
-	 * @param checkNullable the check nullable.
-	 */
-	public QueryFilter(Integer page, Integer size, Map<String, Object> mapParameters, Set<String> checkNullable) {
-		super();
-		this.checkNullable = checkNullable;
-		this.mapParameters=mapParameters;
-		if (page != null && size != null)
-			this.pageable = PageRequest.of(page, size);
-	}
+	
 
-	/**
-	 * Instantiates a new query filter.
-	 *
-	 * @param page          the page
-	 * @param size          the size
-	 * @param mapParameters the map parameters.
-	 */
-	public QueryFilter(Integer page, Integer size, Map<String, Object> mapParameters) {
+	public QueryFilter() {
 		super();
 		this.checkNullable = new HashSet<>();
-		this.mapParameters=mapParameters;
-		if (page != null && size != null)
-			this.pageable = PageRequest.of(page, size);
+		this.mapParameters=new HashMap<>();
 	}
-	
 
 	/**
 	 * Gets the id.
@@ -135,16 +111,7 @@ public class QueryFilter <T, ID>{
 	public Set<String> getCheckNullable() {
 		return checkNullable;
 	}
-
-	/**
-	 * Sets the check nullable.
-	 *
-	 * @param checkNullable the new check nullable
-	 */
-	public void setCheckNullable(Set<String> checkNullable) {
-		this.checkNullable = checkNullable;
-	}
-
+	
 	/**
 	 * Gets the map parameters.
 	 *
@@ -154,14 +121,6 @@ public class QueryFilter <T, ID>{
 		return mapParameters;
 	}
 
-	/**
-	 * Sets the map parameters.
-	 *
-	 * @param mapParameters the new map parameters
-	 */
-	public void setMapParameters(Map<String, Object> mapParameters) {
-		this.mapParameters = mapParameters;
-	}
 
 	/**
 	 * Gets the sort key.
@@ -217,6 +176,12 @@ public class QueryFilter <T, ID>{
 		this.pageable = pageable;
 	}
 
+	
+	public void setPageable(Integer page, Integer size) {
+		if (page != null && size != null)
+			this.pageable = PageRequest.of(page, size);
+	}
+	
 	/**
 	 * Gets the class filter.
 	 *
@@ -241,8 +206,8 @@ public class QueryFilter <T, ID>{
 	 *
 	 * @return the parameter filter
 	 */
-	public ParameterFilter getParameterFilter() {
-		return parameterFilter;
+	public FilterParameter getFilterParameter() {
+		return filterParameter;
 	}
 
 
@@ -251,8 +216,8 @@ public class QueryFilter <T, ID>{
 	 *
 	 * @param parameterFilter the new parameter filter
 	 */
-	public void setParameterFilter(ParameterFilter parameterFilter) {
-		this.parameterFilter = parameterFilter;
+	public void setFilterParameter(FilterParameter parameterFilter) {
+		this.filterParameter = parameterFilter;
 	}
 	
 	

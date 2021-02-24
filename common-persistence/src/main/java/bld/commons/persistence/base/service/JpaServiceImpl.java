@@ -55,7 +55,7 @@ public abstract class JpaServiceImpl<T, ID> extends BaseJpaService implements Jp
 			this.mapOneToMany=new HashMap<>();
 			mapOneToMany();
 		}
-		if(queryFilter.getParameterFilter()!=null)
+		if(queryFilter.getFilterParameter()!=null)
 			queryFilter=reflectionUtils.dataToMap(queryFilter);
 		queryFilter.setClassFilter(clazz);
 		return baseConfigureQueryFilter(queryFilter, query);

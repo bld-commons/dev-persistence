@@ -35,7 +35,7 @@ import bld.commons.persistence.reflection.annotations.DateFilter;
 import bld.commons.persistence.reflection.annotations.IgnoreMapping;
 import bld.commons.persistence.reflection.annotations.LikeString;
 import bld.commons.persistence.reflection.annotations.ListFilter;
-import bld.commons.persistence.reflection.model.ParameterFilter;
+import bld.commons.persistence.reflection.model.FilterParameter;
 import bld.commons.persistence.reflection.model.QueryFilter;
 
 /**
@@ -76,8 +76,7 @@ public class ReflectionUtils {
 	 * @throws IllegalAccessException    the illegal access exception
 	 * @throws InvocationTargetException the invocation target exception
 	 */
-	public void saveGeneric(Object valore, Class<?> classCampoDestinatario)
-			throws NoSuchMethodException, IllegalAccessException, InvocationTargetException {
+	public void saveGeneric(Object valore, Class<?> classCampoDestinatario) throws NoSuchMethodException, IllegalAccessException, InvocationTargetException {
 		String nomeClasse = classCampoDestinatario.getSimpleName();
 		String nomeClasseServiceImpl = getBeanName(nomeClasse, SERVICE_IMPL);
 		Object oggettoServiceImpl = applicationContext.getBean(nomeClasseServiceImpl);
@@ -117,72 +116,73 @@ public class ReflectionUtils {
 
 		Map<String, Object> mapParameters = new HashMap<String, Object>();
 		Set<String> checkNullable = new HashSet<>();
-		ParameterFilter obj = queryFilter.getParameterFilter();
-		Set<Field> campi = ReflectionUtils.getListField(obj.getClass());
 
-		for (Field f : campi) {
-			if (!f.isAnnotationPresent(IgnoreMapping.class)) {
-				try {
-					Object value = PropertyUtils.getProperty(obj, f.getName());
-					if (value != null && value instanceof String && StringUtils.isBlank((String) value))
-						value = null;
-					if (value != null) {
-						if (value instanceof Date && f.isAnnotationPresent(DateFilter.class)) {
-							DateFilter dateFilter = f.getAnnotation(DateFilter.class);
-							switch(dateFilter.dateType()) {
-							case CALENDAR:
-								Calendar calendar = DateUtils.dateToCalendar((Date) value);
-								value = DateUtils.sumDate(calendar,dateFilter.addYear(), dateFilter.addMonth(),dateFilter.addDay(),dateFilter.addHour(),dateFilter.addMinute(),dateFilter.addSecond());
-								break;
-							case DATE:
-								value = DateUtils.sumDate((Date) value,dateFilter.addYear(), dateFilter.addMonth(),dateFilter.addDay(),dateFilter.addHour(),dateFilter.addMinute(),dateFilter.addSecond());
-								break;
-							case TIMESTAMP:
-								Date date=DateUtils.sumDate((Date) value,dateFilter.addYear(), dateFilter.addMonth(),dateFilter.addDay(),dateFilter.addHour(),dateFilter.addMinute(),dateFilter.addSecond());
-								value=DateUtils.dateToTimestamp(date);
-								break;
-							default:
-								break;
-							
-							}
-							
-							
-							
-								
+		FilterParameter obj = queryFilter.getFilterParameter();
 
-						} else if (value instanceof String && f.isAnnotationPresent(LikeString.class)) {
-							LikeString likeString = f.getAnnotation(LikeString.class);
-							switch (likeString.likeType()) {
-							case LEFT:
-								value = "%" + value;
-								break;
-							case LEFT_RIGHT:
-								value = "%" + value + "%";
-								break;
-							case RIGHT:
-								value = value + "%";
-								break;
-							case EQUAL:
-								break;
-							default:
-								value = "%" + value + "%";
-								break;
+		if (obj != null) {
+			Set<Field> fields = ReflectionUtils.getListField(obj.getClass());
+
+			for (Field field : fields) {
+				if (!field.isAnnotationPresent(IgnoreMapping.class)) {
+					try {
+						Object value = PropertyUtils.getProperty(obj, field.getName());
+						if (value != null && value instanceof String && StringUtils.isBlank((String) value))
+							value = null;
+						if (value != null) {
+							if (value instanceof Date && field.isAnnotationPresent(DateFilter.class)) {
+								DateFilter dateFilter = field.getAnnotation(DateFilter.class);
+								switch (dateFilter.dateType()) {
+								case CALENDAR:
+									Calendar calendar = DateUtils.dateToCalendar((Date) value);
+									value = DateUtils.sumDate(calendar, dateFilter.addYear(), dateFilter.addMonth(), dateFilter.addDay(), dateFilter.addHour(), dateFilter.addMinute(), dateFilter.addSecond());
+									break;
+								case DATE:
+									value = DateUtils.sumDate((Date) value, dateFilter.addYear(), dateFilter.addMonth(), dateFilter.addDay(), dateFilter.addHour(), dateFilter.addMinute(), dateFilter.addSecond());
+									break;
+								case TIMESTAMP:
+									Date date = DateUtils.sumDate((Date) value, dateFilter.addYear(), dateFilter.addMonth(), dateFilter.addDay(), dateFilter.addHour(), dateFilter.addMinute(), dateFilter.addSecond());
+									value = DateUtils.dateToTimestamp(date);
+									break;
+								default:
+									break;
+
+								}
+
+							} else if (value instanceof String && field.isAnnotationPresent(LikeString.class)) {
+								LikeString likeString = field.getAnnotation(LikeString.class);
+								switch (likeString.likeType()) {
+								case LEFT:
+									value = "%" + value;
+									break;
+								case LEFT_RIGHT:
+									value = "%" + value + "%";
+									break;
+								case RIGHT:
+									value = value + "%";
+									break;
+								case EQUAL:
+									break;
+								default:
+									value = "%" + value + "%";
+									break;
+								}
+								if (likeString.ignoreCase())
+									value = ((String) value).toUpperCase();
 							}
-							if (likeString.ignoreCase())
-								value = ((String) value).toUpperCase();
+							if (value instanceof String && field.isAnnotationPresent(ListFilter.class))
+								checkNullable.add(value.toString());
+							else
+								mapParameters.put(field.getName(), value);
 						}
-						if (value instanceof String && f.isAnnotationPresent(ListFilter.class))
-							checkNullable.add(value.toString());
-						else
-							mapParameters.put(f.getName(), value);
+					} catch (Exception e) {
+						logger.warn("Errore durante la conversione dei dati in mappa");
 					}
-				} catch (Exception e) {
-					logger.warn("Errore durante la conversione dei dati in mappa");
 				}
 			}
+			queryFilter.getMapParameters().putAll(mapParameters);
+			queryFilter.getCheckNullable().addAll(checkNullable);
+
 		}
-		queryFilter.getMapParameters().putAll(mapParameters);
-		queryFilter.setCheckNullable(checkNullable);
 		return queryFilter;
 	}
 
