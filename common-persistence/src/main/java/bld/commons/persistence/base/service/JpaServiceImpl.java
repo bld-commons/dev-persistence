@@ -268,7 +268,7 @@ public abstract class JpaServiceImpl<T, ID> extends BaseJpaService implements Jp
 	@Override
 	public T findSingleResultByFilter(QueryFilter<T, ID> queryFilter,String select) {
 		BuildQueryFilter<T, ID> buildQueryFilter = configureQueryFilter(queryFilter, select);
-		return super.findById(buildQueryFilter);
+		return super.findSingleResultByFilter(buildQueryFilter);
 	}
 
 	/**
