@@ -295,7 +295,13 @@ public abstract class BaseJpaService  {
 	 */
 	public <T,ID> T findSingleResultByFilter(BuildQueryFilter<T,ID> buildQueryFilter){
 		TypedQuery<T> query = buildQuery(buildQueryFilter);
-		return query.getSingleResult();
+		T t=null;
+		try {
+			t=query.getSingleResult();
+		}catch(Exception e) {
+			logger.info("Record not found");
+		}
+		return t;
 	}
 	
 	
