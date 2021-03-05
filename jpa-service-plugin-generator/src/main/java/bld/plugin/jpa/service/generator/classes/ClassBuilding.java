@@ -147,7 +147,6 @@ public class ClassBuilding {
 		classService.getImports().add(classEntity.getName());
 		classService.getImports().add("java.util.HashMap");
 		classService.getImports().add(classEntity.getName() + REPOSITORY);
-		classService.setShowCostruct(false);
 
 		interfaceRepository.setName(className + REPOSITORY);
 		interfaceRepository.setPackageName(packageName);
