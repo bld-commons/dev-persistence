@@ -40,6 +40,8 @@ import bld.commons.persistence.reflection.utils.ReflectionUtils;
  */
 public class ClassBuilding {
 
+	private static final String BASE_JPA_REPOSITORY = "BaseJpaRepository";
+
 	/** The Constant SPACE. */
 	private static final String SPACE="        ";
 	
@@ -54,6 +56,8 @@ public class ClassBuilding {
 	
 	/** The Constant SELECT_BY_FILTER. */
 	private static final String SELECT_BY_FILTER = "SELECT_BY_FILTER";
+	
+	private static final String DELETE_BY_FILTER= "DELETE_BY_FILTER";
 	
 	/** The Constant STRING. */
 	private static final String STRING = "String";
@@ -107,10 +111,10 @@ public class ClassBuilding {
 	private static final ModelField JDBC_TEMPLATE_FIELD = getJdbcTemplate();
 
 	/** The Constant ENTITY_MANAGER_METHOD. */
-	private static final ModelMethod ENTITY_MANAGER_METHOD = returnMethodService("getEntityManager", ENTITY_MANAGER, SPACE+"return " + ENTITY_MANAGER_FIELD.getName() + ";");
+	private static final ModelMethod ENTITY_MANAGER_METHOD = returnMethodService("getEntityManager", ENTITY_MANAGER, SPACE+"return this." + ENTITY_MANAGER_FIELD.getName() + ";");
 	
 	/** The Constant JDBC_TEMPLATE_METHOD. */
-	private static final ModelMethod JDBC_TEMPLATE_METHOD = returnMethodService("getJdbcTemplate", NAMED_PARAMETER_JDBC_TEMPLATE, SPACE+"return " + JDBC_TEMPLATE_FIELD.getName() + ";");
+	private static final ModelMethod JDBC_TEMPLATE_METHOD = returnMethodService("getJdbcTemplate", NAMED_PARAMETER_JDBC_TEMPLATE, SPACE+"return this." + JDBC_TEMPLATE_FIELD.getName() + ";");
 	
 	/** The Constant SELECT_BY_FILTER_METHOD. */
 	private static final ModelMethod SELECT_BY_FILTER_METHOD=returnMethodService("selectByFilter", STRING, SPACE+"return "+SELECT_BY_FILTER+";");
@@ -118,8 +122,16 @@ public class ClassBuilding {
 	/** The Constant COUNT_BY_FILTER_METHOD. */
 	private static final ModelMethod COUNT_BY_FILTER_METHOD=returnMethodService("countByFilter", STRING, SPACE+"return "+COUNT_BY_FILTER+";");
 	
+	private static final ModelMethod DELETE_BY_FILTER_METHOD=returnMethodService("deleteByFilter", STRING, SPACE+"return "+DELETE_BY_FILTER+";");
+	
 	/** The Constant MAP_CONDITIONS_FIELD. */
-	private static final ModelField MAP_CONDITIONS_FIELD=getFieldMapConditions();
+	private static final ModelField MAP_CONDITIONS_FIELD=getFieldMapConditions("MAP_CONDITIONS","getMapConditions()");
+	
+	private static final ModelMethod MAP_CONDITIONS_METHOD=getConditions("mapConditions","return MAP_CONDITIONS;");
+	
+	private static final ModelMethod MAP_DELETE_CONDITIONS_METHOD=getConditions("mapDeleteConditions","return MAP_DELETE_CONDITIONS;");
+	
+	private static final ModelField MAP_DELETE_CONDITIONS_FIELD=getFieldMapConditions("MAP_DELETE_CONDITIONS","getMapDeleteConditions()");
 	
 
 	/**
@@ -163,13 +175,19 @@ public class ClassBuilding {
 
 		String selectByFilter = "\"select distinct " + fieldEntity + "\"";
 
+		String deleteByFilter = "\"delete from " + classEntity.getSimpleName()+ " " + fieldEntity + " where 1=1 \"";
+		
 		String countByFilter = "\"select distinct count(" + fieldEntity + ")\"";
 
 		String fromByFilter = " From " + classEntity.getSimpleName() + " " + fieldEntity;
 
+		List<String> mapBaseConditions = new ArrayList<>();
 		List<String> mapConditions = new ArrayList<>();
+		List<String> mapDeleteConditions = new ArrayList<>();
 		List<String> mapOneToMany=new ArrayList<>();
-		mapConditions.add(SPACE+"Map<String,String> map=new HashMap<>();");
+		mapBaseConditions.add(SPACE+"Map<String,String> map=new HashMap<>();");
+		mapDeleteConditions.add(SPACE+"Map<String,String> map=getMapBaseConditions();");
+		mapConditions.add(SPACE+"Map<String,String> map=getMapBaseConditions();");
 		
 		boolean checkOneToMany=false;
 		
@@ -189,26 +207,26 @@ public class ClassBuilding {
 					Set<Field>listFieldPk=ReflectionUtils.getListField(field.getType());
 					for(Field fieldPk:listFieldPk) 
 						if(fieldPk.isAnnotationPresent(Column.class))
-							mapConditions.add(SPACE+"map.put(\"" + fieldPk.getName()+"\", \" and "+fieldEntity+".id."+fieldPk.getName()+" in (:"+fieldPk.getName()+") \");");
+							mapBaseConditions.add(SPACE+"map.put(\"" + fieldPk.getName()+"\", \" and "+fieldEntity+".id."+fieldPk.getName()+" in (:"+fieldPk.getName()+") \");");
 				}else {
-					mapConditions.add(SPACE+"map.put(\"" + field.getName()+"\", \" and "+fieldEntity+"."+field.getName()+" in (:"+field.getName()+") \");");
-					mapConditions.add(SPACE+"map.put(\"id\", \" and "+fieldEntity+"."+field.getName()+" in (:"+field.getName()+") \");");
+					mapBaseConditions.add(SPACE+"map.put(\"" + field.getName()+"\", \" and "+fieldEntity+"."+field.getName()+" in (:"+field.getName()+") \");");
+					mapBaseConditions.add(SPACE+"map.put(\"id\", \" and "+fieldEntity+"."+field.getName()+" in (:"+field.getName()+") \");");
 				}
 				
 			}else if (field.isAnnotationPresent(Column.class)) {
 				if(Calendar.class.isAssignableFrom(field.getType()) || Date.class.isAssignableFrom(field.getType()) || Timestamp.class.isAssignableFrom(field.getType())) {
-					mapConditions.add(SPACE+"map.put(\"" + field.getName()+"BeforeEqual\", \" and "+fieldEntity+"."+field.getName()+"<=:"+field.getName()+"BeforeEqual \");");
-					mapConditions.add(SPACE+"map.put(\"" + field.getName()+"AfterEqual\", \" and "+fieldEntity+"."+field.getName()+">=:"+field.getName()+"AfterEqual \");");
-					mapConditions.add(SPACE+"map.put(\"" + field.getName()+"Before\", \" and "+fieldEntity+"."+field.getName()+"<:"+field.getName()+"Before \");");
-					mapConditions.add(SPACE+"map.put(\"" + field.getName()+"After\", \" and "+fieldEntity+"."+field.getName()+">:"+field.getName()+"After \");");
-					mapConditions.add(SPACE+"map.put(\"" + field.getName()+"\", \" and "+fieldEntity+"."+field.getName()+"=:"+field.getName()+" \");");
+					mapBaseConditions.add(SPACE+"map.put(\"" + field.getName()+"BeforeEqual\", \" and "+fieldEntity+"."+field.getName()+"<=:"+field.getName()+"BeforeEqual \");");
+					mapBaseConditions.add(SPACE+"map.put(\"" + field.getName()+"AfterEqual\", \" and "+fieldEntity+"."+field.getName()+">=:"+field.getName()+"AfterEqual \");");
+					mapBaseConditions.add(SPACE+"map.put(\"" + field.getName()+"Before\", \" and "+fieldEntity+"."+field.getName()+"<:"+field.getName()+"Before \");");
+					mapBaseConditions.add(SPACE+"map.put(\"" + field.getName()+"After\", \" and "+fieldEntity+"."+field.getName()+">:"+field.getName()+"After \");");
+					mapBaseConditions.add(SPACE+"map.put(\"" + field.getName()+"\", \" and "+fieldEntity+"."+field.getName()+"=:"+field.getName()+" \");");
 					
 				}else if(String.class.isAssignableFrom(field.getType())){
-					mapConditions.add(SPACE+"map.put(\"" + field.getName()+"\", \" and "+fieldEntity+"."+field.getName()+" like :"+field.getName()+" \");");
+					mapBaseConditions.add(SPACE+"map.put(\"" + field.getName()+"\", \" and "+fieldEntity+"."+field.getName()+" like :"+field.getName()+" \");");
 				}else if(Boolean.class.isAssignableFrom(field.getType())){
-					mapConditions.add(SPACE+"map.put(\"" + field.getName()+"\", \" and "+fieldEntity+"."+field.getName()+"= :"+field.getName()+" \");");
+					mapBaseConditions.add(SPACE+"map.put(\"" + field.getName()+"\", \" and "+fieldEntity+"."+field.getName()+"= :"+field.getName()+" \");");
 				}else {
-					mapConditions.add(SPACE+"map.put(\"" + field.getName()+"\", \" and "+fieldEntity+"."+field.getName()+" in (:"+field.getName()+") \");");
+					mapBaseConditions.add(SPACE+"map.put(\"" + field.getName()+"\", \" and "+fieldEntity+"."+field.getName()+" in (:"+field.getName()+") \");");
 				}
 				
 			}else if (field.isAnnotationPresent(ManyToOne.class)) {
@@ -218,6 +236,7 @@ public class ClassBuilding {
 				for (Field fieldReference : listFieldReference) {
 					if(fieldReference.isAnnotationPresent(Id.class) || fieldReference.isAnnotationPresent(EmbeddedId.class)) {
 						mapConditions.add(SPACE+"map.put(\"" + fieldReference.getName()+"\", \" and "+field.getName()+"."+fieldReference.getName()+" in (:"+fieldReference.getName()+") \");");
+						mapDeleteConditions.add(SPACE+"map.put(\"" + fieldReference.getName()+"\", \" and "+fieldEntity+"."+field.getName()+"."+fieldReference.getName()+" in (:"+fieldReference.getName()+") \");");
 						break;
 					}
 				}
@@ -247,11 +266,11 @@ public class ClassBuilding {
 		fromByFilter+=(checkOneToMany?" \"+ONE_TO_MANY+\" where 1=1 ":" where 1=1 ");
 		ModelField fromByFilterField = finalStaticField(FROM_BY_FILTER, STRING, fromByFilter,true);
 		ModelField countByFilterField = finalStaticField(COUNT_BY_FILTER, STRING, countByFilter + "+" + FROM_BY_FILTER,false);
-		ModelField selectByFilterField = finalStaticField(SELECT_BY_FILTER, STRING,
-				selectByFilter + "+" + FROM_BY_FILTER,false);
+		ModelField selectByFilterField = finalStaticField(SELECT_BY_FILTER, STRING,	selectByFilter + "+" + FROM_BY_FILTER,false);
+		ModelField deletetByFilterField = finalStaticField(DELETE_BY_FILTER, STRING,	deleteByFilter,false);
 
 		ModelSuperClass superClassBaseJpaRepository = getPersistenceGenericType(genericTypeEntityClass, genericTypeId,
-				"BaseJpaRepository");
+				BASE_JPA_REPOSITORY);
 
 		interfaceRepository.getExtendsClass().add(superClassBaseJpaRepository);
 		modelClasses.getClasses().add(interfaceRepository);
@@ -286,11 +305,12 @@ public class ClassBuilding {
 		classService.getFields().add(ENTITY_MANAGER_FIELD);
 		classService.getFields().add(JDBC_TEMPLATE_FIELD);
 		classService.getFields().add(MAP_CONDITIONS_FIELD);
-		
+		classService.getFields().add(MAP_DELETE_CONDITIONS_FIELD);
 		
 		classService.getFields().add(fromByFilterField);
 		classService.getFields().add(selectByFilterField);
 		classService.getFields().add(countByFilterField);
+		classService.getFields().add(deletetByFilterField);
 
 		ModelMethod jpaRepositoryMethod = new ModelMethod();
 		jpaRepositoryMethod.setName("getJpaRepository");
@@ -299,32 +319,30 @@ public class ClassBuilding {
 		jpaRepositoryMethod.setType("JpaRepository");
 		jpaRepositoryMethod.getGenericTypes().add(genericTypeEntityClass);
 		jpaRepositoryMethod.getGenericTypes().add(genericTypeId);
-		jpaRepositoryMethod.getCommands().add(SPACE+"return " + repoField + ";");
+		jpaRepositoryMethod.getCommands().add(SPACE+"return this." + repoField + ";");
 		classService.getMethods().add(jpaRepositoryMethod);
 		classService.getMethods().add(ENTITY_MANAGER_METHOD);
 		classService.getMethods().add(JDBC_TEMPLATE_METHOD);
 		classService.getMethods().add(SELECT_BY_FILTER_METHOD);
 		classService.getMethods().add(COUNT_BY_FILTER_METHOD);
+		classService.getMethods().add(DELETE_BY_FILTER_METHOD);
 		
-		ModelMethod staticMapConditions=getMapConditions();
 		mapConditions.add(SPACE+"return map;");
-		staticMapConditions.setCommands(mapConditions);
+		mapBaseConditions.add(SPACE+"return map;");
+		mapDeleteConditions.add(SPACE+"return map;");
+		ModelMethod staticMapConditions=getMapConditions("getMapConditions",mapConditions);
+		ModelMethod staticMapBaseConditions=getMapConditions("getMapBaseConditions",mapBaseConditions);
+		ModelMethod staticMapDeleteConditions=getMapConditions("getMapDeleteConditions",mapDeleteConditions);
+		
 		classService.getMethods().add(staticMapConditions);
+		classService.getMethods().add(staticMapBaseConditions);
+		classService.getMethods().add(staticMapDeleteConditions);
 		
 		
-		
-		ModelMethod mapConditionsMethod=new ModelMethod();
-		mapConditionsMethod.setName("mapConditions");
-		mapConditionsMethod.setType("Map");
-		mapConditionsMethod.getGenericTypes().add(new ModelGenericType("String"));
-		mapConditionsMethod.getGenericTypes().add(new ModelGenericType("String"));
-		mapConditionsMethod.setLevelType(LevelType.PROTECTED);
-		mapConditionsMethod.getAnnotations().add(ANNOTATION_OVERRIDE);
-		
-		mapConditionsMethod.getCommands().add(SPACE+"return MAP_CONDITIONS;");
-		
+		ModelMethod mapConditionsMethod = MAP_CONDITIONS_METHOD;
+		ModelMethod mapDeleteConditionsMethod = MAP_DELETE_CONDITIONS_METHOD;
 		classService.getMethods().add(mapConditionsMethod);
-		
+		classService.getMethods().add(mapDeleteConditionsMethod);
 		
 		ModelMethod mapOneToManyMethod=new ModelMethod("mapOneToMany", "void");
 		mapOneToManyMethod.setLevelType(LevelType.PROTECTED);
@@ -336,6 +354,21 @@ public class ClassBuilding {
 		modelClasses.getClasses().add(classService);
 		
 
+	}
+
+
+
+	private static ModelMethod getConditions(String name,String command) {
+		ModelMethod mapConditionsMethod=new ModelMethod();
+		mapConditionsMethod.setName(name);
+		mapConditionsMethod.setType("Map");
+		mapConditionsMethod.getGenericTypes().add(new ModelGenericType("String"));
+		mapConditionsMethod.getGenericTypes().add(new ModelGenericType("String"));
+		mapConditionsMethod.setLevelType(LevelType.PROTECTED);
+		mapConditionsMethod.getAnnotations().add(ANNOTATION_OVERRIDE);
+		
+		mapConditionsMethod.getCommands().add(SPACE+command);
+		return mapConditionsMethod;
 	}
 
 	
@@ -446,8 +479,8 @@ public class ClassBuilding {
 	 *
 	 * @return the field map conditions
 	 */
-	private static ModelField getFieldMapConditions() {
-		ModelField mapConditions=finalStaticField("MAP_CONDITIONS", "Map", "getMapConditions()", false);
+	private static ModelField getFieldMapConditions(String name,String value) {
+		ModelField mapConditions=finalStaticField(name, "Map", value, false);
 		mapConditions.getGenericTypes().add(new ModelGenericType("String"));
 		mapConditions.getGenericTypes().add(new ModelGenericType("String"));
 		return mapConditions;
@@ -456,15 +489,17 @@ public class ClassBuilding {
 	
 	/**
 	 * Gets the map conditions.
+	 * @param commands 
 	 *
 	 * @return the map conditions
 	 */
-	private static ModelMethod getMapConditions() {
-		ModelMethod mapConditions=new ModelMethod("getMapConditions", "Map");
+	private static ModelMethod getMapConditions(String name,List<String> commands) {
+		ModelMethod mapConditions=new ModelMethod(name, "Map");
 		mapConditions.getGenericTypes().add(new ModelGenericType("String"));
 		mapConditions.getGenericTypes().add(new ModelGenericType("String"));
 		mapConditions.setStaticMethod(true);
 		mapConditions.setLevelType(LevelType.PRIVATE);
+		mapConditions.setCommands(commands);
 		return mapConditions;
 	}
 

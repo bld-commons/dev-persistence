@@ -380,17 +380,10 @@ public abstract class BaseJpaService {
 			return select;
 		}
 
-		public void setSelect(String select) {
-			this.select = select;
-		}
-
 		public boolean isOneToMany() {
 			return oneToMany;
 		}
 
-		public void setOneToMany(boolean oneToMany) {
-			this.oneToMany = oneToMany;
-		}
 
 	}
 

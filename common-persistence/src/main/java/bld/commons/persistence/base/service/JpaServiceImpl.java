@@ -86,6 +86,9 @@ public abstract class JpaServiceImpl<T, ID> extends BaseJpaService implements Jp
 	 * @return the string
 	 */
 	protected abstract String countByFilter();
+	
+	
+	protected abstract String deleteByFilter();
 
 
 	/**
@@ -95,6 +98,8 @@ public abstract class JpaServiceImpl<T, ID> extends BaseJpaService implements Jp
 	 */
 	protected abstract Map<String, String> mapConditions();
 
+	protected abstract Map<String, String> mapDeleteConditions();
+	
 	/**
 	 * Count.
 	 *
