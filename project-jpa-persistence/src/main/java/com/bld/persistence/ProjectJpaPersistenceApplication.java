@@ -4,8 +4,11 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 
-@SpringBootApplication(scanBasePackages = "bld")
+import bld.commons.config.annotation.EnableJpaService;
+
+@SpringBootApplication
 @EnableJpaRepositories
+@EnableJpaService
 public class ProjectJpaPersistenceApplication {
 
 	

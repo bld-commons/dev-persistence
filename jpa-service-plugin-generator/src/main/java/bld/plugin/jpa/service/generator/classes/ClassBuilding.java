@@ -33,7 +33,7 @@ import bld.commons.classes.model.ModelField;
 import bld.commons.classes.model.ModelGenericType;
 import bld.commons.classes.model.ModelMethod;
 import bld.commons.classes.model.ModelSuperClass;
-import bld.commons.persistence.reflection.utils.ReflectionUtils;
+import bld.commons.reflection.utils.ReflectionUtils;
 
 /**
  * The Class ClassBuilding.

@@ -1,7 +1,7 @@
 package com.bld.persistence.filter;
 
-import bld.commons.persistence.reflection.annotations.LikeString;
-import bld.commons.persistence.reflection.model.FilterParameter;
+import bld.commons.reflection.annotations.LikeString;
+import bld.commons.reflection.model.FilterParameter;
 
 public class ConfiguraMenuFilter extends FilterParameter {
 

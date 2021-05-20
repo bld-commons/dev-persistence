@@ -22,7 +22,7 @@
 	<dependencies>
 		<dependency>
 			<groupId>com.github.bld-commons</groupId>
-			<artifactId>common-service-jpa</artifactId>
+			<artifactId>common-jpa-service</artifactId>
 		</dependency>
 		<dependency>
 			<!-- plugin interfaces and base classes -->
