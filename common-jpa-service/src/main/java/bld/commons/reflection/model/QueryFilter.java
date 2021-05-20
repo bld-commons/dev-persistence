@@ -79,6 +79,9 @@ public class QueryFilter <T, ID>{
 
 	
 
+	/**
+	 * Instantiates a new query filter.
+	 */
 	public QueryFilter() {
 		super();
 		this.checkNullable = new HashSet<>();
@@ -177,6 +180,12 @@ public class QueryFilter <T, ID>{
 	}
 
 	
+	/**
+	 * Sets the pageable.
+	 *
+	 * @param page the page
+	 * @param size the size
+	 */
 	public void setPageable(Integer page, Integer size) {
 		if (page != null && size != null)
 			this.pageable = PageRequest.of(page, size);
