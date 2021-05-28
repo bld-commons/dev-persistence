@@ -1,3 +1,9 @@
+/**
+ * @author Francesco Baldi
+ * @mail francesco.baldi1987@gmail.com
+ * @class bld.commons.config.annotation.EnableJpaService.java
+ * 
+ */
 package bld.commons.config.annotation;
 
 import static java.lang.annotation.ElementType.TYPE;
@@ -12,6 +18,9 @@ import org.springframework.context.annotation.Import;
 
 import bld.commons.config.EnableJpaServiceConfiguration;
 
+/**
+ * The Interface EnableJpaService.
+ */
 @Configuration
 @Documented
 @Retention(RUNTIME)

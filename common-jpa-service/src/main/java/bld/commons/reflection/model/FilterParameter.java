@@ -5,6 +5,10 @@
  */
 package bld.commons.reflection.model;
 
+import java.util.List;
+
+import javax.validation.Valid;
+
 import bld.commons.reflection.annotations.IgnoreMapping;
 
 /**
@@ -15,54 +19,25 @@ public abstract class FilterParameter {
 
 	/** The sort key. */
 	@IgnoreMapping
-	protected String sortKey;
-
-	/** The sort order. */
-	@IgnoreMapping
-	protected String sortOrder;
+	@Valid
+	private List<OrderBy> orderBy;
 
 	/** The page size. */
 	@IgnoreMapping
-	protected Integer pageSize;
+	private Integer pageSize;
 
 	/** The page number. */
 	@IgnoreMapping
-	protected Integer pageNumber;
+	private Integer pageNumber;
 
-	/**
-	 * Gets the sort key.
-	 *
-	 * @return the sort key
-	 */
-	public String getSortKey() {
-		return sortKey;
+	
+
+	public List<OrderBy> getOrderBy() {
+		return orderBy;
 	}
 
-	/**
-	 * Sets the sort key.
-	 *
-	 * @param sortKey the new sort key
-	 */
-	public void setSortKey(String sortKey) {
-		this.sortKey = sortKey;
-	}
-
-	/**
-	 * Gets the sort order.
-	 *
-	 * @return the sort order
-	 */
-	public String getSortOrder() {
-		return sortOrder;
-	}
-
-	/**
-	 * Sets the sort order.
-	 *
-	 * @param sortOrder the new sort order
-	 */
-	public void setSortOrder(String sortOrder) {
-		this.sortOrder = sortOrder;
+	public void setOrderBy(List<OrderBy> orderBy) {
+		this.orderBy = orderBy;
 	}
 
 	/**

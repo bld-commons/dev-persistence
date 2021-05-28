@@ -13,7 +13,7 @@ import org.springframework.context.annotation.Configuration;
  * The Class EnableJpaServiceConfiguration.
  */
 @Configuration
-@ComponentScan({"bld.commons.config","bld.commons.reflection","bld.commons.repository","bld.commons.service"})
+@ComponentScan({"bld.commons.config","bld.commons.reflection","bld.commons.repository","bld.commons.service","bld.commons.workspace","bld.commons.annotations"})
 public class EnableJpaServiceConfiguration {
 
 }

@@ -16,7 +16,7 @@ import javax.persistence.EntityManager;
 import javax.persistence.Query;
 import javax.persistence.TypedQuery;
 
-import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hibernate.jpa.QueryHints;
@@ -24,6 +24,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 
 import bld.commons.reflection.model.BuildQueryFilter;
+import bld.commons.reflection.model.OrderBy;
 import bld.commons.reflection.model.QueryFilter;
 import bld.commons.reflection.utils.ReflectionUtils;
 
@@ -37,7 +38,7 @@ public abstract class BaseJpaService {
 	/** The Constant logger. */
 	private static final Log logger = LogFactory.getLog(BaseJpaService.class);
 	/** The Constant ORDER_BY. */
-	private static final String ORDER_BY = "order by";
+	private static final String ORDER_BY = " order by ";
 
 	/** The Constant ONE_TO_MANY. */
 	public static final CharSequence ONE_TO_MANY = "<ONE_TO_MANY>";
@@ -183,14 +184,8 @@ public abstract class BaseJpaService {
 		String select = makeQuery(mapParameters, buildQueryFilter.getSql(), buildQueryFilter.getMapConditions(), queryFilter.getCheckNullable());
 		ManageOneToMany manageOneToMany = addRelationshipsOneToMany(mapParameters, select, queryFilter.getCheckNullable());
 		select = manageOneToMany.getSelect();
-		String orderBy = getOrderBy(queryFilter.getSortKey(), queryFilter.getSortOrder());
-		if (StringUtils.isNotBlank(orderBy)) {
-			if (select.contains(ORDER_BY)) {
-				if (orderBy != null && !orderBy.isEmpty())
-					select += "," + orderBy;
-			} else
-				select += " order by " + orderBy;
-		}
+		select = addOrderBy(queryFilter.getListOrderBy(),select);
+		
 		logger.info("Query= " + select);
 		TypedQuery<T> query = this.getEntityManager().createQuery(select, queryFilter.getClassFilter());
 		query = setQueryParameters(mapParameters, query);
@@ -220,19 +215,23 @@ public abstract class BaseJpaService {
 
 	/**
 	 * Gets the order by.
+	 * @param select 
 	 *
 	 * @param sortKey   the sort key
 	 * @param sortOrder the sort order
 	 * @return the order by
 	 */
-	private String getOrderBy(String sortKey, String sortOrder) {
-		String orderBy = "";
-		if (StringUtils.isNotBlank(sortKey)) {
-			orderBy = sortKey;
-			if (StringUtils.isNotBlank(sortOrder))
-				orderBy += " " + sortOrder;
+	private String addOrderBy(List<OrderBy> listOrderBy, String select) {
+		String writeOrderBy = "";
+		if(CollectionUtils.isNotEmpty(listOrderBy)) {
+			for(OrderBy orderBy:listOrderBy)
+				writeOrderBy+=","+orderBy.getSortKey()+" "+orderBy.getOrderType().name();
+			writeOrderBy=ORDER_BY+writeOrderBy.substring(1);
 		}
-		return orderBy;
+		
+		if(!select.toLowerCase().contains(ORDER_BY.trim()))
+			select += writeOrderBy;
+		return select;
 	}
 
 	/**
@@ -329,15 +328,9 @@ public abstract class BaseJpaService {
 	 */
 	public <T, ID> List<T> jdbcSelectByFilter(BuildQueryFilter<T, ID> buildQueryFilter) throws Exception {
 		QueryFilter<T, ID> queryFilter = buildQueryFilter.getQueryFilter();
-		String orderBy = getOrderBy(queryFilter.getSortKey(), queryFilter.getSortOrder());
 		String select = makeQuery(queryFilter.getMapParameters(), buildQueryFilter.getSql(), buildQueryFilter.getMapConditions(), queryFilter.getCheckNullable());
-		if (orderBy != null && !orderBy.isEmpty()) {
-			if (select.contains(ORDER_BY)) {
-				if (orderBy != null && !orderBy.isEmpty())
-					select += "," + orderBy;
-			} else
-				select += " order by " + orderBy;
-		}
+		select = addOrderBy(queryFilter.getListOrderBy(),select);
+	
 		buildQueryFilter.setSql(select);
 		return this.jdbcSelect(buildQueryFilter);
 	}
