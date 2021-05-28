@@ -13,6 +13,7 @@ import com.bld.persistence.filter.ConfiguraMenuFilter;
 
 import bld.commons.config.annotation.EnableJpaService;
 import bld.commons.reflection.model.QueryFilter;
+import bld.commons.reflection.type.OrderType;
 
 @SpringBootTest
 @EnableTransactionManagement
@@ -26,8 +27,7 @@ class ProjectJpaPersistenceApplicationTests {
 	void searchByFilter() {
 		try {
 			ConfiguraMenuFilter filter=new ConfiguraMenuFilter(Integer.valueOf(10),null,null);
-			filter.setSortKey("configuraMenu.quantita");
-			filter.setSortOrder("asc");
+			filter.addOrderBy("configuraMenu.quantita", OrderType.asc);
 			filter.setPageNumber(0);
 			filter.setPageSize(50);
 			QueryFilter<ConfiguraMenu, Long>qf=new QueryFilter<>(filter);

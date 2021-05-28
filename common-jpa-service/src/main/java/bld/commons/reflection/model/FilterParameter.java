@@ -5,11 +5,13 @@
  */
 package bld.commons.reflection.model;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.validation.Valid;
 
 import bld.commons.reflection.annotations.IgnoreMapping;
+import bld.commons.reflection.type.OrderType;
 
 /**
  * The Class BaseFilterRequest.
@@ -30,14 +32,25 @@ public abstract class FilterParameter {
 	@IgnoreMapping
 	private Integer pageNumber;
 
-	
 
+
+	public FilterParameter() {
+		super();
+		this.orderBy=new ArrayList<>();
+	}
+
+	
+	
 	public List<OrderBy> getOrderBy() {
 		return orderBy;
 	}
 
 	public void setOrderBy(List<OrderBy> orderBy) {
 		this.orderBy = orderBy;
+	}
+	
+	public void addOrderBy(String sortKey,OrderType orderType) {
+		this.orderBy.add(new OrderBy(sortKey, orderType));
 	}
 
 	/**
