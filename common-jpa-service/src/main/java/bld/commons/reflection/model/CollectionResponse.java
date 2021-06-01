@@ -4,7 +4,7 @@ import java.util.Collection;
 
 public class CollectionResponse<T> {
 
-	private Collection<T> list;
+	private Collection<T> data;
 
 	/** The num results. */
 	private Long resultNumber;
@@ -43,12 +43,12 @@ public class CollectionResponse<T> {
 		this.pageNumber = pageNumber;
 	}
 
-	public Collection<T> getList() {
-		return list;
+	public Collection<T> getData() {
+		return data;
 	}
 
-	public void setList(Collection<T> list) {
-		this.list = list;
+	public void setData(Collection<T> list) {
+		this.data = list;
 	}
 
 }

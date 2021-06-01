@@ -25,8 +25,10 @@ public class WorkModelImpl implements WorkModel {
 	
 	
 	@Override
-	public <T,ID,M extends BasicModel<ID>> CollectionResponse<M> findByFilter(QueryFilter<T, ID>queryFilter) {
+	public <T,ID,M extends BasicModel<ID>> CollectionResponse<M> findByFilter(QueryFilter<T, ID>queryFilter) throws Exception {
 		CollectionResponse<M> collectionResponse = new CollectionResponse<>();
+		if(!queryFilter.getFilterParameter().getClass().isAnnotationPresent(WorkspaceClasses.class))
+			throw new Exception("");
 		WorkspaceClasses workspaceClasses=queryFilter.getFilterParameter().getClass().getAnnotation(WorkspaceClasses.class);
 		JpaService<T,ID> service=(JpaService<T, ID>) this.context.getBean(workspaceClasses.service());
 		List<T> list = service.findByFilter(queryFilter);
@@ -36,7 +38,7 @@ public class WorkModelImpl implements WorkModel {
 		
 		for(T entity:list) 
 			listModel.add(mapperModel.convertToModel(entity));
-		collectionResponse.setList(listModel);
+		collectionResponse.setData(listModel);
 		collectionResponse.setResultNumber(resultNumber != null ? resultNumber : Long.valueOf(0));
 		if(queryFilter.getPageable()!=null) {
 			collectionResponse.setPageNumber(queryFilter.getPageable().getPageNumber());

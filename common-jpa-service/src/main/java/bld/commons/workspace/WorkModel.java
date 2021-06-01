@@ -6,6 +6,6 @@ import bld.commons.reflection.model.QueryFilter;
 
 public interface WorkModel {
 
-	public <T,ID,M extends BasicModel<ID>> CollectionResponse<M> findByFilter(QueryFilter<T,ID> queryFilter);
+	public <T,ID,M extends BasicModel<ID>> CollectionResponse<M> findByFilter(QueryFilter<T,ID> queryFilter) throws Exception;
 	
 }
