@@ -8,6 +8,22 @@ public class BasicModel<ID> {
 	
 	@NotNull
 	private String name;
+	
+	
+
+	public BasicModel() {
+		super();
+	}
+	
+	
+
+	public BasicModel(ID id, @NotNull String name) {
+		super();
+		this.id = id;
+		this.name = name;
+	}
+
+
 
 	public ID getId() {
 		return id;
