@@ -32,15 +32,11 @@ public abstract class FilterParameter {
 	@IgnoreMapping
 	private Integer pageNumber;
 
-
-
 	public FilterParameter() {
 		super();
-		this.orderBy=new ArrayList<>();
+		this.orderBy = new ArrayList<>();
 	}
 
-	
-	
 	public List<OrderBy> getOrderBy() {
 		return orderBy;
 	}
@@ -48,8 +44,8 @@ public abstract class FilterParameter {
 	public void setOrderBy(List<OrderBy> orderBy) {
 		this.orderBy = orderBy;
 	}
-	
-	public void addOrderBy(String sortKey,OrderType orderType) {
+
+	public void addOrderBy(String sortKey, OrderType orderType) {
 		this.orderBy.add(new OrderBy(sortKey, orderType));
 	}
 
@@ -89,7 +85,5 @@ public abstract class FilterParameter {
 		this.pageNumber = pageNumber;
 	}
 
-	
-	
-	
+
 }

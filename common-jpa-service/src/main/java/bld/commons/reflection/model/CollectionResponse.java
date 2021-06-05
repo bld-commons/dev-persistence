@@ -2,9 +2,7 @@ package bld.commons.reflection.model;
 
 import java.util.Collection;
 
-public class CollectionResponse<T> {
-
-	private Collection<T> data;
+public class CollectionResponse<T> extends ObjectResponse<Collection<T>> {
 
 	/** The num results. */
 	private Long resultNumber;
@@ -43,12 +41,5 @@ public class CollectionResponse<T> {
 		this.pageNumber = pageNumber;
 	}
 
-	public Collection<T> getData() {
-		return data;
-	}
-
-	public void setData(Collection<T> list) {
-		this.data = list;
-	}
 
 }

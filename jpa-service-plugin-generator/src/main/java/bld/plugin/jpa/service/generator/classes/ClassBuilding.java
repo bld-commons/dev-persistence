@@ -222,7 +222,7 @@ public class ClassBuilding {
 					mapBaseConditions.add(SPACE+"map.put(\"" + field.getName()+"\", \" and "+fieldEntity+"."+field.getName()+"=:"+field.getName()+" \");");
 					
 				}else if(String.class.isAssignableFrom(field.getType())){
-					mapBaseConditions.add(SPACE+"map.put(\"" + field.getName()+"\", \" and "+fieldEntity+"."+field.getName()+" like :"+field.getName()+" \");");
+					mapBaseConditions.add(SPACE+"map.put(\"" + field.getName()+"\", \" and <upper>("+fieldEntity+"."+field.getName()+") like :"+field.getName()+" \");");
 				}else if(Boolean.class.isAssignableFrom(field.getType())){
 					mapBaseConditions.add(SPACE+"map.put(\"" + field.getName()+"\", \" and "+fieldEntity+"."+field.getName()+"= :"+field.getName()+" \");");
 				}else {
