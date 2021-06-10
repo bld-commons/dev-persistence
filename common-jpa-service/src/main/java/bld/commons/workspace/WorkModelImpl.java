@@ -28,7 +28,7 @@ public class WorkModelImpl implements WorkModel {
 	public <T,ID,M extends BasicModel<ID>> CollectionResponse<M> findByFilter(QueryFilter<T, ID>queryFilter) throws Exception {
 		CollectionResponse<M> collectionResponse = new CollectionResponse<>();
 		if(!queryFilter.getFilterParameter().getClass().isAnnotationPresent(WorkspaceClasses.class))
-			throw new Exception("");
+			throw new Exception("The \"WorkspaceClasses\" annotation is missing in \"FilterParameter\" class");
 		WorkspaceClasses workspaceClasses=queryFilter.getFilterParameter().getClass().getAnnotation(WorkspaceClasses.class);
 		JpaService<T,ID> service=(JpaService<T, ID>) this.context.getBean(workspaceClasses.service());
 		List<T> list = service.findByFilter(queryFilter);

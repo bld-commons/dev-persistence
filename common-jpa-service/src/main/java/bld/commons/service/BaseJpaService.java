@@ -6,6 +6,7 @@
 package bld.commons.service;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
@@ -24,17 +25,18 @@ import org.hibernate.jpa.QueryHints;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 
+import bld.commons.reflection.annotations.DateFilter;
 import bld.commons.reflection.annotations.LikeString;
 import bld.commons.reflection.model.BuildQueryFilter;
 import bld.commons.reflection.model.FilterParameter;
 import bld.commons.reflection.model.OrderBy;
 import bld.commons.reflection.model.QueryFilter;
+import bld.commons.reflection.type.GetSetType;
 import bld.commons.reflection.utils.ReflectionUtils;
 
 /**
  * The Class BaseJpaService.
  */
-@SuppressWarnings("unchecked")
 public abstract class BaseJpaService {
 
 	/** The Constant FETCH. */
@@ -99,14 +101,24 @@ public abstract class BaseJpaService {
 	 * @return the where condition
 	 */
 	private String getWhereCondition(Map<String, Object> mapParameters, String select, Map<String, String> mapConditions,Class<? extends FilterParameter> classFilterParameter) {
+		Map<String, LinkedHashSet<Method>>mapMethod=ReflectionUtils.getMapMethod(classFilterParameter);
+		Map<String,Field>mapField=ReflectionUtils.getMapField(classFilterParameter);
 		for (String key : mapParameters.keySet()) {
 			String val = mapConditions.get(key);
 			String upper="";
+			String minEqual="<=";
 			try {
-				Field field=classFilterParameter.getDeclaredField(key);
-				if(field.isAnnotationPresent(LikeString.class) && field.getAnnotation(LikeString.class).ignoreCase()) 
+				Field field=mapField.get(key);
+				Method method=ReflectionUtils.getMethod(mapMethod, field, GetSetType.get);
+				LikeString likeString=method.isAnnotationPresent(LikeString.class)?method.getAnnotation(LikeString.class):field.getAnnotation(LikeString.class);
+				if(likeString!=null && likeString.ignoreCase()) 
 					upper="upper";
-				val=val.replace("<upper>", upper);
+				else {
+					DateFilter dateFilter=method.isAnnotationPresent(LikeString.class)?method.getAnnotation(DateFilter.class):field.getAnnotation(DateFilter.class);
+					if(dateFilter!=null && !dateFilter.equals())
+						minEqual="<";
+				}
+				val=val.replace("<upper>", upper).replace("<=", minEqual);
 			} catch (Exception e) {
 				logger.error("The \""+key+"\" field is not found");
 			}
