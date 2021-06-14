@@ -180,6 +180,10 @@ public class ReflectionUtils {
 							}
 							if (value instanceof String && field.isAnnotationPresent(ListFilter.class))
 								checkNullable.add(value.toString());
+							else if( value.getClass().isArray()) {
+								Object[] array=(Object[])value;
+								mapParameters.put(field.getName(), Arrays.asList(array));
+							}
 							else
 								mapParameters.put(field.getName(), value);
 						}

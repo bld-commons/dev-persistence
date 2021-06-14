@@ -5,7 +5,7 @@ import java.util.Collection;
 public class CollectionResponse<T> extends ObjectResponse<Collection<T>> {
 
 	/** The num results. */
-	private Long resultNumber;
+	private Long totalCount;
 
 	/** The page size. */
 	private Integer pageSize;
@@ -16,13 +16,17 @@ public class CollectionResponse<T> extends ObjectResponse<Collection<T>> {
 	public CollectionResponse() {
 		super();
 	}
-
-	public Long getResultNumber() {
-		return resultNumber;
+		public CollectionResponse(Collection<T> data) {
+		super(data);
+	
 	}
 
-	public void setResultNumber(Long resultNumber) {
-		this.resultNumber = resultNumber;
+	public Long getTotalCount() {
+		return totalCount;
+	}
+
+	public void setTotalCount(Long totalCount) {
+		this.totalCount = totalCount;
 	}
 
 	public Integer getPageSize() {

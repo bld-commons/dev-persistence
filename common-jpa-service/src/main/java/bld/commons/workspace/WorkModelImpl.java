@@ -32,14 +32,14 @@ public class WorkModelImpl implements WorkModel {
 		WorkspaceClasses workspaceClasses=queryFilter.getFilterParameter().getClass().getAnnotation(WorkspaceClasses.class);
 		JpaService<T,ID> service=(JpaService<T, ID>) this.context.getBean(workspaceClasses.service());
 		List<T> list = service.findByFilter(queryFilter);
-		Long resultNumber = service.countByFilter(queryFilter);
+		Long totalCount = service.countByFilter(queryFilter);
 		MapperModel<T,M> mapperModel=(MapperModel<T,M>)this.context.getBean(workspaceClasses.mapper());
 		List<M> listModel = new ArrayList<M>();
 		
 		for(T entity:list) 
 			listModel.add(mapperModel.convertToModel(entity));
 		collectionResponse.setData(listModel);
-		collectionResponse.setResultNumber(resultNumber != null ? resultNumber : Long.valueOf(0));
+		collectionResponse.setTotalCount(totalCount != null ? totalCount : Long.valueOf(0));
 		if(queryFilter.getPageable()!=null) {
 			collectionResponse.setPageNumber(queryFilter.getPageable().getPageNumber());
 			collectionResponse.setPageSize(queryFilter.getPageable().getPageSize());

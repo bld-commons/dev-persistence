@@ -210,7 +210,7 @@ public class ClassBuilding {
 							mapBaseConditions.add(SPACE+"map.put(\"" + fieldPk.getName()+"\", \" and "+fieldEntity+".id."+fieldPk.getName()+" in (:"+fieldPk.getName()+") \");");
 				}else {
 					mapBaseConditions.add(SPACE+"map.put(\"" + field.getName()+"\", \" and "+fieldEntity+"."+field.getName()+" in (:"+field.getName()+") \");");
-					mapBaseConditions.add(SPACE+"map.put(\"id\", \" and "+fieldEntity+"."+field.getName()+" in (:"+field.getName()+") \");");
+					mapBaseConditions.add(SPACE+"map.put(\"id\", \" and "+fieldEntity+"."+field.getName()+" in (:id) \");");
 				}
 				
 			}else if (field.isAnnotationPresent(Column.class)) {

@@ -5,10 +5,9 @@
  */
 package bld.commons.reflection.model;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import javax.validation.Valid;
+
+import org.apache.commons.lang3.ArrayUtils;
 
 import bld.commons.reflection.annotations.IgnoreMapping;
 import bld.commons.reflection.type.OrderType;
@@ -22,7 +21,7 @@ public abstract class FilterParameter {
 	/** The sort key. */
 	@IgnoreMapping
 	@Valid
-	private List<OrderBy> orderBy;
+	private OrderBy[] orderBy;
 
 	/** The page size. */
 	@IgnoreMapping
@@ -34,19 +33,24 @@ public abstract class FilterParameter {
 
 	public FilterParameter() {
 		super();
-		this.orderBy = new ArrayList<>();
 	}
 
-	public List<OrderBy> getOrderBy() {
+	public OrderBy[] getOrderBy() {
 		return orderBy;
 	}
 
-	public void setOrderBy(List<OrderBy> orderBy) {
-		this.orderBy = orderBy;
+	public void setOrderBy(OrderBy... orderBy) {
+		if (ArrayUtils.isNotEmpty(orderBy))
+			this.orderBy = orderBy;
 	}
 
 	public void addOrderBy(String sortKey, OrderType orderType) {
-		this.orderBy.add(new OrderBy(sortKey, orderType));
+		int i = 0;
+		if (this.orderBy != null)
+			i = this.orderBy.length;
+		else
+			this.orderBy = new OrderBy[] {};
+		this.orderBy[i] = new OrderBy(sortKey, orderType);
 	}
 
 	/**
@@ -84,6 +88,5 @@ public abstract class FilterParameter {
 	public void setPageNumber(Integer pageNumber) {
 		this.pageNumber = pageNumber;
 	}
-
 
 }
