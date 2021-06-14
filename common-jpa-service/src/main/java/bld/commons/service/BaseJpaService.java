@@ -18,7 +18,7 @@ import javax.persistence.EntityManager;
 import javax.persistence.Query;
 import javax.persistence.TypedQuery;
 
-import org.apache.commons.lang3.ArrayUtils;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hibernate.jpa.QueryHints;
@@ -248,9 +248,9 @@ public abstract class BaseJpaService {
 	 * @param sortOrder the sort order
 	 * @return the order by
 	 */
-	private String addOrderBy(OrderBy[] listOrderBy, String select) {
+	private String addOrderBy(List<OrderBy> listOrderBy, String select) {
 		String writeOrderBy = "";
-		if(ArrayUtils.isNotEmpty(listOrderBy)) {
+		if(CollectionUtils.isNotEmpty(listOrderBy)) {
 			for(OrderBy orderBy:listOrderBy)
 				writeOrderBy+=","+orderBy.getSortKey()+" "+orderBy.getOrderType().name();
 			writeOrderBy=ORDER_BY+writeOrderBy.substring(1);

@@ -5,12 +5,14 @@
  */
 package bld.commons.reflection.model;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.apache.commons.lang3.ArrayUtils;
+import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 
@@ -34,7 +36,7 @@ public class QueryFilter<T, ID> {
 	/** The map parameters. */
 	private Map<String, Object> mapParameters;
 
-	private OrderBy[] listOrderBy;
+	private List<OrderBy> listOrderBy;
 
 	/** The pageable. */
 	private Pageable pageable;
@@ -64,7 +66,7 @@ public class QueryFilter<T, ID> {
 		init();
 		this.filterParameter = filterParameter;
 		if (filterParameter != null) {
-			if (ArrayUtils.isNotEmpty(filterParameter.getOrderBy()))
+			if (CollectionUtils.isNotEmpty(filterParameter.getOrderBy()))
 				this.listOrderBy = filterParameter.getOrderBy();
 			if (filterParameter.getPageNumber() != null && filterParameter.getPageSize() != null)
 				this.pageable = PageRequest.of(filterParameter.getPageNumber(), filterParameter.getPageSize());
@@ -83,6 +85,7 @@ public class QueryFilter<T, ID> {
 	private void init() {
 		this.checkNullable = new HashSet<>();
 		this.mapParameters = new HashMap<>();
+		this.listOrderBy=new ArrayList<>();
 	}
 
 	/**
@@ -121,14 +124,11 @@ public class QueryFilter<T, ID> {
 		return mapParameters;
 	}
 
-	public OrderBy[] getListOrderBy() {
+	public List<OrderBy> getListOrderBy() {
 		return listOrderBy;
 	}
 
-	public void setListOrderBy(OrderBy... listOrderBy) {
-		if (ArrayUtils.isNotEmpty(listOrderBy))
-			this.listOrderBy = listOrderBy;
-	}
+	
 
 	/**
 	 * Gets the pageable.
