@@ -3,13 +3,15 @@ package bld.commons.workspace;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import bld.commons.annotations.WorkspaceClasses;
-import bld.commons.reflection.model.BasicModel;
+import bld.commons.reflection.model.BaseModel;
 import bld.commons.reflection.model.CollectionResponse;
 import bld.commons.reflection.model.ObjectResponse;
 import bld.commons.reflection.model.QueryFilter;
@@ -26,7 +28,7 @@ public class WorkModelImpl implements WorkModel {
 	
 	
 	@Override
-	public <T,ID,M extends BasicModel<ID>> CollectionResponse<M> findByFilter(QueryFilter<T, ID>queryFilter) throws Exception {
+	public <T,ID,M extends BaseModel<ID>> CollectionResponse<M> findByFilter(QueryFilter<T, ID>queryFilter) throws Exception {
 		CollectionResponse<M> response = new CollectionResponse<>();
 		if(!queryFilter.getFilterParameter().getClass().isAnnotationPresent(WorkspaceClasses.class))
 			throw new Exception("The \"WorkspaceClasses\" annotation is missing in \"FilterParameter\" class");
@@ -37,8 +39,12 @@ public class WorkModelImpl implements WorkModel {
 		MapperModel<T,M> mapperModel=(MapperModel<T,M>)this.context.getBean(workspaceClasses.mapper());
 		List<M> listModel = new ArrayList<M>();
 		
-		for(T entity:list) 
-			listModel.add(mapperModel.convertToModel(entity));
+		for(T entity:list) {
+			M model=mapperModel.convertToModel(entity);
+			listModel.add(model);
+			
+		}
+			
 		response.setData(listModel);
 		response.setTotalCount(totalCount != null ? totalCount : Long.valueOf(0));
 		if(queryFilter.getPageable()!=null) {
@@ -51,7 +57,7 @@ public class WorkModelImpl implements WorkModel {
 	}
 
 	@Override
-	public <T,ID,M extends BasicModel<ID>> ObjectResponse<M> findSingleResultByFilter(QueryFilter<T, ID>queryFilter) throws Exception {
+	public <T,ID,M extends BaseModel<ID>> ObjectResponse<M> findSingleResultByFilter(QueryFilter<T, ID>queryFilter) throws Exception {
 		ObjectResponse<M> response = new ObjectResponse<>();
 		if(!queryFilter.getFilterParameter().getClass().isAnnotationPresent(WorkspaceClasses.class))
 			throw new Exception("The \"WorkspaceClasses\" annotation is missing in \"FilterParameter\" class");

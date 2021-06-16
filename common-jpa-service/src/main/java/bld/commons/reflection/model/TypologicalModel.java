@@ -2,7 +2,7 @@ package bld.commons.reflection.model;
 
 import javax.validation.constraints.NotNull;
 
-public class TypologicalModel<ID> extends BasicModel<ID> {
+public class TypologicalModel<ID> extends BaseModel<ID> {
 
 	@NotNull
 	private String name;

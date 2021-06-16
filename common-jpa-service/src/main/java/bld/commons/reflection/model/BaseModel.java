@@ -1,14 +1,14 @@
 package bld.commons.reflection.model;
 
-public class BasicModel<ID> {
+public class BaseModel<ID> {
 
 	private ID id;
 
-	public BasicModel() {
+	public BaseModel() {
 		super();
 	}
 
-	public BasicModel(ID id) {
+	public BaseModel(ID id) {
 		super();
 		this.id = id;
 	}
@@ -37,7 +37,7 @@ public class BasicModel<ID> {
 			return false;
 		if (getClass() != obj.getClass())
 			return false;
-		BasicModel<?> other = (BasicModel<?>) obj;
+		BaseModel<?> other = (BaseModel<?>) obj;
 		if (id == null) {
 			if (other.id != null)
 				return false;
