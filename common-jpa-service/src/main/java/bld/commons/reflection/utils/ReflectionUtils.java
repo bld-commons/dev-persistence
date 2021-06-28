@@ -122,7 +122,7 @@ public class ReflectionUtils {
 		Map<String, Object> mapParameters = new HashMap<String, Object>();
 		Set<String> checkNullable = new HashSet<>();
 
-		FilterParameter obj = queryFilter.getFilterParameter();
+		FilterParameter<ID> obj = queryFilter.getFilterParameter();
 
 		if (obj != null) {
 			Set<Field> fields = ReflectionUtils.getListField(obj.getClass());

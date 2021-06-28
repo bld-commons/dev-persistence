@@ -45,7 +45,7 @@ public class QueryFilter<T, ID> {
 	private Class<T> classFilter;
 
 	/** The parameter filter. */
-	private FilterParameter filterParameter;
+	private FilterParameter<ID> filterParameter;
 
 	/**
 	 * Instantiates a new query filter.
@@ -54,6 +54,7 @@ public class QueryFilter<T, ID> {
 	 */
 	public QueryFilter(ID id) {
 		this.id = id;
+		init();
 	}
 
 	/**
@@ -61,7 +62,7 @@ public class QueryFilter<T, ID> {
 	 *
 	 * @param filterParameter the filter
 	 */
-	public QueryFilter(FilterParameter filterParameter) {
+	public QueryFilter(FilterParameter<ID> filterParameter) {
 		super();
 		init();
 		this.filterParameter = filterParameter;
@@ -85,7 +86,7 @@ public class QueryFilter<T, ID> {
 	private void init() {
 		this.checkNullable = new HashSet<>();
 		this.mapParameters = new HashMap<>();
-		this.listOrderBy=new ArrayList<>();
+		this.listOrderBy = new ArrayList<>();
 	}
 
 	/**
@@ -127,8 +128,6 @@ public class QueryFilter<T, ID> {
 	public List<OrderBy> getListOrderBy() {
 		return listOrderBy;
 	}
-
-	
 
 	/**
 	 * Gets the pageable.
@@ -182,7 +181,7 @@ public class QueryFilter<T, ID> {
 	 *
 	 * @return the parameter filter
 	 */
-	public FilterParameter getFilterParameter() {
+	public FilterParameter<ID> getFilterParameter() {
 		return filterParameter;
 	}
 
@@ -191,7 +190,7 @@ public class QueryFilter<T, ID> {
 	 *
 	 * @param parameterFilter the new parameter filter
 	 */
-	public void setFilterParameter(FilterParameter parameterFilter) {
+	public void setFilterParameter(FilterParameter<ID> parameterFilter) {
 		this.filterParameter = parameterFilter;
 	}
 

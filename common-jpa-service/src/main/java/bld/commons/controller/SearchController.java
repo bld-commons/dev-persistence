@@ -15,7 +15,7 @@ import bld.commons.reflection.model.ObjectResponse;
 import bld.commons.reflection.model.QueryFilter;
 import bld.commons.workspace.WorkModel;
 
-public class SearchController<ID,T extends BaseModel<ID>, F extends FilterParameter> {
+public class SearchController<ID,T extends BaseModel<ID>, F extends FilterParameter<ID>> {
 
 	
 	@Autowired
@@ -32,12 +32,13 @@ public class SearchController<ID,T extends BaseModel<ID>, F extends FilterParame
 	
 	
 	
-	@PostMapping(path="/search/id", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+	@PostMapping(path="/search/single-result", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
 	@ResponseBody
 	@Valid
-	public ObjectResponse<T> findExceptionAuditById(@RequestBody F filter) throws Exception{
+	public ObjectResponse<T> singleResultFindByFilter(@RequestBody F filter) throws Exception{
 		QueryFilter<?, ID>query=new QueryFilter<>(filter);
 		return this.workModel.findSingleResultByFilter(query);
 	}
+	
 	
 }
