@@ -53,8 +53,10 @@ public class QueryFilter<T, ID> {
 	 * @param id the id
 	 */
 	public QueryFilter(ID id) {
-		this.id = id;
 		init();
+		this.id = id;
+		this.mapParameters.put("id", id);
+		
 	}
 
 	/**
