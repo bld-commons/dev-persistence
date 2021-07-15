@@ -11,9 +11,11 @@ import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
 import java.util.Arrays;
 import java.util.Calendar;
+import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
 
@@ -23,6 +25,8 @@ import org.apache.commons.beanutils.Converter;
 import org.apache.commons.beanutils.PropertyUtils;
 import org.apache.commons.beanutils.converters.CalendarConverter;
 import org.apache.commons.beanutils.converters.DateConverter;
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.commons.logging.Log;
@@ -37,6 +41,7 @@ import bld.commons.reflection.annotations.LikeString;
 import bld.commons.reflection.annotations.ListFilter;
 import bld.commons.reflection.model.FilterParameter;
 import bld.commons.reflection.model.QueryFilter;
+import bld.commons.reflection.type.GetSetType;
 
 /**
  * The Class ReflectionUtils.
@@ -117,20 +122,25 @@ public class ReflectionUtils {
 		Map<String, Object> mapParameters = new HashMap<String, Object>();
 		Set<String> checkNullable = new HashSet<>();
 
-		FilterParameter obj = queryFilter.getFilterParameter();
+		FilterParameter<ID> obj = queryFilter.getFilterParameter();
 
 		if (obj != null) {
 			Set<Field> fields = ReflectionUtils.getListField(obj.getClass());
-
+			Map<String, LinkedHashSet<Method>> mapMethod = ReflectionUtils.getMapMethod(obj.getClass());
 			for (Field field : fields) {
-				if (!field.isAnnotationPresent(IgnoreMapping.class)) {
+				Method method = ReflectionUtils.getMethod(mapMethod, field, GetSetType.get);
+				IgnoreMapping ignoreMapping = method.isAnnotationPresent(IgnoreMapping.class) ? method.getAnnotation(IgnoreMapping.class) : field.getAnnotation(IgnoreMapping.class);
+				if (ignoreMapping == null || !ignoreMapping.value()) {
 					try {
 						Object value = PropertyUtils.getProperty(obj, field.getName());
+						if (value instanceof Collection && CollectionUtils.isEmpty((Collection<?>) value))
+							value = null;
 						if (value != null && value instanceof String && StringUtils.isBlank((String) value))
 							value = null;
 						if (value != null) {
-							if (value instanceof Date && field.isAnnotationPresent(DateFilter.class)) {
-								DateFilter dateFilter = field.getAnnotation(DateFilter.class);
+							DateFilter dateFilter = method.isAnnotationPresent(DateFilter.class) ? method.getAnnotation(DateFilter.class) : field.getAnnotation(DateFilter.class);
+							LikeString likeString = method.isAnnotationPresent(LikeString.class) ? method.getAnnotation(LikeString.class) : field.getAnnotation(LikeString.class);
+							if (value instanceof Date && dateFilter != null) {
 								switch (dateFilter.dateType()) {
 								case CALENDAR:
 									Calendar calendar = DateUtils.dateToCalendar((Date) value);
@@ -148,8 +158,7 @@ public class ReflectionUtils {
 
 								}
 
-							} else if (value instanceof String && field.isAnnotationPresent(LikeString.class)) {
-								LikeString likeString = field.getAnnotation(LikeString.class);
+							} else if (value instanceof String && likeString != null) {
 								switch (likeString.likeType()) {
 								case LEFT:
 									value = "%" + value;
@@ -171,6 +180,10 @@ public class ReflectionUtils {
 							}
 							if (value instanceof String && field.isAnnotationPresent(ListFilter.class))
 								checkNullable.add(value.toString());
+							else if( value.getClass().isArray()) {
+								Object[] array=(Object[])value;
+								mapParameters.put(field.getName(), Arrays.asList(array));
+							}
 							else
 								mapParameters.put(field.getName(), value);
 						}
@@ -347,6 +360,47 @@ public class ReflectionUtils {
 			classApp = classApp.getSuperclass();
 		} while (classApp != null && !classApp.getName().equals(Object.class.getName()));
 		return mapField;
+	}
+
+	public static Map<String, LinkedHashSet<Method>> getMapMethod(Class<?> classApp) {
+		Map<String, LinkedHashSet<Method>> mapMethod = new HashMap<>();
+		do {
+			for (Method method : classApp.getMethods()) {
+				if (!mapMethod.containsKey(method.getName()))
+					mapMethod.put(method.getName(), new LinkedHashSet<>());
+				mapMethod.get(method.getName()).add(method);
+			}
+			classApp = classApp.getSuperclass();
+		} while (classApp != null && !classApp.getName().equals(Object.class.getName()));
+		return mapMethod;
+	}
+
+	public static Method getMethod(Map<String, LinkedHashSet<Method>> mapMethod, String methodName, Class<?>... classParameter) {
+		Set<Method> methods = mapMethod.get(methodName);
+		for (Method method : methods) {
+			Class<?>[] parameterTypes = method.getParameterTypes();
+			if (ArrayUtils.isEmpty(parameterTypes) && ArrayUtils.isEmpty(classParameter))
+				return method;
+			boolean check = true;
+			if (ArrayUtils.isNotEmpty(parameterTypes) && ArrayUtils.isNotEmpty(classParameter) && parameterTypes.length==classParameter.length) {
+				for(int i=0;i<parameterTypes.length;i++)
+					if(!parameterTypes[i].isAssignableFrom(classParameter[i])) {
+						check=false;
+						break;
+					}
+			}else 
+				continue;
+			if (check)
+				return method;
+		}
+
+		return null;
+	}
+
+	public static Method getMethod(Map<String, LinkedHashSet<Method>> mapMethod, Field field, GetSetType getSetType, Class<?>... classParameter) {
+		String methodName = getSetType.name() + Character.toUpperCase(field.getName().charAt(0)) + field.getName().substring(1);
+		return ReflectionUtils.getMethod(mapMethod, methodName, classParameter);
+
 	}
 
 }

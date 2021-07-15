@@ -210,19 +210,16 @@ public class ClassBuilding {
 							mapBaseConditions.add(SPACE+"map.put(\"" + fieldPk.getName()+"\", \" and "+fieldEntity+".id."+fieldPk.getName()+" in (:"+fieldPk.getName()+") \");");
 				}else {
 					mapBaseConditions.add(SPACE+"map.put(\"" + field.getName()+"\", \" and "+fieldEntity+"."+field.getName()+" in (:"+field.getName()+") \");");
-					mapBaseConditions.add(SPACE+"map.put(\"id\", \" and "+fieldEntity+"."+field.getName()+" in (:"+field.getName()+") \");");
+					mapBaseConditions.add(SPACE+"map.put(\"id\", \" and "+fieldEntity+"."+field.getName()+" in (:id) \");");
 				}
 				
 			}else if (field.isAnnotationPresent(Column.class)) {
 				if(Calendar.class.isAssignableFrom(field.getType()) || Date.class.isAssignableFrom(field.getType()) || Timestamp.class.isAssignableFrom(field.getType())) {
-					mapBaseConditions.add(SPACE+"map.put(\"" + field.getName()+"BeforeEqual\", \" and "+fieldEntity+"."+field.getName()+"<=:"+field.getName()+"BeforeEqual \");");
-					mapBaseConditions.add(SPACE+"map.put(\"" + field.getName()+"AfterEqual\", \" and "+fieldEntity+"."+field.getName()+">=:"+field.getName()+"AfterEqual \");");
-					mapBaseConditions.add(SPACE+"map.put(\"" + field.getName()+"Before\", \" and "+fieldEntity+"."+field.getName()+"<:"+field.getName()+"Before \");");
-					mapBaseConditions.add(SPACE+"map.put(\"" + field.getName()+"After\", \" and "+fieldEntity+"."+field.getName()+">:"+field.getName()+"After \");");
+					mapBaseConditions.add(SPACE+"map.put(\"" + field.getName()+"From\", \" and :"+field.getName()+"From<="+fieldEntity+"."+field.getName()+" \");");
+					mapBaseConditions.add(SPACE+"map.put(\"" + field.getName()+"To\", \" and "+fieldEntity+"."+field.getName()+"<=:"+field.getName()+"To \");");
 					mapBaseConditions.add(SPACE+"map.put(\"" + field.getName()+"\", \" and "+fieldEntity+"."+field.getName()+"=:"+field.getName()+" \");");
-					
 				}else if(String.class.isAssignableFrom(field.getType())){
-					mapBaseConditions.add(SPACE+"map.put(\"" + field.getName()+"\", \" and "+fieldEntity+"."+field.getName()+" like :"+field.getName()+" \");");
+					mapBaseConditions.add(SPACE+"map.put(\"" + field.getName()+"\", \" and <upper>("+fieldEntity+"."+field.getName()+") like :"+field.getName()+" \");");
 				}else if(Boolean.class.isAssignableFrom(field.getType())){
 					mapBaseConditions.add(SPACE+"map.put(\"" + field.getName()+"\", \" and "+fieldEntity+"."+field.getName()+"= :"+field.getName()+" \");");
 				}else {

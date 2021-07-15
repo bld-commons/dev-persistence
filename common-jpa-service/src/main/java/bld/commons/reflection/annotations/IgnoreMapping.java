@@ -19,4 +19,6 @@ import java.lang.annotation.Target;
 @Target({FIELD,METHOD})
 public @interface IgnoreMapping {
 
+	public boolean value() default true;
+	
 }

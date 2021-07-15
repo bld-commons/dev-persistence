@@ -6,6 +6,7 @@
 package bld.commons.reflection.annotations;
 
 import static java.lang.annotation.ElementType.FIELD;
+import static java.lang.annotation.ElementType.METHOD;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
 import java.lang.annotation.Retention;
@@ -17,7 +18,7 @@ import bld.commons.reflection.type.LikeType;
  * The Interface LikeString.
  */
 @Retention(RUNTIME)
-@Target(FIELD)
+@Target({FIELD,METHOD})
 public @interface LikeString {
 	
 	/**

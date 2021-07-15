@@ -14,6 +14,7 @@ import java.util.TimeZone;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.springframework.beans.factory.annotation.Value;
 
 import bld.commons.reflection.type.TimeUnitMeasureType;
 
@@ -25,7 +26,7 @@ public class DateUtils {
 	/** The Constant logger. */
 	private static final Log logger = LogFactory.getLog(DateUtils.class);
 
-
+	public final static String LOCAL_TIME_ZONE="Europe/Rome";
 
 	/**
 	 * Gets the timezone.
@@ -325,4 +326,9 @@ public class DateUtils {
 			timestamp=new Timestamp(date.getTime());
 		return timestamp;
 	}
+	
+	
+	
+	
+	
 }
