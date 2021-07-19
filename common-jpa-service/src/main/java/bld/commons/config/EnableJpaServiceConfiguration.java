@@ -12,6 +12,7 @@ import org.springframework.context.annotation.Configuration;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 
 /**
  * The Class EnableJpaServiceConfiguration.
@@ -24,6 +25,7 @@ public class EnableJpaServiceConfiguration {
 	public ObjectMapper objectMapper() {
 		ObjectMapper mapper = new ObjectMapper();
 		mapper.enable(DeserializationFeature.ACCEPT_SINGLE_VALUE_AS_ARRAY);
+		mapper.registerModule(new JavaTimeModule());
 	    return mapper;
 	}
 }
