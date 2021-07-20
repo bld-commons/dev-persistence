@@ -6,7 +6,7 @@
 	<parent>
 		<groupId>com.github.bld-commons</groupId>
 		<artifactId>dev-persistence</artifactId>
-		<version>1.0.2-SNAPSHOT</version>
+		<version>1.0.2</version>
 	</parent>
 	<groupId>com.bld.persistence</groupId>
 	<artifactId>project-jpa-persistence</artifactId>
@@ -76,7 +76,7 @@
 			<plugin>
 				<groupId>com.github.bld-commons</groupId>
 				<artifactId>jpa-service-plugin-generator</artifactId>
-				<version>1.0.2-SNAPSHOT</version>
+				<version>1.0.2</version>
 				<executions>
 					<execution>
 						<goals>
