@@ -433,7 +433,7 @@ public abstract class JpaServiceImpl<T, ID> extends BaseJpaService implements Jp
 	
 	private <J>Map<J, T> mapKeyEntity(List<T> list,Class<J>classKey,String key) throws Exception {
 		Map<J,T> map=new LinkedHashMap<>();
-		String[] fields=key.split(".");
+		String[] fields=key.split("\\.");
 		for(T t:list) 
 			map.put((J)getKey(fields, t),t);
 		return map;
