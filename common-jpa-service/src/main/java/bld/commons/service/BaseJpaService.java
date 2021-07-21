@@ -36,6 +36,7 @@ import bld.commons.reflection.model.QueryFilter;
 import bld.commons.reflection.type.GetSetType;
 import bld.commons.reflection.utils.ReflectionUtils;
 
+// TODO: Auto-generated Javadoc
 /**
  * The Class BaseJpaService.
  */
@@ -100,7 +101,7 @@ public abstract class BaseJpaService {
 	 * @param mapParameters the map parameters
 	 * @param select        the select
 	 * @param mapConditions the map conditions
-	 * @param classFilterParameter 
+	 * @param classFilterParameter the class filter parameter
 	 * @return the where condition
 	 */
 	private String getWhereCondition(Map<String, Object> mapParameters, String select, Map<String, String> mapConditions,Class<? extends FilterParameter<?>> classFilterParameter) {
@@ -235,6 +236,14 @@ public abstract class BaseJpaService {
 		return query;
 	}
 
+	/**
+	 * Gets the class filter parameter.
+	 *
+	 * @param <T> the generic type
+	 * @param <ID> the generic type
+	 * @param queryFilter the query filter
+	 * @return the class filter parameter
+	 */
 	private <T, ID> Class<? extends FilterParameter<?>> getClassFilterParameter(QueryFilter<T, ID> queryFilter) {
 		Class<? extends FilterParameter<?>> classFilterParameter=null;
 		if(queryFilter.getFilterParameter()!=null)
@@ -249,6 +258,7 @@ public abstract class BaseJpaService {
 	 * @param select        the select
 	 * @param mapConditions the map conditions
 	 * @param checkNullable the check nullable
+	 * @param classFilterParameter the class filter parameter
 	 * @return the string
 	 */
 	private String buildQuery(Map<String, Object> mapParameters, String select, Map<String, String> mapConditions, Set<String> checkNullable,Class<? extends FilterParameter<?>>classFilterParameter) {
@@ -259,10 +269,9 @@ public abstract class BaseJpaService {
 
 	/**
 	 * Gets the order by.
-	 * @param select 
 	 *
-	 * @param sortKey   the sort key
-	 * @param sortOrder the sort order
+	 * @param listOrderBy the list order by
+	 * @param select the select
 	 * @return the order by
 	 */
 	private String addOrderBy(List<OrderBy> listOrderBy, String select) {

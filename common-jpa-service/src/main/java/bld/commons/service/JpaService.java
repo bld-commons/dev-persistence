@@ -7,9 +7,11 @@ package bld.commons.service;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 
 import bld.commons.reflection.model.QueryFilter;
 
+// TODO: Auto-generated Javadoc
 /**
  * The Interface BaseEntityService.
  *
@@ -165,5 +167,29 @@ public interface JpaService<T, ID> {
 	 * @return the t
 	 */
 	public T findSingleResultByFilter(QueryFilter<T, ID> queryFilter, String select);
+	
+	/**
+	 * Map find by filter.
+	 *
+	 * @param queryFilter the query filter
+	 * @return the map
+	 * @throws Exception the exception
+	 */
+	public Map<ID,T> mapFindByFilter(QueryFilter<T, ID> queryFilter) throws Exception;
+	
+	
+	/**
+	 * Map find by filter.
+	 *
+	 * @param queryFilter the query filter
+	 * @param sql the sql
+	 * @return the map
+	 * @throws Exception the exception
+	 */
+	public Map<ID,T> mapFindByFilter(QueryFilter<T, ID> queryFilter,String sql) throws Exception;
+
+	public <J> Map<J, T> mapKeyFindByFilter(QueryFilter<T, ID> queryFilter, Class<J> classKey, String key) throws Exception;
+
+	public <J> Map<J, T> mapKeyFindByFilter(QueryFilter<T, ID> queryFilter, String sql, Class<J> classKey, String key) throws Exception;
 
 }
