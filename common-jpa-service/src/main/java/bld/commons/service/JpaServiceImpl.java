@@ -7,9 +7,11 @@ package bld.commons.service;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -430,7 +432,7 @@ public abstract class JpaServiceImpl<T, ID> extends BaseJpaService implements Jp
 	}
 	
 	private <J>Map<J, T> mapKeyEntity(List<T> list,Class<J>classKey,String key) throws Exception {
-		Map<J,T> map=new HashMap<>();
+		Map<J,T> map=new LinkedHashMap<>();
 		String[] fields=key.split(".");
 		for(T t:list) 
 			map.put((J)getKey(fields, t),t);
@@ -447,5 +449,31 @@ public abstract class JpaServiceImpl<T, ID> extends BaseJpaService implements Jp
 	public <J> Map<J,T> mapKeyFindByFilter(QueryFilter<T, ID> queryFilter,String sql,Class<J>classKey,String key) throws Exception{
 		List<T>list=this.findByFilter(queryFilter,sql);
 		return mapKeyEntity(list, classKey, key);
+	}
+	
+	
+	private <J>Map<J, List<T>> mapKeyListEntity(List<T> list,Class<J>classKey,String keyFields) throws Exception {
+		Map<J,List<T>> map=new LinkedHashMap<>();
+		String[] fields=keyFields.split(".");
+		for(T t:list) {
+			J key=(J)getKey(fields, t);
+			if(!map.containsKey(key))
+				map.put(key, new ArrayList<>());
+			map.get((J)getKey(fields, t)).add(t);
+		}
+			
+		return map;
+	}
+	
+	@Override
+	public <J> Map<J,List<T>> mapKeyListFindByFilter(QueryFilter<T, ID> queryFilter,Class<J>classKey,String key) throws Exception{
+		List<T>list=this.findByFilter(queryFilter);
+		return mapKeyListEntity(list, classKey, key);
+	}
+	
+	@Override
+	public <J> Map<J,List<T>> mapKeyListFindByFilter(QueryFilter<T, ID> queryFilter,String sql,Class<J>classKey,String key) throws Exception{
+		List<T>list=this.findByFilter(queryFilter,sql);
+		return mapKeyListEntity(list, classKey, key);
 	}
 }

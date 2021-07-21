@@ -192,4 +192,8 @@ public interface JpaService<T, ID> {
 
 	public <J> Map<J, T> mapKeyFindByFilter(QueryFilter<T, ID> queryFilter, String sql, Class<J> classKey, String key) throws Exception;
 
+	public <J> Map<J, List<T>> mapKeyListFindByFilter(QueryFilter<T, ID> queryFilter, Class<J> classKey, String key) throws Exception;
+
+	public <J> Map<J, List<T>> mapKeyListFindByFilter(QueryFilter<T, ID> queryFilter, String sql, Class<J> classKey, String key) throws Exception;
+
 }
