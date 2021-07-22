@@ -62,7 +62,7 @@ public abstract class JpaServiceImpl<T, ID> extends BaseJpaService implements Jp
 	 *
 	 * @return the clazz
 	 */
-	public Class<T> getClazz() {
+	protected Class<T> getClazz() {
 		return clazz;
 	}
 
@@ -71,7 +71,7 @@ public abstract class JpaServiceImpl<T, ID> extends BaseJpaService implements Jp
 	 *
 	 * @return the id
 	 */
-	public Field getId() {
+	protected Field getId() {
 		return id;
 	}
 
