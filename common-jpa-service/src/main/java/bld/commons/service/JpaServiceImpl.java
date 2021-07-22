@@ -39,6 +39,7 @@ import bld.commons.reflection.utils.ReflectionUtils;
 @SuppressWarnings("unchecked")
 public abstract class JpaServiceImpl<T, ID> extends BaseJpaService implements JpaService<T, ID> {
 
+	/** The Constant POINT. */
 	private static final String POINT = "\\.";
 
 
@@ -427,6 +428,14 @@ public abstract class JpaServiceImpl<T, ID> extends BaseJpaService implements Jp
 	}
 
 	
+	/**
+	 * Gets the key.
+	 *
+	 * @param fields the fields
+	 * @param t the t
+	 * @return the key
+	 * @throws Exception the exception
+	 */
 	private Object getKey(String[] fields,T t) throws Exception {
 		Object value=t;
 		for(String field:fields)
@@ -434,6 +443,16 @@ public abstract class JpaServiceImpl<T, ID> extends BaseJpaService implements Jp
 		return value;
 	}
 	
+	/**
+	 * Map key entity.
+	 *
+	 * @param <J> the generic type
+	 * @param list the list
+	 * @param classKey the class key
+	 * @param key the key
+	 * @return the map
+	 * @throws Exception the exception
+	 */
 	private <J>Map<J, T> mapKeyEntity(List<T> list,Class<J>classKey,String key) throws Exception {
 		Map<J,T> map=new LinkedHashMap<>();
 		String[] fields=key.split(POINT);
@@ -442,12 +461,33 @@ public abstract class JpaServiceImpl<T, ID> extends BaseJpaService implements Jp
 		return map;
 	}
 	
+	/**
+	 * Map key find by filter.
+	 *
+	 * @param <J> the generic type
+	 * @param queryFilter the query filter
+	 * @param classKey the class key
+	 * @param key the key
+	 * @return the map
+	 * @throws Exception the exception
+	 */
 	@Override
 	public <J> Map<J,T> mapKeyFindByFilter(QueryFilter<T, ID> queryFilter,Class<J>classKey,String key) throws Exception{
 		List<T>list=this.findByFilter(queryFilter);
 		return mapKeyEntity(list, classKey, key);
 	}
 	
+	/**
+	 * Map key find by filter.
+	 *
+	 * @param <J> the generic type
+	 * @param queryFilter the query filter
+	 * @param sql the sql
+	 * @param classKey the class key
+	 * @param key the key
+	 * @return the map
+	 * @throws Exception the exception
+	 */
 	@Override
 	public <J> Map<J,T> mapKeyFindByFilter(QueryFilter<T, ID> queryFilter,String sql,Class<J>classKey,String key) throws Exception{
 		List<T>list=this.findByFilter(queryFilter,sql);
@@ -455,6 +495,16 @@ public abstract class JpaServiceImpl<T, ID> extends BaseJpaService implements Jp
 	}
 	
 	
+	/**
+	 * Map key list entity.
+	 *
+	 * @param <J> the generic type
+	 * @param list the list
+	 * @param classKey the class key
+	 * @param keyFields the key fields
+	 * @return the map
+	 * @throws Exception the exception
+	 */
 	private <J>Map<J, List<T>> mapKeyListEntity(List<T> list,Class<J>classKey,String keyFields) throws Exception {
 		Map<J,List<T>> map=new LinkedHashMap<>();
 		String[] fields=keyFields.split(POINT);
@@ -468,12 +518,33 @@ public abstract class JpaServiceImpl<T, ID> extends BaseJpaService implements Jp
 		return map;
 	}
 	
+	/**
+	 * Map key list find by filter.
+	 *
+	 * @param <J> the generic type
+	 * @param queryFilter the query filter
+	 * @param classKey the class key
+	 * @param key the key
+	 * @return the map
+	 * @throws Exception the exception
+	 */
 	@Override
 	public <J> Map<J,List<T>> mapKeyListFindByFilter(QueryFilter<T, ID> queryFilter,Class<J>classKey,String key) throws Exception{
 		List<T>list=this.findByFilter(queryFilter);
 		return mapKeyListEntity(list, classKey, key);
 	}
 	
+	/**
+	 * Map key list find by filter.
+	 *
+	 * @param <J> the generic type
+	 * @param queryFilter the query filter
+	 * @param sql the sql
+	 * @param classKey the class key
+	 * @param key the key
+	 * @return the map
+	 * @throws Exception the exception
+	 */
 	@Override
 	public <J> Map<J,List<T>> mapKeyListFindByFilter(QueryFilter<T, ID> queryFilter,String sql,Class<J>classKey,String key) throws Exception{
 		List<T>list=this.findByFilter(queryFilter,sql);

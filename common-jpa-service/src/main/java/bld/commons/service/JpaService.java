@@ -188,12 +188,54 @@ public interface JpaService<T, ID> {
 	 */
 	public Map<ID,T> mapFindByFilter(QueryFilter<T, ID> queryFilter,String sql) throws Exception;
 
+	/**
+	 * Map key find by filter.
+	 *
+	 * @param <J> the generic type
+	 * @param queryFilter the query filter
+	 * @param classKey the class key
+	 * @param key the key
+	 * @return the map
+	 * @throws Exception the exception
+	 */
 	public <J> Map<J, T> mapKeyFindByFilter(QueryFilter<T, ID> queryFilter, Class<J> classKey, String key) throws Exception;
 
+	/**
+	 * Map key find by filter.
+	 *
+	 * @param <J> the generic type
+	 * @param queryFilter the query filter
+	 * @param sql the sql
+	 * @param classKey the class key
+	 * @param key the key
+	 * @return the map
+	 * @throws Exception the exception
+	 */
 	public <J> Map<J, T> mapKeyFindByFilter(QueryFilter<T, ID> queryFilter, String sql, Class<J> classKey, String key) throws Exception;
 
+	/**
+	 * Map key list find by filter.
+	 *
+	 * @param <J> the generic type
+	 * @param queryFilter the query filter
+	 * @param classKey the class key
+	 * @param key the key
+	 * @return the map
+	 * @throws Exception the exception
+	 */
 	public <J> Map<J, List<T>> mapKeyListFindByFilter(QueryFilter<T, ID> queryFilter, Class<J> classKey, String key) throws Exception;
 
+	/**
+	 * Map key list find by filter.
+	 *
+	 * @param <J> the generic type
+	 * @param queryFilter the query filter
+	 * @param sql the sql
+	 * @param classKey the class key
+	 * @param key the key
+	 * @return the map
+	 * @throws Exception the exception
+	 */
 	public <J> Map<J, List<T>> mapKeyListFindByFilter(QueryFilter<T, ID> queryFilter, String sql, Class<J> classKey, String key) throws Exception;
 
 }
