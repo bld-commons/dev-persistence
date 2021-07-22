@@ -5,13 +5,21 @@
  */
 package bld.commons.service;
 
+import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
+import javax.persistence.Id;
+
+import org.apache.commons.beanutils.PropertyUtils;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,20 +29,66 @@ import bld.commons.reflection.model.BuildQueryFilter;
 import bld.commons.reflection.model.QueryFilter;
 import bld.commons.reflection.utils.ReflectionUtils;
 
+// TODO: Auto-generated Javadoc
 /**
  * The Class BaseEntityServiceImpl.
  *
  * @param <T>  the generic type
  * @param <ID> the generic type
  */
+@SuppressWarnings("unchecked")
 public abstract class JpaServiceImpl<T, ID> extends BaseJpaService implements JpaService<T, ID> {
 
+	private static final String POINT = "\\.";
+
+
 	/** The classe. */
-	protected Class<T> clazz = ReflectionUtils.getGenericTypeClass(this);
+	private Class<T> clazz=null;
+	
+	
+	/** The id. */
+	private Field id=null;
 
 	/** The reflection utils. */
 	@Autowired
 	private ReflectionUtils reflectionUtils;
+	
+	
+	
+	
+
+	/**
+	 * Gets the clazz.
+	 *
+	 * @return the clazz
+	 */
+	protected Class<T> getClazz() {
+		return clazz;
+	}
+
+	/**
+	 * Gets the id.
+	 *
+	 * @return the id
+	 */
+	protected Field getId() {
+		return id;
+	}
+
+	/**
+	 * Instantiates a new jpa service impl.
+	 */
+	public JpaServiceImpl() {
+		super();
+		this.clazz = ReflectionUtils.getGenericTypeClass(this);
+		Set<Field> fields=ReflectionUtils.getListField(this.clazz);
+		for(Field field:fields) 
+			if(field.isAnnotationPresent(Id.class)) {
+				this.id=field;
+				break;
+			}
+				
+	}
 
 	/**
 	 * Gets the jpa repository.
@@ -326,5 +380,103 @@ public abstract class JpaServiceImpl<T, ID> extends BaseJpaService implements Jp
 		BuildQueryFilter<T, ID> buildQueryFilter = configureQueryFilter(mapDeleteConditions(), queryFilter, deleteByFilter());
 		super.deleteByFilter(buildQueryFilter);
 	}
+	
+	
+	/**
+	 * Map find by filter.
+	 *
+	 * @param queryFilter the query filter
+	 * @return the map
+	 * @throws Exception the exception
+	 */
+	@Override
+	public Map<ID,T> mapFindByFilter(QueryFilter<T, ID> queryFilter) throws Exception{
+		List<T>list=this.findByFilter(queryFilter);
+		return mapIdEntity(list);
+	}
 
+	/**
+	 * Map id entity.
+	 *
+	 * @param list the list
+	 * @return the map
+	 * @throws IllegalAccessException the illegal access exception
+	 * @throws InvocationTargetException the invocation target exception
+	 * @throws NoSuchMethodException the no such method exception
+	 */
+	private Map<ID, T> mapIdEntity(List<T> list) throws IllegalAccessException, InvocationTargetException, NoSuchMethodException {
+		Map<ID,T> map=new HashMap<>();
+		for(T t:list) 
+			map.put((ID) PropertyUtils.getProperty(t, id.getName()),t);
+		return map;
+	}
+	
+	
+	/**
+	 * Map find by filter.
+	 *
+	 * @param queryFilter the query filter
+	 * @param sql the sql
+	 * @return the map
+	 * @throws Exception the exception
+	 */
+	@Override
+	public Map<ID,T> mapFindByFilter(QueryFilter<T, ID> queryFilter,String sql) throws Exception{
+		List<T>list=this.findByFilter(queryFilter,sql);
+		return mapIdEntity(list);
+	}
+
+	
+	private Object getKey(String[] fields,T t) throws Exception {
+		Object value=t;
+		for(String field:fields)
+			value=PropertyUtils.getProperty(value, field);
+		return value;
+	}
+	
+	private <J>Map<J, T> mapKeyEntity(List<T> list,Class<J>classKey,String key) throws Exception {
+		Map<J,T> map=new LinkedHashMap<>();
+		String[] fields=key.split(POINT);
+		for(T t:list) 
+			map.put((J)getKey(fields, t),t);
+		return map;
+	}
+	
+	@Override
+	public <J> Map<J,T> mapKeyFindByFilter(QueryFilter<T, ID> queryFilter,Class<J>classKey,String key) throws Exception{
+		List<T>list=this.findByFilter(queryFilter);
+		return mapKeyEntity(list, classKey, key);
+	}
+	
+	@Override
+	public <J> Map<J,T> mapKeyFindByFilter(QueryFilter<T, ID> queryFilter,String sql,Class<J>classKey,String key) throws Exception{
+		List<T>list=this.findByFilter(queryFilter,sql);
+		return mapKeyEntity(list, classKey, key);
+	}
+	
+	
+	private <J>Map<J, List<T>> mapKeyListEntity(List<T> list,Class<J>classKey,String keyFields) throws Exception {
+		Map<J,List<T>> map=new LinkedHashMap<>();
+		String[] fields=keyFields.split(POINT);
+		for(T t:list) {
+			J key=(J)getKey(fields, t);
+			if(!map.containsKey(key))
+				map.put(key, new ArrayList<>());
+			map.get((J)getKey(fields, t)).add(t);
+		}
+			
+		return map;
+	}
+	
+	@Override
+	public <J> Map<J,List<T>> mapKeyListFindByFilter(QueryFilter<T, ID> queryFilter,Class<J>classKey,String key) throws Exception{
+		List<T>list=this.findByFilter(queryFilter);
+		return mapKeyListEntity(list, classKey, key);
+	}
+	
+	@Override
+	public <J> Map<J,List<T>> mapKeyListFindByFilter(QueryFilter<T, ID> queryFilter,String sql,Class<J>classKey,String key) throws Exception{
+		List<T>list=this.findByFilter(queryFilter,sql);
+		return mapKeyListEntity(list, classKey, key);
+	}
 }
