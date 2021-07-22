@@ -39,6 +39,9 @@ import bld.commons.reflection.utils.ReflectionUtils;
 @SuppressWarnings("unchecked")
 public abstract class JpaServiceImpl<T, ID> extends BaseJpaService implements JpaService<T, ID> {
 
+	private static final String POINT = "\\.";
+
+
 	/** The classe. */
 	private Class<T> clazz=null;
 	
@@ -433,7 +436,7 @@ public abstract class JpaServiceImpl<T, ID> extends BaseJpaService implements Jp
 	
 	private <J>Map<J, T> mapKeyEntity(List<T> list,Class<J>classKey,String key) throws Exception {
 		Map<J,T> map=new LinkedHashMap<>();
-		String[] fields=key.split("\\.");
+		String[] fields=key.split(POINT);
 		for(T t:list) 
 			map.put((J)getKey(fields, t),t);
 		return map;
@@ -454,7 +457,7 @@ public abstract class JpaServiceImpl<T, ID> extends BaseJpaService implements Jp
 	
 	private <J>Map<J, List<T>> mapKeyListEntity(List<T> list,Class<J>classKey,String keyFields) throws Exception {
 		Map<J,List<T>> map=new LinkedHashMap<>();
-		String[] fields=keyFields.split(".");
+		String[] fields=keyFields.split(POINT);
 		for(T t:list) {
 			J key=(J)getKey(fields, t);
 			if(!map.containsKey(key))
