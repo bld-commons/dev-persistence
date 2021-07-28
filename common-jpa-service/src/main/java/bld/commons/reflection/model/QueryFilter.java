@@ -16,6 +16,7 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 
+// TODO: Auto-generated Javadoc
 /**
  * The Class QueryFilter.
  *
@@ -36,6 +37,7 @@ public class QueryFilter<T, ID> {
 	/** The map parameters. */
 	private Map<String, Object> mapParameters;
 
+	/** The list order by. */
 	private List<OrderBy> listOrderBy;
 
 	/** The pageable. */
@@ -85,6 +87,9 @@ public class QueryFilter<T, ID> {
 		init();
 	}
 
+	/**
+	 * Inits the.
+	 */
 	private void init() {
 		this.checkNullable = new HashSet<>();
 		this.mapParameters = new HashMap<>();
@@ -126,7 +131,23 @@ public class QueryFilter<T, ID> {
 	public Map<String, Object> getMapParameters() {
 		return mapParameters;
 	}
+	
+	/**
+	 * Adds the parameter.
+	 *
+	 * @param key the key
+	 * @param value the value
+	 */
+	public void addParameter(String key,Object value) {
+		if(key!=null && value!=null)
+			this.mapParameters.put(key, value);
+	}
 
+	/**
+	 * Gets the list order by.
+	 *
+	 * @return the list order by
+	 */
 	public List<OrderBy> getListOrderBy() {
 		return listOrderBy;
 	}
