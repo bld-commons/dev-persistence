@@ -50,6 +50,8 @@ public abstract class JdbcServiceImpl<T, ID> extends JpaServiceImpl<T, ID> imple
 	 */
 	private <I, K> BuildQueryFilter<K, I> getBuildQueryFilter(QueryFilter<K, I> queryFilter, String sql) {
 		BuildQueryFilter<K, I>buildQueryFilter=new BuildQueryFilter<>();
+		if(queryFilter.getFilterParameter()!=null)
+			queryFilter=reflectionUtils.dataToMap(queryFilter);
 		buildQueryFilter.setQueryFilter(queryFilter);
 		buildQueryFilter.setSql(sql);
 		return buildQueryFilter;

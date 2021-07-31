@@ -52,7 +52,7 @@ public abstract class JpaServiceImpl<T, ID> extends BaseJpaService implements Jp
 
 	/** The reflection utils. */
 	@Autowired
-	private ReflectionUtils reflectionUtils;
+	protected ReflectionUtils reflectionUtils;
 	
 	
 	
@@ -113,7 +113,7 @@ public abstract class JpaServiceImpl<T, ID> extends BaseJpaService implements Jp
 		}
 		if(queryFilter.getFilterParameter()!=null)
 			queryFilter=reflectionUtils.dataToMap(queryFilter);
-		queryFilter.setClassFilter(clazz);
+		queryFilter.setResultClass(clazz);
 		return new BuildQueryFilter<>(mapConditions, queryFilter, query);
 	}
 

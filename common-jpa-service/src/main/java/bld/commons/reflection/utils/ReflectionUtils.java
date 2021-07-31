@@ -9,6 +9,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
+import java.sql.Timestamp;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collection;
@@ -36,6 +37,7 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;
 
 import bld.commons.reflection.annotations.DateFilter;
+import bld.commons.reflection.annotations.FilterNullValue;
 import bld.commons.reflection.annotations.IgnoreMapping;
 import bld.commons.reflection.annotations.LikeString;
 import bld.commons.reflection.annotations.ListFilter;
@@ -129,66 +131,58 @@ public class ReflectionUtils {
 			Map<String, LinkedHashSet<Method>> mapMethod = ReflectionUtils.getMapMethod(obj.getClass());
 			for (Field field : fields) {
 				Method method = ReflectionUtils.getMethod(mapMethod, field, GetSetType.get);
-				IgnoreMapping ignoreMapping = method.isAnnotationPresent(IgnoreMapping.class) ? method.getAnnotation(IgnoreMapping.class) : field.getAnnotation(IgnoreMapping.class);
-				if (ignoreMapping == null || !ignoreMapping.value()) {
-					try {
-						Object value = PropertyUtils.getProperty(obj, field.getName());
-						if (value instanceof Collection && CollectionUtils.isEmpty((Collection<?>) value))
-							value = null;
-						if (value != null && value instanceof String && StringUtils.isBlank((String) value))
-							value = null;
-						if (value != null) {
-							DateFilter dateFilter = method.isAnnotationPresent(DateFilter.class) ? method.getAnnotation(DateFilter.class) : field.getAnnotation(DateFilter.class);
-							LikeString likeString = method.isAnnotationPresent(LikeString.class) ? method.getAnnotation(LikeString.class) : field.getAnnotation(LikeString.class);
-							if (value instanceof Date && dateFilter != null) {
-								switch (dateFilter.dateType()) {
-								case CALENDAR:
-									Calendar calendar = DateUtils.dateToCalendar((Date) value);
-									value = DateUtils.sumDate(calendar, dateFilter.addYear(), dateFilter.addMonth(), dateFilter.addDay(), dateFilter.addHour(), dateFilter.addMinute(), dateFilter.addSecond());
-									break;
-								case DATE:
-									value = DateUtils.sumDate((Date) value, dateFilter.addYear(), dateFilter.addMonth(), dateFilter.addDay(), dateFilter.addHour(), dateFilter.addMinute(), dateFilter.addSecond());
-									break;
-								case TIMESTAMP:
-									Date date = DateUtils.sumDate((Date) value, dateFilter.addYear(), dateFilter.addMonth(), dateFilter.addDay(), dateFilter.addHour(), dateFilter.addMinute(), dateFilter.addSecond());
-									value = DateUtils.dateToTimestamp(date);
-									break;
-								default:
-									break;
+				if (method != null) {
+					IgnoreMapping ignoreMapping = method.isAnnotationPresent(IgnoreMapping.class) ? method.getAnnotation(IgnoreMapping.class) : field.getAnnotation(IgnoreMapping.class);
+					if (ignoreMapping == null || !ignoreMapping.value()) {
+						try {
+							Object value = PropertyUtils.getProperty(obj, field.getName());
+							if (value instanceof Collection && CollectionUtils.isEmpty((Collection<?>) value))
+								value = null;
+							if (value != null && value instanceof String && StringUtils.isBlank((String) value))
+								value = null;
+							if (value != null) {
+								DateFilter dateFilter = method.isAnnotationPresent(DateFilter.class) ? method.getAnnotation(DateFilter.class) : field.getAnnotation(DateFilter.class);
+								LikeString likeString = method.isAnnotationPresent(LikeString.class) ? method.getAnnotation(LikeString.class) : field.getAnnotation(LikeString.class);
+								if (dateFilter != null) {
+									if (value instanceof Calendar)
+										value = DateUtils.sumDate((Calendar) value, dateFilter.addYear(), dateFilter.addMonth(), dateFilter.addDay(), dateFilter.addHour(), dateFilter.addMinute(), dateFilter.addSecond());
+									else if (value instanceof Date)
+										value = DateUtils.sumDate((Date) value, dateFilter.addYear(), dateFilter.addMonth(), dateFilter.addDay(), dateFilter.addHour(), dateFilter.addMinute(), dateFilter.addSecond());
+									else if (value instanceof Timestamp)
+										value = DateUtils.sumDate((Timestamp) value, dateFilter.addYear(), dateFilter.addMonth(), dateFilter.addDay(), dateFilter.addHour(), dateFilter.addMinute(), dateFilter.addSecond());
 
+								} else if (value instanceof String && likeString != null) {
+									switch (likeString.likeType()) {
+									case LEFT:
+										value = "%" + value;
+										break;
+									case LEFT_RIGHT:
+										value = "%" + value + "%";
+										break;
+									case RIGHT:
+										value = value + "%";
+										break;
+									case EQUAL:
+										break;
+									default:
+										value = "%" + value + "%";
+										break;
+									}
+									if (likeString.ignoreCase())
+										value = ((String) value).toUpperCase();
 								}
-
-							} else if (value instanceof String && likeString != null) {
-								switch (likeString.likeType()) {
-								case LEFT:
-									value = "%" + value;
-									break;
-								case LEFT_RIGHT:
-									value = "%" + value + "%";
-									break;
-								case RIGHT:
-									value = value + "%";
-									break;
-								case EQUAL:
-									break;
-								default:
-									value = "%" + value + "%";
-									break;
-								}
-								if (likeString.ignoreCase())
-									value = ((String) value).toUpperCase();
-							}
-							if (value instanceof String && field.isAnnotationPresent(ListFilter.class))
-								checkNullable.add(value.toString());
-							else if( value.getClass().isArray()) {
-								Object[] array=(Object[])value;
-								mapParameters.put(field.getName(), Arrays.asList(array));
-							}
-							else
-								mapParameters.put(field.getName(), value);
+								if (value instanceof String && field.isAnnotationPresent(ListFilter.class))
+									checkNullable.add(value.toString());
+								else if (value.getClass().isArray()) {
+									Object[] array = (Object[]) value;
+									mapParameters.put(field.getName(), Arrays.asList(array));
+								} else
+									mapParameters.put(field.getName(), value);
+							} else if (field.isAnnotationPresent(FilterNullValue.class) && field.getAnnotation(FilterNullValue.class).value() || method.isAnnotationPresent(FilterNullValue.class) && method.getAnnotation(FilterNullValue.class).value())
+								mapParameters.put(field.getName(), null);
+						} catch (Exception e) {
+							logger.warn("Errore durante la conversione dei dati in mappa");
 						}
-					} catch (Exception e) {
-						logger.warn("Errore durante la conversione dei dati in mappa");
 					}
 				}
 			}
@@ -377,23 +371,24 @@ public class ReflectionUtils {
 
 	public static Method getMethod(Map<String, LinkedHashSet<Method>> mapMethod, String methodName, Class<?>... classParameter) {
 		Set<Method> methods = mapMethod.get(methodName);
-		for (Method method : methods) {
-			Class<?>[] parameterTypes = method.getParameterTypes();
-			if (ArrayUtils.isEmpty(parameterTypes) && ArrayUtils.isEmpty(classParameter))
-				return method;
-			boolean check = true;
-			if (ArrayUtils.isNotEmpty(parameterTypes) && ArrayUtils.isNotEmpty(classParameter) && parameterTypes.length==classParameter.length) {
-				for(int i=0;i<parameterTypes.length;i++)
-					if(!parameterTypes[i].isAssignableFrom(classParameter[i])) {
-						check=false;
-						break;
-					}
-			}else 
-				continue;
-			if (check)
-				return method;
+		if (CollectionUtils.isNotEmpty(methods)) {
+			for (Method method : methods) {
+				Class<?>[] parameterTypes = method.getParameterTypes();
+				if (ArrayUtils.isEmpty(parameterTypes) && ArrayUtils.isEmpty(classParameter))
+					return method;
+				boolean check = true;
+				if (ArrayUtils.isNotEmpty(parameterTypes) && ArrayUtils.isNotEmpty(classParameter) && parameterTypes.length == classParameter.length) {
+					for (int i = 0; i < parameterTypes.length; i++)
+						if (!parameterTypes[i].isAssignableFrom(classParameter[i])) {
+							check = false;
+							break;
+						}
+				} else
+					continue;
+				if (check)
+					return method;
+			}
 		}
-
 		return null;
 	}
 

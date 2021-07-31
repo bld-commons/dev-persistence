@@ -12,8 +12,6 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 
-import bld.commons.reflection.type.DateType;
-
 /**
  * The Interface ToCalendar.
  */
@@ -21,15 +19,13 @@ import bld.commons.reflection.type.DateType;
 @Target({FIELD,METHOD})
 public @interface DateFilter {
 
+
+	
 	/**
-	 * Date type.
+	 * Equals.
 	 *
-	 * @return the date type
+	 * @return true, if successful
 	 */
-	public DateType dateType() default DateType.DATE;
-	
-	
-	
 	public boolean equals() default true;
 	
 	/**
@@ -74,4 +70,9 @@ public @interface DateFilter {
 	 */
 	public int addSecond() default 0;
 	
+	
+
+	
+	
+
 }

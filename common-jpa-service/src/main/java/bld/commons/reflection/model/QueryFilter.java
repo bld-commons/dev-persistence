@@ -43,8 +43,8 @@ public class QueryFilter<T, ID> {
 	/** The pageable. */
 	private Pageable pageable;
 
-	/** The class filter. */
-	private Class<T> classFilter;
+	/** The result class. */
+	private Class<T> resultClass;
 
 	/** The parameter filter. */
 	private FilterParameter<ID> filterParameter;
@@ -82,6 +82,12 @@ public class QueryFilter<T, ID> {
 	/**
 	 * Instantiates a new query filter.
 	 */
+	public QueryFilter(Map<String, Object> mapParameters) {
+		super();
+		init();
+		this.mapParameters=mapParameters;
+	}
+	
 	public QueryFilter() {
 		super();
 		init();
@@ -181,22 +187,24 @@ public class QueryFilter<T, ID> {
 			this.pageable = PageRequest.of(page, size);
 	}
 
-	/**
-	 * Gets the class filter.
-	 *
-	 * @return the class filter
-	 */
-	public Class<T> getClassFilter() {
-		return classFilter;
-	}
 
 	/**
-	 * Sets the class filter.
+	 * Gets the result class.
 	 *
-	 * @param classFilter the new class filter
+	 * @return the result class
 	 */
-	public void setClassFilter(Class<T> classFilter) {
-		this.classFilter = classFilter;
+	public Class<T> getResultClass() {
+		return resultClass;
+	}
+
+	
+	/**
+	 * Sets the result class.
+	 *
+	 * @param classFilter the new result class
+	 */
+	public void setResultClass(Class<T> classFilter) {
+		this.resultClass = classFilter;
 	}
 
 	/**
