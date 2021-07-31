@@ -25,6 +25,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hibernate.jpa.QueryHints;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 
 import bld.commons.reflection.annotations.DateFilter;
@@ -225,7 +226,7 @@ public abstract class BaseJpaService {
 		select = addOrderBy(queryFilter.getListOrderBy(),select);
 		
 		logger.info("Query= " + select);
-		TypedQuery<T> query = this.getEntityManager().createQuery(select, queryFilter.getClassFilter());
+		TypedQuery<T> query = this.getEntityManager().createQuery(select, queryFilter.getResultClass());
 		query = setQueryParameters(mapParameters, query);
 		if (manageOneToMany.isOneToMany())
 			query.setHint(QueryHints.HINT_PASS_DISTINCT_THROUGH, false);
@@ -349,6 +350,7 @@ public abstract class BaseJpaService {
 		TypedQuery<T> query = buildQuery(buildQueryFilter);
 		T t = null;
 		try {
+			
 			t = query.getSingleResult();
 		} catch (Exception e) {
 			logger.info("Record not found");
@@ -401,10 +403,11 @@ public abstract class BaseJpaService {
 		QueryFilter<T, ID> queryFilter = buildQueryFilter.getQueryFilter();
 		String select = buildQueryFilter.getSql();
 		logger.info("Query: " + select);
-		List<Map<String, Object>> listResult = this.getJdbcTemplate().queryForList(select, queryFilter.getMapParameters());
+		MapSqlParameterSource mapSqlParameterSource=new MapSqlParameterSource(queryFilter.getMapParameters());
+		List<Map<String, Object>> listResult = this.getJdbcTemplate().queryForList(select, mapSqlParameterSource);
 		List<T> listT = new ArrayList<T>();
 		for (Map<String, Object> mapResult : listResult) {
-			T t = queryFilter.getClassFilter().getConstructor().newInstance();
+			T t = queryFilter.getResultClass().getConstructor().newInstance();
 			this.reflectionUtils.reflection(t, mapResult);
 			listT.add(t);
 		}

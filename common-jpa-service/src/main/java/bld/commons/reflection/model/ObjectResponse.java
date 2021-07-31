@@ -1,7 +1,10 @@
 package bld.commons.reflection.model;
 
+import javax.validation.Valid;
+
 public class ObjectResponse<T> {
 
+	@Valid
 	private T data;
 	
 	public ObjectResponse() {

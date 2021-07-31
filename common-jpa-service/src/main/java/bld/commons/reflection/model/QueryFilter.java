@@ -16,6 +16,7 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 
+// TODO: Auto-generated Javadoc
 /**
  * The Class QueryFilter.
  *
@@ -36,13 +37,14 @@ public class QueryFilter<T, ID> {
 	/** The map parameters. */
 	private Map<String, Object> mapParameters;
 
+	/** The list order by. */
 	private List<OrderBy> listOrderBy;
 
 	/** The pageable. */
 	private Pageable pageable;
 
-	/** The class filter. */
-	private Class<T> classFilter;
+	/** The result class. */
+	private Class<T> resultClass;
 
 	/** The parameter filter. */
 	private FilterParameter<ID> filterParameter;
@@ -80,11 +82,20 @@ public class QueryFilter<T, ID> {
 	/**
 	 * Instantiates a new query filter.
 	 */
+	public QueryFilter(Map<String, Object> mapParameters) {
+		super();
+		init();
+		this.mapParameters=mapParameters;
+	}
+	
 	public QueryFilter() {
 		super();
 		init();
 	}
 
+	/**
+	 * Inits the.
+	 */
 	private void init() {
 		this.checkNullable = new HashSet<>();
 		this.mapParameters = new HashMap<>();
@@ -126,7 +137,23 @@ public class QueryFilter<T, ID> {
 	public Map<String, Object> getMapParameters() {
 		return mapParameters;
 	}
+	
+	/**
+	 * Adds the parameter.
+	 *
+	 * @param key the key
+	 * @param value the value
+	 */
+	public void addParameter(String key,Object value) {
+		if(key!=null && value!=null)
+			this.mapParameters.put(key, value);
+	}
 
+	/**
+	 * Gets the list order by.
+	 *
+	 * @return the list order by
+	 */
 	public List<OrderBy> getListOrderBy() {
 		return listOrderBy;
 	}
@@ -160,22 +187,24 @@ public class QueryFilter<T, ID> {
 			this.pageable = PageRequest.of(page, size);
 	}
 
-	/**
-	 * Gets the class filter.
-	 *
-	 * @return the class filter
-	 */
-	public Class<T> getClassFilter() {
-		return classFilter;
-	}
 
 	/**
-	 * Sets the class filter.
+	 * Gets the result class.
 	 *
-	 * @param classFilter the new class filter
+	 * @return the result class
 	 */
-	public void setClassFilter(Class<T> classFilter) {
-		this.classFilter = classFilter;
+	public Class<T> getResultClass() {
+		return resultClass;
+	}
+
+	
+	/**
+	 * Sets the result class.
+	 *
+	 * @param classFilter the new result class
+	 */
+	public void setResultClass(Class<T> classFilter) {
+		this.resultClass = classFilter;
 	}
 
 	/**
