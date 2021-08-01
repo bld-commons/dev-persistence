@@ -145,11 +145,11 @@ public class ReflectionUtils {
 								LikeString likeString = method.isAnnotationPresent(LikeString.class) ? method.getAnnotation(LikeString.class) : field.getAnnotation(LikeString.class);
 								if (dateFilter != null) {
 									if (value instanceof Calendar)
-										value = DateUtils.sumDate((Calendar) value, dateFilter.addYear(), dateFilter.addMonth(), dateFilter.addDay(), dateFilter.addHour(), dateFilter.addMinute(), dateFilter.addSecond());
+										value = DateUtils.sumDate((Calendar) value, dateFilter.addYear(), dateFilter.addMonth(),dateFilter.addWeek(), dateFilter.addDay(), dateFilter.addHour(), dateFilter.addMinute(), dateFilter.addSecond());
 									else if (value instanceof Date)
-										value = DateUtils.sumDate((Date) value, dateFilter.addYear(), dateFilter.addMonth(), dateFilter.addDay(), dateFilter.addHour(), dateFilter.addMinute(), dateFilter.addSecond());
+										value = DateUtils.sumDate((Date) value, dateFilter.addYear(), dateFilter.addMonth(),dateFilter.addWeek(), dateFilter.addDay(), dateFilter.addHour(), dateFilter.addMinute(), dateFilter.addSecond());
 									else if (value instanceof Timestamp)
-										value = DateUtils.sumDate((Timestamp) value, dateFilter.addYear(), dateFilter.addMonth(), dateFilter.addDay(), dateFilter.addHour(), dateFilter.addMinute(), dateFilter.addSecond());
+										value = DateUtils.sumDate((Timestamp) value, dateFilter.addYear(), dateFilter.addMonth(),dateFilter.addWeek(), dateFilter.addDay(), dateFilter.addHour(), dateFilter.addMinute(), dateFilter.addSecond());
 
 								} else if (value instanceof String && likeString != null) {
 									switch (likeString.likeType()) {

@@ -28,6 +28,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 
+import bld.commons.json.annotations.JsonDateFilter;
 import bld.commons.reflection.annotations.DateFilter;
 import bld.commons.reflection.annotations.LikeString;
 import bld.commons.reflection.model.BuildQueryFilter;
@@ -125,8 +126,9 @@ public abstract class BaseJpaService {
 					if(likeString!=null && likeString.ignoreCase()) 
 						upper="upper";
 					else {
-						DateFilter dateFilter=method.isAnnotationPresent(LikeString.class)?method.getAnnotation(DateFilter.class):field.getAnnotation(DateFilter.class);
-						if(dateFilter!=null && !dateFilter.equals())
+						DateFilter dateFilter=method.isAnnotationPresent(DateFilter.class)?method.getAnnotation(DateFilter.class):field.getAnnotation(DateFilter.class);
+						JsonDateFilter jsonDateFilter=method.isAnnotationPresent(LikeString.class)?method.getAnnotation(JsonDateFilter.class):field.getAnnotation(JsonDateFilter.class);
+						if((dateFilter!=null && !dateFilter.equals()) || (jsonDateFilter!=null && !jsonDateFilter.equals()))
 							minEqual="<";
 					}
 				}
