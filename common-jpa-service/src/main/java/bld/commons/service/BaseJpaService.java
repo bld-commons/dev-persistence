@@ -39,11 +39,9 @@ import bld.commons.reflection.type.GetSetType;
 import bld.commons.reflection.type.LikeType;
 import bld.commons.reflection.utils.ReflectionUtils;
 
-// TODO: Auto-generated Javadoc
 /**
  * The Class BaseJpaService.
  */
-@SuppressWarnings("unchecked")
 public abstract class BaseJpaService {
 
 	private static final String LIKE = " (?i)like ";
@@ -108,7 +106,7 @@ public abstract class BaseJpaService {
 	 * @param classFilterParameter the class filter parameter
 	 * @return the where condition
 	 */
-	private String getWhereCondition(Map<String, Object> mapParameters, String select, Map<String, String> mapConditions, Class<? extends FilterParameter<?>> classFilterParameter) {
+	private String getWhereCondition(Map<String, Object> mapParameters, String select, Map<String, String> mapConditions, Class<? extends FilterParameter> classFilterParameter) {
 		Map<String, LinkedHashSet<Method>> mapMethod = new HashMap<String, LinkedHashSet<Method>>();
 		Map<String, Field> mapField = new HashedMap<>();
 		if (classFilterParameter != null) {
@@ -255,10 +253,10 @@ public abstract class BaseJpaService {
 	 * @param queryFilter the query filter
 	 * @return the class filter parameter
 	 */
-	private <T, ID> Class<? extends FilterParameter<?>> getClassFilterParameter(QueryFilter<T, ID> queryFilter) {
-		Class<? extends FilterParameter<?>> classFilterParameter = null;
+	private <T, ID> Class<? extends FilterParameter> getClassFilterParameter(QueryFilter<T, ID> queryFilter) {
+		Class<? extends FilterParameter> classFilterParameter = null;
 		if (queryFilter.getFilterParameter() != null)
-			classFilterParameter = (Class<? extends FilterParameter<?>>) queryFilter.getFilterParameter().getClass();
+			classFilterParameter = (Class<? extends FilterParameter>) queryFilter.getFilterParameter().getClass();
 		return classFilterParameter;
 	}
 
@@ -272,7 +270,7 @@ public abstract class BaseJpaService {
 	 * @param classFilterParameter the class filter parameter
 	 * @return the string
 	 */
-	private String buildQuery(Map<String, Object> mapParameters, String select, Map<String, String> mapConditions, Set<String> checkNullable, Class<? extends FilterParameter<?>> classFilterParameter) {
+	private String buildQuery(Map<String, Object> mapParameters, String select, Map<String, String> mapConditions, Set<String> checkNullable, Class<? extends FilterParameter> classFilterParameter) {
 		select = getWhereConditionNullOrNotNull(checkNullable, select, mapConditions);
 		select = getWhereCondition(mapParameters, select, mapConditions, classFilterParameter);
 		return select;
