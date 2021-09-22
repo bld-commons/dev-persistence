@@ -336,6 +336,10 @@ public class DateUtils {
 		return timestamp;
 	}
 	
+	public static Timestamp now() {
+		return new Timestamp((new Date()).getTime());
+	}
+	
 	public static Date timestampToDate(Timestamp timestamp) {
 		Date date =null;
 		if(timestamp!=null)

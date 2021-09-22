@@ -171,8 +171,8 @@ public class ReflectionUtils {
 									if (likeString.ignoreCase())
 										value = ((String) value).toUpperCase();
 								}
-								if (value instanceof String && field.isAnnotationPresent(ListFilter.class))
-									checkNullable.add(value.toString());
+								if (value instanceof Boolean && (Boolean)value && field.isAnnotationPresent(ListFilter.class))
+									checkNullable.add(field.getName());
 								else if (value.getClass().isArray()) {
 									Object[] array = (Object[]) value;
 									mapParameters.put(field.getName(), Arrays.asList(array));
