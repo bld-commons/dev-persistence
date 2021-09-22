@@ -19,9 +19,9 @@ import bld.commons.reflection.type.OrderType;
  * The Class BaseFilterRequest.
  *
  */
-public abstract class FilterParameter<ID> {
+public abstract class FilterParameter {
 	
-	private List<ID> id;
+	
 
 	/** The sort key. */
 	@IgnoreMapping
@@ -39,7 +39,7 @@ public abstract class FilterParameter<ID> {
 	public FilterParameter() {
 		super();
 		this.orderBy = new ArrayList<>();
-		this.id=new ArrayList<>();
+	
 	}
 
 	public List<OrderBy> getOrderBy() {
@@ -89,14 +89,6 @@ public abstract class FilterParameter<ID> {
 	 */
 	public void setPageNumber(Integer pageNumber) {
 		this.pageNumber = pageNumber;
-	}
-
-	public List<ID> getId() {
-		return id;
-	}
-
-	public void setId(List<ID> id) {
-		this.id = id;
 	}
 
 	

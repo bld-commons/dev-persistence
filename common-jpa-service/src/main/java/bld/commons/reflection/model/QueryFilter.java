@@ -47,7 +47,7 @@ public class QueryFilter<T, ID> {
 	private Class<T> resultClass;
 
 	/** The parameter filter. */
-	private FilterParameter<ID> filterParameter;
+	private FilterParameter filterParameter;
 
 	/**
 	 * Instantiates a new query filter.
@@ -66,7 +66,7 @@ public class QueryFilter<T, ID> {
 	 *
 	 * @param filterParameter the filter
 	 */
-	public QueryFilter(FilterParameter<ID> filterParameter) {
+	public QueryFilter(FilterParameter filterParameter) {
 		super();
 		init();
 		this.filterParameter = filterParameter;
@@ -212,7 +212,7 @@ public class QueryFilter<T, ID> {
 	 *
 	 * @return the parameter filter
 	 */
-	public FilterParameter<ID> getFilterParameter() {
+	public FilterParameter getFilterParameter() {
 		return filterParameter;
 	}
 
@@ -221,7 +221,7 @@ public class QueryFilter<T, ID> {
 	 *
 	 * @param parameterFilter the new parameter filter
 	 */
-	public void setFilterParameter(FilterParameter<ID> parameterFilter) {
+	public void setFilterParameter(FilterParameter parameterFilter) {
 		this.filterParameter = parameterFilter;
 	}
 

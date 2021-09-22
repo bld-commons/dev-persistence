@@ -255,16 +255,16 @@ public class DateUtils {
 	 * @param second the second
 	 * @return the date
 	 */
-	public static Date sumDate(Date date,int year, int month, int day,int hour,int minute,int second) {
-		Calendar calendar=sumDate(dateToCalendar(date), year, month, day,hour,minute,second);
+	public static Date sumDate(Date date,int year, int month, int week, int day,int hour,int minute,int second) {
+		Calendar calendar=sumDate(dateToCalendar(date), year, month, week, day,hour,minute,second);
 		if(calendar!=null)
 			date=calendar.getTime();
 		return date;
 	}
 	
 	
-	public static Timestamp sumDate(Timestamp timestamp,int year, int month, int day,int hour,int minute,int second) {
-		Date date=sumDate(timestampToDate(timestamp), year, month, day, hour, minute, second);
+	public static Timestamp sumDate(Timestamp timestamp,int year, int month, int week, int day,int hour,int minute,int second) {
+		Date date=sumDate(timestampToDate(timestamp), year, month, week, day, hour, minute, second);
 		timestamp=dateToTimestamp(date);
 		return timestamp;
 	}
@@ -279,8 +279,8 @@ public class DateUtils {
 	 * @param day   the day
 	 * @return the date
 	 */
-	public static Date sumDate(Date date,int year, int month, int day) {
-		return sumDate(date, year, month, day,0,0,0);
+	public static Date sumDate(Date date,int year, int month, int week, int day) {
+		return sumDate(date, year, month,week, day,0,0,0);
 	}
 
 	
@@ -293,8 +293,8 @@ public class DateUtils {
 	 * @param day      the day
 	 * @return the calendar
 	 */
-	public static Calendar sumDate(Calendar calendar,int year, int month, int day) {
-		return sumDate(calendar, year, month, day,0, 0, 0);
+	public static Calendar sumDate(Calendar calendar,int year, int month,int week, int day) {
+		return sumDate(calendar, year, month,week, day,0, 0, 0);
 	}
 	
 	
@@ -311,11 +311,11 @@ public class DateUtils {
 	 * @param second   the second
 	 * @return the calendar
 	 */
-	public static Calendar sumDate(Calendar calendar,int year, int month, int day,int hour,int minute,int second) {
+	public static Calendar sumDate(Calendar calendar,int year, int month,int week, int day,int hour,int minute,int second) {
 		if (calendar != null) {
 			calendar.add(Calendar.YEAR, year);
 			calendar.add(Calendar.MONTH, month);
-			calendar.add(Calendar.DATE, day);
+			calendar.add(Calendar.DATE, week*7+day);
 			calendar.add(Calendar.HOUR, hour);
 			calendar.add(Calendar.MINUTE, minute);
 			calendar.add(Calendar.SECOND, second);
@@ -334,6 +334,10 @@ public class DateUtils {
 		if(date!=null)
 			timestamp=new Timestamp(date.getTime());
 		return timestamp;
+	}
+	
+	public static Timestamp now() {
+		return new Timestamp((new Date()).getTime());
 	}
 	
 	public static Date timestampToDate(Timestamp timestamp) {

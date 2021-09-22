@@ -1,9 +1,4 @@
-/**
- * @author Francesco Baldi
- * @mail francesco.baldi1987@gmail.com
- * @class bld.commons.persistence.reflection.annotations.DateFilter.java
- */
-package bld.commons.reflection.annotations;
+package bld.commons.json.annotations;
 
 import static java.lang.annotation.ElementType.FIELD;
 import static java.lang.annotation.ElementType.METHOD;
@@ -12,13 +7,40 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 
+import com.fasterxml.jackson.annotation.JacksonAnnotationsInside;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+
+import bld.commons.reflection.annotations.deserialize.CustomDateDeserializer;
+
 // TODO: Auto-generated Javadoc
 /**
- * The Interface ToCalendar.
+ * The Interface JsonDateFilter.
  */
 @Retention(RUNTIME)
-@Target({FIELD,METHOD})
-public @interface DateFilter {
+@Target({ FIELD, METHOD })
+@JacksonAnnotationsInside
+@JsonDeserialize(using = CustomDateDeserializer.class)
+//@JsonSerialize(using=CustomDateSerializer.class)
+@JsonInclude(Include.NON_NULL)
+public @interface JsonDateFilter {
+
+	/**
+	 * Time zone.
+	 *
+	 * @return the string
+	 */
+	public String timeZone() default "${spring.jackson.time-zone}";
+	
+	
+	/**
+	 * Format.
+	 *
+	 * @return the string
+	 */
+	public String format() default "yyyy-MM-dd'T'HH:mm:ss";
+	
 	
 	/**
 	 * Equals.
@@ -76,9 +98,4 @@ public @interface DateFilter {
 	 */
 	public int addSecond() default 0;
 	
-	
-
-	
-	
-
 }

@@ -15,7 +15,7 @@ import bld.commons.reflection.model.ObjectResponse;
 import bld.commons.reflection.model.QueryFilter;
 import bld.commons.workspace.WorkModel;
 
-public class SearchController<ID,T extends BaseModel<ID>, F extends FilterParameter<ID>> {
+public class SearchController<ID,T extends BaseModel<ID>, F extends FilterParameter> {
 
 	
 	@Autowired

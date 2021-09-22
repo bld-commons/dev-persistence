@@ -124,7 +124,7 @@ public class ReflectionUtils {
 		Map<String, Object> mapParameters = new HashMap<String, Object>();
 		Set<String> checkNullable = new HashSet<>();
 
-		FilterParameter<ID> obj = queryFilter.getFilterParameter();
+		FilterParameter obj = queryFilter.getFilterParameter();
 
 		if (obj != null) {
 			Set<Field> fields = ReflectionUtils.getListField(obj.getClass());
@@ -145,11 +145,11 @@ public class ReflectionUtils {
 								LikeString likeString = method.isAnnotationPresent(LikeString.class) ? method.getAnnotation(LikeString.class) : field.getAnnotation(LikeString.class);
 								if (dateFilter != null) {
 									if (value instanceof Calendar)
-										value = DateUtils.sumDate((Calendar) value, dateFilter.addYear(), dateFilter.addMonth(), dateFilter.addDay(), dateFilter.addHour(), dateFilter.addMinute(), dateFilter.addSecond());
+										value = DateUtils.sumDate((Calendar) value, dateFilter.addYear(), dateFilter.addMonth(),dateFilter.addWeek(), dateFilter.addDay(), dateFilter.addHour(), dateFilter.addMinute(), dateFilter.addSecond());
 									else if (value instanceof Date)
-										value = DateUtils.sumDate((Date) value, dateFilter.addYear(), dateFilter.addMonth(), dateFilter.addDay(), dateFilter.addHour(), dateFilter.addMinute(), dateFilter.addSecond());
+										value = DateUtils.sumDate((Date) value, dateFilter.addYear(), dateFilter.addMonth(),dateFilter.addWeek(), dateFilter.addDay(), dateFilter.addHour(), dateFilter.addMinute(), dateFilter.addSecond());
 									else if (value instanceof Timestamp)
-										value = DateUtils.sumDate((Timestamp) value, dateFilter.addYear(), dateFilter.addMonth(), dateFilter.addDay(), dateFilter.addHour(), dateFilter.addMinute(), dateFilter.addSecond());
+										value = DateUtils.sumDate((Timestamp) value, dateFilter.addYear(), dateFilter.addMonth(),dateFilter.addWeek(), dateFilter.addDay(), dateFilter.addHour(), dateFilter.addMinute(), dateFilter.addSecond());
 
 								} else if (value instanceof String && likeString != null) {
 									switch (likeString.likeType()) {
@@ -171,8 +171,8 @@ public class ReflectionUtils {
 									if (likeString.ignoreCase())
 										value = ((String) value).toUpperCase();
 								}
-								if (value instanceof String && field.isAnnotationPresent(ListFilter.class))
-									checkNullable.add(value.toString());
+								if (value instanceof Boolean && (Boolean)value && field.isAnnotationPresent(ListFilter.class))
+									checkNullable.add(field.getName());
 								else if (value.getClass().isArray()) {
 									Object[] array = (Object[]) value;
 									mapParameters.put(field.getName(), Arrays.asList(array));
