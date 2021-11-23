@@ -6,7 +6,7 @@
 	<groupId>com.github.bld-commons</groupId>
 	<artifactId>dev-persistence</artifactId>
 	<packaging>pom</packaging>
-	<version>1.0.5</version>
+	<version>1.1.0-SNAPSHOT</version>
 	<url>https://github.com/bld-commons/dev-persistence.git</url>
 
 	<licenses>
@@ -40,7 +40,7 @@
 	<parent>
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
-		<version>2.5.3</version>
+		<version>2.5.6</version>
 		<relativePath />
 	</parent>
 
@@ -55,6 +55,9 @@
 		<org.reflections-version>0.9.12</org.reflections-version>
 		<org.hibernate.javax.persistence-version>1.0.2.Final</org.hibernate.javax.persistence-version>
 		<commons-lang.version>2.6</commons-lang.version>
+		<com.google.auto.service.version>1.0</com.google.auto.service.version>
+		<hibernate-validator.version>7.0.1.Final</hibernate-validator.version>
+		<commons-logging.version>1.2</commons-logging.version>
 		<!-- PLUGIN INIZIO -->
 		<maven-compiler-plugin.version>3.8.1</maven-compiler-plugin.version>
 		<java.version>1.8</java.version>
@@ -63,10 +66,12 @@
 		<org.apache.maven.shared-version>3.2.1</org.apache.maven.shared-version>
 		<org.codehaus.plexus-version>3.0.5</org.codehaus.plexus-version>
 		<maven-javadoc-plugin.version>3.1.1</maven-javadoc-plugin.version>
-		<class-generator.version>1.0.1</class-generator.version>
+		<class-generator.version>1.0.2-SNAPSHOT</class-generator.version>
 		<maven-compiler-plugin.version>3.8.1</maven-compiler-plugin.version>
 		<maven-site-plugin.version>3.8.2</maven-site-plugin.version>
 		<maven-plugin-plugin.version>3.6.0</maven-plugin-plugin.version>
+		<maven-shade-plugin.version>3.2.4</maven-shade-plugin.version>
+		
 	</properties>
 
 	<scm>
@@ -80,13 +85,34 @@
 		<module>common-jpa-service</module>
 		<module>project-jpa-persistence</module>
 		<module>jpa-service-plugin-generator</module>
+		<module>processor-jpa-servcie</module>
 	</modules>
 
 	<dependencyManagement>
 		<dependencies>
 			<dependency>
+				<groupId>commons-logging</groupId>
+				<artifactId>commons-logging</artifactId>
+				<version>${commons-logging.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.hibernate</groupId>
+				<artifactId>hibernate-validator</artifactId>
+				<version>${hibernate-validator.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>com.google.auto.service</groupId>
+				<artifactId>auto-service</artifactId>
+				<version>${com.google.auto.service.version}</version>
+			</dependency>
+			<dependency>
 				<groupId>com.github.bld-commons</groupId>
 				<artifactId>common-jpa-service</artifactId>
+				<version>${project.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>com.github.bld-commons</groupId>
+				<artifactId>processor-jpa-servcie</artifactId>
 				<version>${project.version}</version>
 			</dependency>
 			<dependency>
@@ -161,6 +187,12 @@
 			<plugins>
 				<plugin>
 					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-shade-plugin</artifactId>
+					<version>${maven-shade-plugin.version}</version>
+
+				</plugin>
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
 					<artifactId>maven-plugin-plugin</artifactId>
 					<version>${maven-plugin-plugin.version}</version>
 				</plugin>
@@ -182,13 +214,6 @@
 					<configuration>
 						<source>${java.version}</source>
 						<target>${java.version}</target>
-						<annotationProcessorPaths>
-							<path>
-								<groupId>org.mapstruct</groupId>
-								<artifactId>mapstruct-processor</artifactId>
-								<version>${org.mapstruct-version}</version>
-							</path>
-						</annotationProcessorPaths>
 					</configuration>
 				</plugin>
 				<plugin>
@@ -209,6 +234,11 @@
 					<groupId>org.apache.maven.plugins</groupId>
 					<artifactId>maven-javadoc-plugin</artifactId>
 					<version>${maven-javadoc-plugin.version}</version>
+				</plugin>
+				<plugin>
+					<groupId>com.github.bld-commons</groupId>
+					<artifactId>jpa-service-plugin-generator</artifactId>
+					<version>${project.version}</version>
 				</plugin>
 			</plugins>
 		</pluginManagement>
@@ -262,7 +292,7 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-javadoc-plugin</artifactId>
-                                <configuration>
+				<configuration>
 					<source>8</source>
 				</configuration>
 				<executions>

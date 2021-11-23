@@ -31,8 +31,8 @@ import bld.commons.classes.generator.config.ConfigurationClassGenerator;
 import bld.commons.classes.generator.impl.ClassesGeneratorImpl;
 import bld.commons.classes.generator.utils.ClassGeneratorUtils;
 import bld.commons.classes.model.ModelClasses;
+import bld.commons.classes.type.OutputDirectoryType;
 import bld.plugin.jpa.service.generator.classes.ClassBuilding;
-import bld.plugin.jpa.service.property.OutputDirectoryType;
 
 /**
  * The Class JpaServiceGeneratorPlugin.
@@ -40,6 +40,7 @@ import bld.plugin.jpa.service.property.OutputDirectoryType;
 @Mojo(name = "jpa-service-generator", defaultPhase = LifecyclePhase.GENERATE_SOURCES, requiresDependencyResolution = ResolutionScope.COMPILE, requiresDependencyCollection = ResolutionScope.COMPILE)
 @SuppressWarnings("resource")
 public class ServiceJpaGeneratorPlugin extends AbstractMojo {
+
 
 	/** The Constant TARGET_GENERATED_SOURCES_CLASSES. */
 	private static final String TARGET_GENERATED_SOURCES_CLASSES = "/target/generated-sources/classes";
@@ -53,8 +54,14 @@ public class ServiceJpaGeneratorPlugin extends AbstractMojo {
 	private String persistencePackage;
 
 	/** The output directory. */
-	@Parameter(defaultValue = "TARGET")
+	@Parameter(defaultValue = "src_main_java")
 	private OutputDirectoryType outputDirectory;
+
+	@Parameter(required = true)
+	private String servicePackage;
+
+	@Parameter(required = false)
+	private String repositoryPackage;
 
 	/** The resource template directory. */
 	@Parameter(defaultValue = "/template")
@@ -96,7 +103,7 @@ public class ServiceJpaGeneratorPlugin extends AbstractMojo {
 				importJar += ":" + artifact.getFile().getPath();
 
 			String packages = this.project.getCompileSourceRoots().get(0) + slash + persistencePackage.replace(".", slash) + "*.java";
-			String target=this.project.getBuild().getOutputDirectory()+"/";
+			String target = this.project.getBuild().getOutputDirectory() + "/";
 			getLog().info(target);
 			if (CollectionUtils.isNotEmpty(buildPackages)) {
 				for (String buildPackage : this.buildPackages) {
@@ -122,11 +129,11 @@ public class ServiceJpaGeneratorPlugin extends AbstractMojo {
 			URLClassLoader urlClassLoader = new URLClassLoader(urls, Thread.currentThread().getContextClassLoader());
 			List<File> files = ClassGeneratorUtils.getFiles(classesDirectory + slash + persistencePackage.replace(".", slash), "class");
 			for (File file : files) {
-				
+
 				String nameClass = file.getPath().replace(target, "").replace("/", ".").replace(".class", "");
 				Class<?> entityClass = urlClassLoader.loadClass(nameClass);
 				if (entityClass.isAnnotationPresent(Entity.class))
-					ClassBuilding.generateClass(modelClasses, entityClass, classesDirectory);
+					ClassBuilding.generateClass(modelClasses, entityClass, classesDirectory, servicePackage, repositoryPackage);
 			}
 
 			getLog().info("Entities size: " + modelClasses.getClasses().size());
@@ -145,7 +152,7 @@ public class ServiceJpaGeneratorPlugin extends AbstractMojo {
 			FileInputStream fstream = new FileInputStream(file);
 			BufferedReader br = new BufferedReader(new InputStreamReader(fstream));
 			String strLine;
-			while ((strLine = br.readLine()) != null) 
+			while ((strLine = br.readLine()) != null)
 				System.out.println(strLine);
 		} catch (Exception e) {
 			// TODO Auto-generated catch block

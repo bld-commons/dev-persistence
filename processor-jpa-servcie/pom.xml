@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<parent>
+		<groupId>com.github.bld-commons</groupId>
+		<artifactId>dev-persistence</artifactId>
+		<version>1.1.0-SNAPSHOT</version>
+	</parent>
+	<artifactId>processor-jpa-servcie</artifactId>
+	<name>processor-jpa-servcie</name>
+	<description>Demo project for Spring Boot</description>
+	<dependencies>
+		<!-- <dependency> <groupId>com.google.auto.service</groupId> <artifactId>auto-service</artifactId> 
+			</dependency> -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-configuration-processor</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>javax.persistence</groupId>
+			<artifactId>javax.persistence-api</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.hibernate</groupId>
+			<artifactId>hibernate-validator</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>com.github.bld-commons</groupId>
+			<artifactId>class-generator</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>com.github.bld-commons</groupId>
+			<artifactId>common-jpa-service</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.freemarker</groupId>
+			<artifactId>freemarker</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>commons-beanutils</groupId>
+			<artifactId>commons-beanutils</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>commons-logging</groupId>
+			<artifactId>commons-logging</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.commons</groupId>
+			<artifactId>commons-collections4</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-api</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>javax.annotation</groupId>
+			<artifactId>javax.annotation-api</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>javax.validation</groupId>
+			<artifactId>validation-api</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.commons</groupId>
+			<artifactId>commons-lang3</artifactId>
+		</dependency>
+	</dependencies>
+
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<configuration>
+					<compilerArgument>-proc:none</compilerArgument>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-jar-plugin</artifactId>
+			</plugin>
+			<!-- <plugin> <groupId>org.apache.maven.plugins</groupId> <artifactId>maven-dependency-plugin</artifactId> 
+				<executions> <execution> <id>copy</id> <phase>prepare-package</phase> <goals> 
+				<goal>copy-dependencies</goal> </goals> <configuration> <outputDirectory> 
+				${project.build.directory}/lib/ </outputDirectory> <overWriteReleases>false</overWriteReleases> 
+				<overWriteSnapshots>false</overWriteSnapshots> <overWriteIfNewer>true</overWriteIfNewer> 
+				</configuration> </execution> </executions> </plugin> -->
+
+			<!-- <plugin> <groupId>org.apache.maven.plugins</groupId> <artifactId>maven-assembly-plugin</artifactId> 
+				<configuration> <descriptorRefs> <descriptorRef>jar-with-dependencies</descriptorRef> 
+				</descriptorRefs> <finalName>processor-jpa-servcie-${project.version}</finalName> 
+				<appendAssemblyId>false</appendAssemblyId> <filters> <filter> src/main/resources/META-INF/services/javax.annotation.processing.Processor 
+				</filter> </filters> </configuration> <executions> <execution> <id>make-assembly</id> 
+				<phase>compile</phase> <goals> <goal>single</goal> </goals> </execution> 
+				</executions> </plugin> -->
+
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-shade-plugin</artifactId>
+				<executions>
+					<execution>
+						<phase>package</phase>
+						<goals>
+							<goal>shade</goal>
+						</goals>
+						<configuration>
+							<artifactSet>
+								<includes>
+									<include>org.freemarker:freemarker</include>
+									<include>com.github.bld-commons:class-generator</include>
+									<include>com.github.bld-commons:common-jpa-service</include>
+									<include>javax.persistence:javax.persistence-api</include>
+									<include>org.hibernate:hibernate-validator</include>
+									<include>commons-beanutils:commons-beanutils</include>
+									<include>commons-logging:commons-logging</include>
+									<include>org.apache.commons:commons-collections4</include>
+									<include>org.slf4j:slf4j-api</include>
+									<include>javax.annotation:javax.annotation-api</include>
+									<include>javax.validation:validation-api</include>
+									<include>org.apache.commons:commons-lang3</include>
+								</includes>
+							</artifactSet>
+							<transformers>
+								<transformer
+									implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">
+									<resource>META-INF/services/javax.annotation.processing.Processor</resource>
+								</transformer>
+							</transformers>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+
+
+		</plugins>
+	</build>
+
+</project>

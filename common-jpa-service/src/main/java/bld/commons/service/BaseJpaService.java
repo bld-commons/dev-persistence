@@ -54,6 +54,8 @@ public abstract class BaseJpaService {
 
 	/** The Constant ONE_TO_MANY. */
 	public static final CharSequence ONE_TO_MANY = "<ONE_TO_MANY>";
+	
+	public final static String KEY_PROPERTY="<PROPERTY>";
 
 	/** The map one to many. */
 	protected Map<String, LinkedHashSet<String>> mapOneToMany;
@@ -75,7 +77,7 @@ public abstract class BaseJpaService {
 	/**
 	 * Map one to many.
 	 */
-	protected abstract void mapOneToMany();
+	protected abstract void setMapOneToMany();
 
 	/** The reflection utils. */
 	@Autowired

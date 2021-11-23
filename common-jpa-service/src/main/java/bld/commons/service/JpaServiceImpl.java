@@ -54,6 +54,8 @@ public abstract class JpaServiceImpl<T, ID> extends BaseJpaService implements Jp
 	@Autowired
 	protected ReflectionUtils reflectionUtils;
 	
+	@Autowired
+	private QueryJpql<T>queryJpl;
 	
 	
 	
@@ -108,8 +110,7 @@ public abstract class JpaServiceImpl<T, ID> extends BaseJpaService implements Jp
 	 */
 	private BuildQueryFilter<T, ID> configureQueryFilter(Map<String,String>mapConditions,QueryFilter<T, ID> queryFilter, String query) {
 		if (MapUtils.isEmpty(this.mapOneToMany)) {
-			this.mapOneToMany=new HashMap<>();
-			mapOneToMany();
+			this.setMapOneToMany();
 		}
 		if(queryFilter.getFilterParameter()!=null)
 			queryFilter=reflectionUtils.dataToMap(queryFilter);
@@ -119,19 +120,29 @@ public abstract class JpaServiceImpl<T, ID> extends BaseJpaService implements Jp
 
 		
 	
+	@Override
+	protected void setMapOneToMany() {
+		this.mapOneToMany=this.queryJpl.getMapOneToMany();
+		
+	}
+
 	/**
 	 * Select by filter.
 	 *
 	 * @return the string
 	 */
-	protected abstract String selectByFilter();
+	private String selectByFilter() {
+		return this.queryJpl.selectByFilter();
+	}
 
 	/**
 	 * Count by filter.
 	 *
 	 * @return the string
 	 */
-	protected abstract String countByFilter();
+	private String countByFilter() {
+		return this.queryJpl.countByFilter();
+	}
 	
 	
 	/**
@@ -139,7 +150,9 @@ public abstract class JpaServiceImpl<T, ID> extends BaseJpaService implements Jp
 	 *
 	 * @return the string
 	 */
-	protected abstract String deleteByFilter();
+	private String deleteByFilter() {
+		return this.queryJpl.deleteByFilter();
+	}
 
 
 	/**
@@ -147,15 +160,22 @@ public abstract class JpaServiceImpl<T, ID> extends BaseJpaService implements Jp
 	 *
 	 * @return the map
 	 */
-	protected abstract Map<String, String> mapConditions();
+	protected Map<String, String> mapConditions(){
+		return this.queryJpl.mapConditions();
+	}
 
 	/**
 	 * Map delete conditions.
 	 *
 	 * @return the map
 	 */
-	protected abstract Map<String, String> mapDeleteConditions();
+	protected Map<String, String> mapDeleteConditions(){
+		return this.queryJpl.mapDeleteConditions();
+	}
 	
+	
+	
+
 	/**
 	 * Count.
 	 *
