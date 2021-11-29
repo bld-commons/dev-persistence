@@ -28,15 +28,15 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 
-import bld.commons.json.annotations.JsonDateFilter;
-import bld.commons.reflection.annotations.DateFilter;
+import com.zaxxer.hikari.HikariConfig;
+
 import bld.commons.reflection.annotations.LikeString;
 import bld.commons.reflection.model.BuildQueryFilter;
 import bld.commons.reflection.model.FilterParameter;
 import bld.commons.reflection.model.OrderBy;
 import bld.commons.reflection.model.QueryFilter;
+import bld.commons.reflection.type.DriverClassPageble;
 import bld.commons.reflection.type.GetSetType;
-import bld.commons.reflection.type.LikeType;
 import bld.commons.reflection.utils.ReflectionUtils;
 
 /**
@@ -44,7 +44,6 @@ import bld.commons.reflection.utils.ReflectionUtils;
  */
 public abstract class BaseJpaService {
 
-	private static final String LIKE = " (?i)like ";
 	/** The Constant FETCH. */
 	private static final String fetch = "(?i)fetch";
 	/** The Constant logger. */
@@ -54,11 +53,11 @@ public abstract class BaseJpaService {
 
 	/** The Constant ONE_TO_MANY. */
 	public static final CharSequence ONE_TO_MANY = "<ONE_TO_MANY>";
-	
-	public final static String KEY_PROPERTY="<PROPERTY>";
+
+	public final static String KEY_PROPERTY = "<PROPERTY>";
 
 	/** The map one to many. */
-	protected Map<String, LinkedHashSet<String>> mapOneToMany;
+	private Map<String, LinkedHashSet<String>> mapOneToMany;
 
 	/**
 	 * Gets the entity manager.
@@ -74,10 +73,13 @@ public abstract class BaseJpaService {
 	 */
 	protected abstract NamedParameterJdbcTemplate getJdbcTemplate();
 
-	/**
-	 * Map one to many.
-	 */
-	protected abstract void setMapOneToMany();
+	protected void setMapOneToMany(Map<String, LinkedHashSet<String>> mapOneToMany) {
+		this.mapOneToMany = mapOneToMany;
+	}
+
+	protected Map<String, LinkedHashSet<String>> getMapOneToMany() {
+		return mapOneToMany;
+	}
 
 	/** The reflection utils. */
 	@Autowired
@@ -119,28 +121,19 @@ public abstract class BaseJpaService {
 		for (String key : mapParameters.keySet()) {
 			String val = mapConditions.get(key);
 			String upper = "";
-			String minEqual = "<=";
-			String like=" like ";
+
 			try {
 				if (classFilterParameter != null) {
 					Field field = mapField.get(key);
 					Method method = ReflectionUtils.getMethod(mapMethod, field, GetSetType.get);
 					LikeString likeString = method.isAnnotationPresent(LikeString.class) ? method.getAnnotation(LikeString.class) : field.getAnnotation(LikeString.class);
-					
+
 					if (likeString != null) {
 						if (likeString.ignoreCase())
 							upper = "upper";
-						if(LikeType.EQUAL.equals(likeString.likeType()))
-							like=" in ";
-					}
-					else {
-						DateFilter dateFilter = method.isAnnotationPresent(DateFilter.class) ? method.getAnnotation(DateFilter.class) : field.getAnnotation(DateFilter.class);
-						JsonDateFilter jsonDateFilter = method.isAnnotationPresent(LikeString.class) ? method.getAnnotation(JsonDateFilter.class) : field.getAnnotation(JsonDateFilter.class);
-						if ((dateFilter != null && !dateFilter.equals()) || (jsonDateFilter != null && !jsonDateFilter.equals()))
-							minEqual = "<";
 					}
 				}
-				val = val.replace("<upper>", upper).replace("<=", minEqual).replaceAll(LIKE, like);
+				val = val.replace("<upper>", upper);
 			} catch (Exception e) {
 				logger.error("The \"" + key + "\" field is not found");
 			}
@@ -171,18 +164,10 @@ public abstract class BaseJpaService {
 		return query;
 	}
 
-	/**
-	 * Gets the where condition null or not null.
-	 *
-	 * @param checkNullable the check nullable
-	 * @param select        the select
-	 * @param mapConditions the map conditions
-	 * @return the where condition null or not null
-	 */
-	private String getWhereConditionNullOrNotNull(Set<String> checkNullable, String select, Map<String, String> mapConditions) {
-		if (checkNullable != null) {
-			for (String key : checkNullable) {
-				logger.info("String checkNullable: " + key);
+	private String getWhereCondition(Set<String> nullables, String select, Map<String, String> mapConditions) {
+		if (nullables != null) {
+			for (String key : nullables) {
+				logger.info("String check nullable: " + key);
 				select += mapConditions.get(key);
 			}
 		}
@@ -199,7 +184,7 @@ public abstract class BaseJpaService {
 
 	public <T, ID> void deleteByFilter(BuildQueryFilter<T, ID> buildQueryFilter) {
 		QueryFilter<T, ID> queryFilter = buildQueryFilter.getQueryFilter();
-		String delete = buildQuery(queryFilter.getMapParameters(), buildQueryFilter.getSql(), buildQueryFilter.getMapConditions(), queryFilter.getCheckNullable(), getClassFilterParameter(queryFilter));
+		String delete = buildSql(buildQueryFilter);
 		logger.info("Query= " + delete);
 		TypedQuery<?> query = (TypedQuery<?>) this.getEntityManager().createQuery(delete);
 		query = setQueryParameters(queryFilter.getMapParameters(), query);
@@ -230,12 +215,12 @@ public abstract class BaseJpaService {
 	private <T, ID> TypedQuery<T> buildQuery(BuildQueryFilter<T, ID> buildQueryFilter) {
 		QueryFilter<T, ID> queryFilter = buildQueryFilter.getQueryFilter();
 		Map<String, Object> mapParameters = queryFilter.getMapParameters();
-		String select = buildQuery(mapParameters, buildQueryFilter.getSql(), buildQueryFilter.getMapConditions(), queryFilter.getCheckNullable(), getClassFilterParameter(queryFilter));
-		ManageOneToMany manageOneToMany = addRelationshipsOneToMany(mapParameters, select, queryFilter.getCheckNullable());
+		String select = buildSql(buildQueryFilter);
+		ManageOneToMany manageOneToMany = addRelationshipsOneToMany(mapParameters, select, queryFilter.getNullables());
 		select = manageOneToMany.getSelect();
 		select = addOrderBy(queryFilter.getListOrderBy(), select);
 
-		logger.info("Query= " + select);
+		logger.info("\nQuery: \n" + select);
 		TypedQuery<T> query = this.getEntityManager().createQuery(select, queryFilter.getResultClass());
 		query = setQueryParameters(mapParameters, query);
 		if (manageOneToMany.isOneToMany())
@@ -262,21 +247,19 @@ public abstract class BaseJpaService {
 		return classFilterParameter;
 	}
 
-	/**
-	 * Make query.
-	 *
-	 * @param mapParameters        the map parameters
-	 * @param select               the select
-	 * @param mapConditions        the map conditions
-	 * @param checkNullable        the check nullable
-	 * @param classFilterParameter the class filter parameter
-	 * @return the string
-	 */
-	private String buildQuery(Map<String, Object> mapParameters, String select, Map<String, String> mapConditions, Set<String> checkNullable, Class<? extends FilterParameter> classFilterParameter) {
-		select = getWhereConditionNullOrNotNull(checkNullable, select, mapConditions);
-		select = getWhereCondition(mapParameters, select, mapConditions, classFilterParameter);
+	private <T, ID> String buildSql(BuildQueryFilter<T, ID> buildQueryFilter) {
+		QueryFilter<T, ID> queryFilter = buildQueryFilter.getQueryFilter();
+		String select = getWhereCondition(queryFilter.getNullables(), buildQueryFilter.getSql(), buildQueryFilter.getMapConditions());
+		select = getWhereCondition(queryFilter.getMapParameters(), select, buildQueryFilter.getMapConditions(), getClassFilterParameter(queryFilter));
 		return select;
 	}
+
+//	private <T,ID>String buildQuery(BuildQueryFilter<T, ID> buildQueryFilter){
+//	//private String buildQuery(Map<String, Object> mapParameters, String select, Map<String, String> mapConditions, Set<String> checkNullable, Class<? extends FilterParameter> classFilterParameter) {
+//		select = getWhereConditionNullOrNotNull(queryFilter.getNullables(), , mapConditions);
+//		select = getWhereCondition(mapParameters, select, mapConditions, classFilterParameter);
+//		return select;
+//	}
 
 	/**
 	 * Gets the order by.
@@ -303,14 +286,14 @@ public abstract class BaseJpaService {
 	 *
 	 * @param mapParameters the map parametri
 	 * @param select        the select
-	 * @param checkNullable the check nullable
+	 * @param nullables     the check nullable
 	 * @return the string
 	 */
-	private ManageOneToMany addRelationshipsOneToMany(Map<String, Object> mapParameters, String select, Set<String> checkNullable) {
+	private ManageOneToMany addRelationshipsOneToMany(Map<String, Object> mapParameters, String select, Set<String> nullables) {
 		String innerJoin = " ";
 		Set<String> listJoin = new HashSet<>();
 		for (String key : this.mapOneToMany.keySet()) {
-			if (mapParameters.containsKey(key) || (checkNullable != null && checkNullable.contains(key))) {
+			if (mapParameters.containsKey(key) || (nullables != null && nullables.contains(key))) {
 				Set<String> joins = mapOneToMany.get(key);
 				for (String join : joins) {
 					join = ReflectionUtils.removeExtraSpace(join);
@@ -340,9 +323,10 @@ public abstract class BaseJpaService {
 	public <T, ID> Long countByFilter(BuildQueryFilter<T, ID> buildQueryFilter) {
 		QueryFilter<T, ID> queryFilter = buildQueryFilter.getQueryFilter();
 		String count = buildQueryFilter.getSql().replaceAll(fetch, "");
-		ManageOneToMany manageOneToMany = addRelationshipsOneToMany(queryFilter.getMapParameters(), count, queryFilter.getCheckNullable());
+		ManageOneToMany manageOneToMany = addRelationshipsOneToMany(queryFilter.getMapParameters(), count, queryFilter.getNullables());
 		count = manageOneToMany.getSelect();
-		count = buildQuery(queryFilter.getMapParameters(), count, buildQueryFilter.getMapConditions(), queryFilter.getCheckNullable(), getClassFilterParameter(queryFilter));
+		buildQueryFilter.setSql(count);
+		count = buildSql(buildQueryFilter);
 		Query query = this.getEntityManager().createQuery(count, Long.class);
 		query = setQueryParameters(queryFilter.getMapParameters(), query);
 		return (Long) query.getSingleResult();
@@ -393,11 +377,46 @@ public abstract class BaseJpaService {
 	 */
 	public <T, ID> List<T> jdbcSelectByFilter(BuildQueryFilter<T, ID> buildQueryFilter) throws Exception {
 		QueryFilter<T, ID> queryFilter = buildQueryFilter.getQueryFilter();
-		String select = buildQuery(queryFilter.getMapParameters(), buildQueryFilter.getSql(), buildQueryFilter.getMapConditions(), queryFilter.getCheckNullable(), getClassFilterParameter(queryFilter));
+		String select = buildNativeSql(buildQueryFilter);
+		select=getNativeOrderBy(queryFilter, select);
 		select = addOrderBy(queryFilter.getListOrderBy(), select);
 
 		buildQueryFilter.setSql(select);
 		return this.jdbcSelect(buildQueryFilter);
+	}
+
+	public <T, ID> Long jdbcCountNativeQuery(BuildQueryFilter<T, ID> buildQueryFilter) throws Exception {
+		QueryFilter<T, ID> queryFilter = buildQueryFilter.getQueryFilter();
+		String count = buildNativeSql(buildQueryFilter);
+		return this.getJdbcTemplate().queryForObject(count, queryFilter.getMapParameters(), Long.class);
+	}
+
+	private <T, ID> String buildNativeSql(BuildQueryFilter<T, ID> buildQueryFilter) {
+		QueryFilter<T, ID> queryFilter = buildQueryFilter.getQueryFilter();
+		String select = getWhereCondition(queryFilter.getNullables(), buildQueryFilter.getSql(), buildQueryFilter.getMapConditions());
+		select = getNativeWhereCondition(queryFilter.getMapParameters(), select, buildQueryFilter.getMapConditions(), getClassFilterParameter(queryFilter));
+		return select;
+	}
+
+	private String getNativeWhereCondition(Map<String, Object> mapParameters, String select, Map<String, String> mapConditions, Class<? extends FilterParameter> classFilterParameter) {
+		for (String key : mapParameters.keySet()) {
+			if (mapConditions.containsKey(key)) {
+				String val = mapConditions.get(key);
+				logger.info("Key: " + key + " Parameter: " + val);
+				select += val;
+			}
+		}
+		return select;
+	}
+
+	private <T, ID> String getNativeOrderBy(QueryFilter<T, ID> queryFilter, String select) {
+		if (CollectionUtils.isNotEmpty(queryFilter.getListOrderBy())) {
+			select += " ORDER BY ";
+			for (OrderBy orderBy : queryFilter.getListOrderBy())
+				select += orderBy.getSortKey() + " " + orderBy.getOrderType().name()+"\n";
+
+		}
+		return select;
 	}
 
 	/**
@@ -412,7 +431,16 @@ public abstract class BaseJpaService {
 	public <T, ID> List<T> jdbcSelect(BuildQueryFilter<T, ID> buildQueryFilter) throws Exception {
 		QueryFilter<T, ID> queryFilter = buildQueryFilter.getQueryFilter();
 		String select = buildQueryFilter.getSql();
-		logger.info("Query: " + select);
+		if (this.getJdbcTemplate().getJdbcTemplate().getDataSource() instanceof HikariConfig && queryFilter.getPageable() != null) {
+			HikariConfig hikariConfig = (HikariConfig) this.getJdbcTemplate().getJdbcTemplate().getDataSource();
+			DriverClassPageble driverClassPageble = DriverClassPageble.valueOf(hikariConfig.getDriverClassName().replace(".", "_"));
+			select += driverClassPageble.getPageable();
+			int bldPageSize = queryFilter.getPageable().getPageSize();
+			int bldPageNumber = queryFilter.getPageable().getPageNumber();
+			queryFilter.getMapParameters().put("bldPageSize", Integer.valueOf(bldPageSize));
+			queryFilter.getMapParameters().put("bldStartRow", Integer.valueOf(bldPageNumber * bldPageSize));
+		}
+		logger.info("\nQuery: \n" + select);
 		MapSqlParameterSource mapSqlParameterSource = new MapSqlParameterSource(queryFilter.getMapParameters());
 		List<Map<String, Object>> listResult = this.getJdbcTemplate().queryForList(select, mapSqlParameterSource);
 		List<T> listT = new ArrayList<T>();

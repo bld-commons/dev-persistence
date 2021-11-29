@@ -20,17 +20,8 @@ import bld.commons.reflection.model.QueryFilter;
 public interface JdbcService<T, ID> extends JpaService<T, ID> {
 
 
-	/**
-	 * Jdbc select.
-	 *
-	 * @param <K> the key type
-	 * @param <I> the generic type
-	 * @param queryFilter the query filter
-	 * @param sql the sql
-	 * @return the list
-	 * @throws Exception the exception
-	 */
-	public <K, I> List<K> jdbcSelect(QueryFilter<K, I> queryFilter,String sql) throws Exception;
+
+	public <K, I> List<K> jdbcSelectByFilter(QueryFilter<K, I> queryFilter,String sql) throws Exception;
 
 	/**
 	 * Jdbc select by filter.
@@ -44,4 +35,6 @@ public interface JdbcService<T, ID> extends JpaService<T, ID> {
 	 * @throws Exception the exception
 	 */
 	public <K, I> List<K> jdbcSelectByFilter(QueryFilter<K, I> queryFilter,Map<String,String>mapConditions,String sql) throws Exception;
+
+	public <K, I> Long jdbcCountByFilter(QueryFilter<K, I> queryFilter, String count) throws Exception;
 }

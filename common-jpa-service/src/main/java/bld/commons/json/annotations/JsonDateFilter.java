@@ -41,14 +41,6 @@ public @interface JsonDateFilter {
 	 */
 	public String format() default "yyyy-MM-dd'T'HH:mm:ss";
 	
-	
-	/**
-	 * Equals.
-	 *
-	 * @return true, if successful
-	 */
-	public boolean equals() default true;
-	
 	/**
 	 * Adds the year.
 	 *

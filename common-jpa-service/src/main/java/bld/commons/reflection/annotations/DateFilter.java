@@ -21,13 +21,6 @@ import java.lang.annotation.Target;
 public @interface DateFilter {
 	
 	/**
-	 * Equals.
-	 *
-	 * @return true, if successful
-	 */
-	public boolean equals() default true;
-	
-	/**
 	 * Adds the year.
 	 *
 	 * @return the int

@@ -34,4 +34,11 @@ public class ClassField {
 		return mapElement;
 	}
 
+	@Override
+	public String toString() {
+		return "ClassField [className=" + className + "]";
+	}
+
+	
+	
 }

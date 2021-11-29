@@ -187,7 +187,7 @@ public class ReflectionUtils {
 				}
 			}
 			queryFilter.getMapParameters().putAll(mapParameters);
-			queryFilter.getCheckNullable().addAll(checkNullable);
+			queryFilter.getNullables().addAll(checkNullable);
 
 		}
 		return queryFilter;

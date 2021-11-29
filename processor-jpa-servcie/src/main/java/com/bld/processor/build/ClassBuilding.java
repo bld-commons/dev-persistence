@@ -33,8 +33,10 @@ import javax.persistence.JoinColumn;
 import javax.persistence.ManyToMany;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
+import javax.persistence.OneToOne;
 import javax.persistence.Transient;
 import javax.tools.Diagnostic.Kind;
+import javax.validation.constraints.NotNull;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -122,7 +124,8 @@ public class ClassBuilding {
 
 	private static Map<String, ClassField> mapClassField = new HashMap<>();
 
-	public static void generateQueryClass(ModelClasses modelClasses, TypeElement type, String servicePackage, ProcessingEnvironment processingEnv, QueryBuilder queryBuilder, AnnotationMirror annotationMirror, TypeElement typeService) throws Exception {
+	public static void generateQueryClass(ModelClasses modelClasses, TypeElement type, String servicePackage, ProcessingEnvironment processingEnv, QueryBuilder queryBuilder, AnnotationMirror annotationMirror, TypeElement typeService)
+			throws Exception {
 		ModelClass classQueryJpql = new ModelClass();
 		String classEntity = type.getQualifiedName().toString().substring(type.getQualifiedName().toString().lastIndexOf(".") + 1);
 		String fieldEntity = Character.toLowerCase(classEntity.charAt(0)) + classEntity.substring(1);
@@ -130,8 +133,7 @@ public class ClassBuilding {
 		classQueryJpql.setPackageName(servicePackage);
 		classQueryJpql.getAnnotations().add(ANNOTATION_COMPONENT);
 		TypeElement typeElement = type;
-		
-		
+
 		List<String> mapBaseConditions = new ArrayList<>();
 		List<String> mapNativeConditions = new ArrayList<>();
 		List<String> mapConditions = new ArrayList<>();
@@ -146,7 +148,9 @@ public class ClassBuilding {
 		mapNativeConditions.add(SPACE + "Map<String,String> map=new HashMap<>();");
 
 		Map<String, QueryDetail> mapAlias = new HashMap<>();
+		mapAlias.put(fieldEntity,  new QueryDetail(fieldEntity, fieldEntity,mapClassField.get(type.asType().toString())));
 		Set<String> aliases = new HashSet<>();
+		aliases.add(fieldEntity);
 		String selectByFilter = "\"select distinct " + fieldEntity + "\"";
 
 		String deleteByFilter = "\"delete from " + classEntity + " " + fieldEntity + " where 1=1 \"";
@@ -198,12 +202,8 @@ public class ClassBuilding {
 				}
 
 			} else if (element.getAnnotation(ManyToOne.class) != null) {
-
 				JoinColumn joinColumn = element.getAnnotation(JoinColumn.class);
-				fromByFilter += "\n" + SPACE + "+\"" + (joinColumn.nullable() ? " left" : "") + " join fetch " + fieldEntity + "." + fieldName + " " + fieldName + " \"";
-				QueryDetail queryDetail = new QueryDetail(fieldName, fieldName, joinColumn.nullable(), classField);
-				mapAlias.put(fieldEntity + "." + fieldName, queryDetail);
-				aliases.add(fieldName);
+				fromByFilter = fromManyAndOneToOne(fieldEntity, mapAlias, aliases, fromByFilter, classField, fieldName, joinColumn.nullable());
 				Set<Element> listFieldReference = classField.getElements();
 				for (Element fieldReference : listFieldReference) {
 					if (fieldReference.getAnnotation(Id.class) != null || fieldReference.getAnnotation(EmbeddedId.class) != null) {
@@ -215,6 +215,8 @@ public class ClassBuilding {
 						break;
 					}
 				}
+			} else if (element.getAnnotation(OneToOne.class) != null) {
+				fromByFilter = fromManyAndOneToOne(fieldEntity, mapAlias, aliases, fromByFilter, classField, fieldName, nullableOneToOne(element));
 			} else if (element.getAnnotation(OneToMany.class) != null || element.getAnnotation(ManyToMany.class) != null) {
 				DeclaredType dclt = (DeclaredType) element.asType();
 				ClassField classFieldRefernce = mapClassField.get(dclt.getTypeArguments().get(0).toString());
@@ -260,24 +262,24 @@ public class ClassBuilding {
 		}
 
 		for (String joinPath : queryBuilder.joins())
-			fromByFilter = buildJoin(type, processingEnv, mapConditions, mapOneToMany, mapAlias, aliases, fromByFilter, manyProps, joinPath, null, typeService,annotationMirror,JOINS);
+			fromByFilter = buildJoin(type, processingEnv, mapConditions, mapOneToMany, mapAlias, aliases, fromByFilter, manyProps, joinPath, null, typeService, annotationMirror, JOINS);
 
 		for (ConditionBuilder condition : queryBuilder.conditions()) {
 			String joinPath = condition.field().substring(0, condition.field().lastIndexOf("."));
 			String field = condition.field().substring(condition.field().lastIndexOf(".") + 1);
-			fromByFilter = buildJoin(type, processingEnv, mapConditions, mapOneToMany, mapAlias, aliases, fromByFilter, manyProps, joinPath, condition.parameter(), typeService,annotationMirror,CONDITIONS);
+			fromByFilter = buildJoin(type, processingEnv, mapConditions, mapOneToMany, mapAlias, aliases, fromByFilter, manyProps, joinPath, condition.parameter(), typeService, annotationMirror, CONDITIONS);
 			QueryDetail queryDetail = mapAlias.get(joinPath);
 
 			ClassField classField = queryDetail.getClassField();
 
 			Element fieldElement = classField.getMapElement().get(field);
-			if(fieldElement==null) {
-				AnnotationValue annotationValue = getAnnotationValue(annotationMirror,CONDITIONS);
-				String errorMessage="The \""+field+"\" field does not exist";
-				processingEnv.getMessager().printMessage(Kind.ERROR, errorMessage, typeService,annotationMirror,annotationValue);
+			if (fieldElement == null) {
+				AnnotationValue annotationValue = getAnnotationValue(annotationMirror, CONDITIONS);
+				String errorMessage = "The \"" + field + "\" field does not exist";
+				processingEnv.getMessager().printMessage(Kind.ERROR, errorMessage, typeService, annotationMirror, annotationValue);
 				throw new ProcessorJpaServiceException(errorMessage);
 			}
-				
+
 			Class<?> classFieldElement = PrimitiveType.getClass(fieldElement.asType().toString());
 			if (classFieldElement == null)
 				classFieldElement = Class.forName(fieldElement.asType().toString());
@@ -297,7 +299,7 @@ public class ClassBuilding {
 		for (CustomConditionBuilder customCondition : queryBuilder.customConditions())
 			writeCustomCondition(mapConditions, mapDeleteConditions, customCondition);
 		for (CustomConditionBuilder customCondition : queryBuilder.customNativeConditions())
-			mapNativeConditions.add(SPACE + "map.put(\"" + customCondition.parameter() + "\", \" " + customCondition.condition() + "\");");
+			mapNativeConditions.add(SPACE + "map.put(\"" + customCondition.parameter() + "\", \" " + customCondition.condition().trim() + " \");");
 
 		TypeMirror superClassTypeMirror = typeElement.getSuperclass();
 		typeElement = (TypeElement) processingEnv.getTypeUtils().asElement(superClassTypeMirror);
@@ -353,9 +355,17 @@ public class ClassBuilding {
 		modelClasses.getClasses().add(classQueryJpql);
 	}
 
-	private static AnnotationValue getAnnotationValue(AnnotationMirror annotationMirror,String element) {
-		for(Entry<? extends ExecutableElement, ? extends AnnotationValue> entryAnnotation:annotationMirror.getElementValues().entrySet()) {
-			if(entryAnnotation.getKey().getSimpleName().toString().equals(element)) 
+	private static String fromManyAndOneToOne(String fieldEntity, Map<String, QueryDetail> mapAlias, Set<String> aliases, String fromByFilter, ClassField classField, String fieldName,boolean nullable) {
+		String alias=getAlias(aliases,fieldName);
+		fromByFilter += "\n" + SPACE + "+\"" + (nullable ? " left" : "") + " join fetch " + fieldEntity + "." + fieldName + " " + alias + " \"";
+		QueryDetail queryDetail = new QueryDetail(alias, fieldName, nullable, classField);
+		mapAlias.put(fieldEntity + "." + fieldName, queryDetail);
+		return fromByFilter;
+	}
+
+	private static AnnotationValue getAnnotationValue(AnnotationMirror annotationMirror, String element) {
+		for (Entry<? extends ExecutableElement, ? extends AnnotationValue> entryAnnotation : annotationMirror.getElementValues().entrySet()) {
+			if (entryAnnotation.getKey().getSimpleName().toString().equals(element))
 				return entryAnnotation.getValue();
 		}
 		return null;
@@ -393,8 +403,8 @@ public class ClassBuilding {
 			Element elementJoin = classFieldJoin.getMapElement().get(join);
 			if (elementJoin == null) {
 				String errorMessage = "Not exist element with name \"" + key + "." + join + "\"";
-				AnnotationValue annotationValue=getAnnotationValue(annotationMirror, elementAnnotation);
-				processingEnv.getMessager().printMessage(Kind.ERROR, errorMessage, typeService,annotationMirror,annotationValue);
+				AnnotationValue annotationValue = getAnnotationValue(annotationMirror, elementAnnotation);
+				processingEnv.getMessager().printMessage(Kind.ERROR, errorMessage, typeService, annotationMirror, annotationValue);
 				throw new ProcessorJpaServiceException(errorMessage);
 			}
 			classJoin = elementJoin.asType().toString();
@@ -404,13 +414,8 @@ public class ClassBuilding {
 			if (mapAlias.containsKey(key))
 				queryDetail = mapAlias.get(key);
 			else {
-				int i = 0;
-				alias = join;
-				do {
-					if (aliases.contains(alias))
-						alias = join + (++i);
-				} while (aliases.contains(alias));
-				aliases.add(alias);
+				
+				alias = getAlias(aliases, join);
 				if (elementJoin.getAnnotation(OneToMany.class) != null) {
 					DeclaredType dclt = (DeclaredType) elementJoin.asType();
 					classJoin = dclt.getTypeArguments().get(0).toString();
@@ -452,8 +457,29 @@ public class ClassBuilding {
 							mapAlias.put(key, queryDetail);
 						}
 					}
-				} else if (elementJoin.getAnnotation(JoinColumn.class) != null) {
+				} else if (elementJoin.getAnnotation(ManyToOne.class) != null) {
 					nullable = nullable || elementJoin.getAnnotation(JoinColumn.class).nullable();
+					if (!many)
+						fromByFilter += "\n" + SPACE + "+\"" + (nullable ? " left" : "") + " join fetch " + queryDetail.getAlias() + "." + join + " " + alias + " \"";
+					else {
+						ClassField classField = mapClassField.get(elementJoin.asType().toString());
+						Set<Element> listFieldReference = classField.getElements();
+						for (Element fieldReference : listFieldReference) {
+							if (fieldReference.getAnnotation(Id.class) != null || fieldReference.getAnnotation(EmbeddedId.class) != null) {
+								mapConditions.add(
+										SPACE + "map.put(\"" + fieldReference.getSimpleName().toString() + "\", \" and " + alias + "." + fieldReference.getSimpleName().toString() + " in (:" + fieldReference.getSimpleName().toString() + ") \");");
+								manies.add("\"" + (nullable ? " left" : "") + " join fetch " + queryDetail.getAlias() + "." + join + " " + alias + " \"");
+								mapOneToMany.add(SPACE + "addJoinOneToMany(\"" + fieldReference.getSimpleName().toString() + "\", " + printManies(manies) + " );");
+								manyProps.add(fieldReference.getSimpleName().toString());
+								break;
+							}
+						}
+
+					}
+					queryDetail = new QueryDetail(alias, key, nullable, many, mapClassField.get(elementJoin.asType().toString()));
+					mapAlias.put(key, queryDetail);
+				}else if (elementJoin.getAnnotation(OneToOne.class) != null) {
+					nullable = nullable || nullableOneToOne(elementJoin);
 					if (!many)
 						fromByFilter += "\n" + SPACE + "+\"" + (nullable ? " left" : "") + " join fetch " + queryDetail.getAlias() + "." + join + " " + alias + " \"";
 					else {
@@ -482,6 +508,31 @@ public class ClassBuilding {
 			mapOneToMany.add(SPACE + "addJoinOneToMany(\"" + parameter + "\", " + printManies(manies) + " );");
 
 		return fromByFilter;
+	}
+
+	private static String getAlias(Set<String> aliases, String join) {
+		String alias;
+		alias = join;
+		int i = 0;
+		do {
+			if (aliases.contains(alias))
+				alias = join + "_" + (++i);
+		} while (aliases.contains(alias));
+		aliases.add(alias);
+		return alias;
+	}
+
+	private static boolean nullableOneToOne(Element element) {
+		boolean nullable=true;
+		if (element.getAnnotation(JoinColumn.class)!=null) {
+			JoinColumn joinColumn = element.getAnnotation(JoinColumn.class);
+			nullable=joinColumn.nullable();
+		}
+		else {
+			if(element.getAnnotation(NotNull.class)!=null)
+				nullable=false;
+		}
+		return nullable;
 	}
 
 	private static String printManies(List<String> manies) {

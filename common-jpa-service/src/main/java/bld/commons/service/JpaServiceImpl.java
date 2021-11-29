@@ -42,23 +42,18 @@ public abstract class JpaServiceImpl<T, ID> extends BaseJpaService implements Jp
 	/** The Constant POINT. */
 	private static final String POINT = "\\.";
 
-
 	/** The classe. */
-	private Class<T> clazz=null;
-	
-	
+	private Class<T> clazz = null;
+
 	/** The id. */
-	private Field id=null;
+	private Field id = null;
 
 	/** The reflection utils. */
 	@Autowired
 	protected ReflectionUtils reflectionUtils;
-	
+
 	@Autowired
-	private QueryJpql<T>queryJpl;
-	
-	
-	
+	protected QueryJpql<T> queryJpl;
 
 	/**
 	 * Gets the clazz.
@@ -84,13 +79,13 @@ public abstract class JpaServiceImpl<T, ID> extends BaseJpaService implements Jp
 	public JpaServiceImpl() {
 		super();
 		this.clazz = ReflectionUtils.getGenericTypeClass(this);
-		Set<Field> fields=ReflectionUtils.getListField(this.clazz);
-		for(Field field:fields) 
-			if(field.isAnnotationPresent(Id.class)) {
-				this.id=field;
+		Set<Field> fields = ReflectionUtils.getListField(this.clazz);
+		for (Field field : fields)
+			if (field.isAnnotationPresent(Id.class)) {
+				this.id = field;
 				break;
 			}
-				
+
 	}
 
 	/**
@@ -104,26 +99,23 @@ public abstract class JpaServiceImpl<T, ID> extends BaseJpaService implements Jp
 	 * Configure query filter.
 	 *
 	 * @param mapConditions the map conditions
-	 * @param queryFilter the query filter
-	 * @param query the query
+	 * @param queryFilter   the query filter
+	 * @param query         the query
 	 * @return the builds the query filter
 	 */
-	private BuildQueryFilter<T, ID> configureQueryFilter(Map<String,String>mapConditions,QueryFilter<T, ID> queryFilter, String query) {
-		if (MapUtils.isEmpty(this.mapOneToMany)) {
+	private BuildQueryFilter<T, ID> configureQueryFilter(Map<String, String> mapConditions, QueryFilter<T, ID> queryFilter, String query) {
+		if (MapUtils.isEmpty(this.getMapOneToMany())) {
 			this.setMapOneToMany();
 		}
-		if(queryFilter.getFilterParameter()!=null)
-			queryFilter=reflectionUtils.dataToMap(queryFilter);
+		if (queryFilter.getFilterParameter() != null)
+			queryFilter = reflectionUtils.dataToMap(queryFilter);
 		queryFilter.setResultClass(clazz);
 		return new BuildQueryFilter<>(mapConditions, queryFilter, query);
 	}
 
-		
-	
-	@Override
-	protected void setMapOneToMany() {
-		this.mapOneToMany=this.queryJpl.getMapOneToMany();
-		
+	private void setMapOneToMany() {
+		super.setMapOneToMany(this.queryJpl.getMapOneToMany());
+
 	}
 
 	/**
@@ -143,8 +135,7 @@ public abstract class JpaServiceImpl<T, ID> extends BaseJpaService implements Jp
 	private String countByFilter() {
 		return this.queryJpl.countByFilter();
 	}
-	
-	
+
 	/**
 	 * Delete by filter.
 	 *
@@ -153,28 +144,6 @@ public abstract class JpaServiceImpl<T, ID> extends BaseJpaService implements Jp
 	private String deleteByFilter() {
 		return this.queryJpl.deleteByFilter();
 	}
-
-
-	/**
-	 * Map condizioni.
-	 *
-	 * @return the map
-	 */
-	protected Map<String, String> mapConditions(){
-		return this.queryJpl.mapConditions();
-	}
-
-	/**
-	 * Map delete conditions.
-	 *
-	 * @return the map
-	 */
-	protected Map<String, String> mapDeleteConditions(){
-		return this.queryJpl.mapDeleteConditions();
-	}
-	
-	
-	
 
 	/**
 	 * Count.
@@ -305,14 +274,14 @@ public abstract class JpaServiceImpl<T, ID> extends BaseJpaService implements Jp
 	/**
 	 * Adds the join one to many.
 	 *
-	 * @param key the key
+	 * @param key  the key
 	 * @param join the join
 	 */
 	protected void addJoinOneToMany(String key, String... join) {
-		if (!this.mapOneToMany.containsKey(key)) {
-			this.mapOneToMany.put(key, new LinkedHashSet<>());
+		if (!this.getMapOneToMany().containsKey(key)) {
+			this.getMapOneToMany().put(key, new LinkedHashSet<>());
 		}
-		this.mapOneToMany.get(key).addAll(Arrays.asList(join));
+		this.getMapOneToMany().get(key).addAll(Arrays.asList(join));
 	}
 
 	/**
@@ -323,10 +292,9 @@ public abstract class JpaServiceImpl<T, ID> extends BaseJpaService implements Jp
 	 */
 	@Override
 	public List<T> findByFilter(QueryFilter<T, ID> queryFilter) {
-		return this.findByFilter(queryFilter,selectByFilter());
+		return this.findByFilter(queryFilter, selectByFilter());
 	}
-	
-	
+
 	/**
 	 * Find single result by filter.
 	 *
@@ -334,11 +302,10 @@ public abstract class JpaServiceImpl<T, ID> extends BaseJpaService implements Jp
 	 * @return the t
 	 */
 	@Override
-	public  T findSingleResultByFilter(QueryFilter<T, ID> queryFilter) {
-		return this.findSingleResultByFilter(queryFilter,selectByFilter());
+	public T findSingleResultByFilter(QueryFilter<T, ID> queryFilter) {
+		return this.findSingleResultByFilter(queryFilter, selectByFilter());
 	}
-	
-	
+
 	/**
 	 * Find single result by filter.
 	 *
@@ -347,8 +314,8 @@ public abstract class JpaServiceImpl<T, ID> extends BaseJpaService implements Jp
 	 * @return the t
 	 */
 	@Override
-	public T findSingleResultByFilter(QueryFilter<T, ID> queryFilter,String select) {
-		BuildQueryFilter<T, ID> buildQueryFilter = configureQueryFilter(mapConditions(),queryFilter, select);
+	public T findSingleResultByFilter(QueryFilter<T, ID> queryFilter, String select) {
+		BuildQueryFilter<T, ID> buildQueryFilter = configureQueryFilter(this.queryJpl.mapConditions(), queryFilter, select);
 		return super.findSingleResultByFilter(buildQueryFilter);
 	}
 
@@ -362,18 +329,17 @@ public abstract class JpaServiceImpl<T, ID> extends BaseJpaService implements Jp
 	public Long countByFilter(QueryFilter<T, ID> queryFilter) {
 		return this.countByFilter(queryFilter, countByFilter());
 	}
-	
-	
+
 	/**
 	 * Find by filter.
 	 *
 	 * @param queryFilter the query filter
-	 * @param select the select
+	 * @param select      the select
 	 * @return the list
 	 */
 	@Override
-	public List<T> findByFilter(QueryFilter<T, ID> queryFilter,String select) {
-		BuildQueryFilter<T, ID> buildQueryFilter = configureQueryFilter(mapConditions(),queryFilter, select);
+	public List<T> findByFilter(QueryFilter<T, ID> queryFilter, String select) {
+		BuildQueryFilter<T, ID> buildQueryFilter = configureQueryFilter(this.queryJpl.mapConditions(), queryFilter, select);
 		return super.findByFilter(buildQueryFilter);
 	}
 
@@ -381,16 +347,15 @@ public abstract class JpaServiceImpl<T, ID> extends BaseJpaService implements Jp
 	 * Count by filter.
 	 *
 	 * @param queryFilter the query filter
-	 * @param count the count
+	 * @param count       the count
 	 * @return the long
 	 */
 	@Override
-	public Long countByFilter(QueryFilter<T, ID> queryFilter,String count) {
-		BuildQueryFilter<T, ID> buildQueryFilter = configureQueryFilter(mapConditions(),queryFilter, count);
+	public Long countByFilter(QueryFilter<T, ID> queryFilter, String count) {
+		BuildQueryFilter<T, ID> buildQueryFilter = configureQueryFilter(this.queryJpl.mapConditions(), queryFilter, count);
 		return super.countByFilter(buildQueryFilter);
 	}
-	
-	
+
 	/**
 	 * Delete by filter.
 	 *
@@ -398,11 +363,10 @@ public abstract class JpaServiceImpl<T, ID> extends BaseJpaService implements Jp
 	 */
 	@Override
 	public void deleteByFilter(QueryFilter<T, ID> queryFilter) {
-		BuildQueryFilter<T, ID> buildQueryFilter = configureQueryFilter(mapDeleteConditions(), queryFilter, deleteByFilter());
+		BuildQueryFilter<T, ID> buildQueryFilter = configureQueryFilter(this.queryJpl.mapDeleteConditions(), queryFilter, deleteByFilter());
 		super.deleteByFilter(buildQueryFilter);
 	}
-	
-	
+
 	/**
 	 * Map find by filter.
 	 *
@@ -411,8 +375,8 @@ public abstract class JpaServiceImpl<T, ID> extends BaseJpaService implements Jp
 	 * @throws Exception the exception
 	 */
 	@Override
-	public Map<ID,T> mapFindByFilter(QueryFilter<T, ID> queryFilter) throws Exception{
-		List<T>list=this.findByFilter(queryFilter);
+	public Map<ID, T> mapFindByFilter(QueryFilter<T, ID> queryFilter) throws Exception {
+		List<T> list = this.findByFilter(queryFilter);
 		return mapIdEntity(list);
 	}
 
@@ -421,153 +385,150 @@ public abstract class JpaServiceImpl<T, ID> extends BaseJpaService implements Jp
 	 *
 	 * @param list the list
 	 * @return the map
-	 * @throws IllegalAccessException the illegal access exception
+	 * @throws IllegalAccessException    the illegal access exception
 	 * @throws InvocationTargetException the invocation target exception
-	 * @throws NoSuchMethodException the no such method exception
+	 * @throws NoSuchMethodException     the no such method exception
 	 */
 	private Map<ID, T> mapIdEntity(List<T> list) throws IllegalAccessException, InvocationTargetException, NoSuchMethodException {
-		Map<ID,T> map=new HashMap<>();
-		for(T t:list) 
-			map.put((ID) PropertyUtils.getProperty(t, id.getName()),t);
+		Map<ID, T> map = new HashMap<>();
+		for (T t : list)
+			map.put((ID) PropertyUtils.getProperty(t, id.getName()), t);
 		return map;
 	}
-	
-	
+
 	/**
 	 * Map find by filter.
 	 *
 	 * @param queryFilter the query filter
-	 * @param sql the sql
+	 * @param sql         the sql
 	 * @return the map
 	 * @throws Exception the exception
 	 */
 	@Override
-	public Map<ID,T> mapFindByFilter(QueryFilter<T, ID> queryFilter,String sql) throws Exception{
-		List<T>list=this.findByFilter(queryFilter,sql);
+	public Map<ID, T> mapFindByFilter(QueryFilter<T, ID> queryFilter, String sql) throws Exception {
+		List<T> list = this.findByFilter(queryFilter, sql);
 		return mapIdEntity(list);
 	}
 
-	
 	/**
 	 * Gets the key.
 	 *
 	 * @param fields the fields
-	 * @param t the t
+	 * @param t      the t
 	 * @return the key
 	 * @throws Exception the exception
 	 */
-	private Object getKey(String[] fields,T t) throws Exception {
-		Object value=t;
-		for(String field:fields)
-			value=PropertyUtils.getProperty(value, field);
+	private Object getKey(String[] fields, T t) throws Exception {
+		Object value = t;
+		for (String field : fields)
+			value = PropertyUtils.getProperty(value, field);
 		return value;
 	}
-	
+
 	/**
 	 * Map key entity.
 	 *
-	 * @param <J> the generic type
-	 * @param list the list
+	 * @param <J>      the generic type
+	 * @param list     the list
 	 * @param classKey the class key
-	 * @param key the key
+	 * @param key      the key
 	 * @return the map
 	 * @throws Exception the exception
 	 */
-	private <J>Map<J, T> mapKeyEntity(List<T> list,Class<J>classKey,String key) throws Exception {
-		Map<J,T> map=new LinkedHashMap<>();
-		String[] fields=key.split(POINT);
-		for(T t:list) 
-			map.put((J)getKey(fields, t),t);
+	private <J> Map<J, T> mapKeyEntity(List<T> list, Class<J> classKey, String key) throws Exception {
+		Map<J, T> map = new LinkedHashMap<>();
+		String[] fields = key.split(POINT);
+		for (T t : list)
+			map.put((J) getKey(fields, t), t);
 		return map;
 	}
-	
+
 	/**
 	 * Map key find by filter.
 	 *
-	 * @param <J> the generic type
+	 * @param <J>         the generic type
 	 * @param queryFilter the query filter
-	 * @param classKey the class key
-	 * @param key the key
+	 * @param classKey    the class key
+	 * @param key         the key
 	 * @return the map
 	 * @throws Exception the exception
 	 */
 	@Override
-	public <J> Map<J,T> mapKeyFindByFilter(QueryFilter<T, ID> queryFilter,Class<J>classKey,String key) throws Exception{
-		List<T>list=this.findByFilter(queryFilter);
+	public <J> Map<J, T> mapKeyFindByFilter(QueryFilter<T, ID> queryFilter, Class<J> classKey, String key) throws Exception {
+		List<T> list = this.findByFilter(queryFilter);
 		return mapKeyEntity(list, classKey, key);
 	}
-	
+
 	/**
 	 * Map key find by filter.
 	 *
-	 * @param <J> the generic type
+	 * @param <J>         the generic type
 	 * @param queryFilter the query filter
-	 * @param sql the sql
-	 * @param classKey the class key
-	 * @param key the key
+	 * @param sql         the sql
+	 * @param classKey    the class key
+	 * @param key         the key
 	 * @return the map
 	 * @throws Exception the exception
 	 */
 	@Override
-	public <J> Map<J,T> mapKeyFindByFilter(QueryFilter<T, ID> queryFilter,String sql,Class<J>classKey,String key) throws Exception{
-		List<T>list=this.findByFilter(queryFilter,sql);
+	public <J> Map<J, T> mapKeyFindByFilter(QueryFilter<T, ID> queryFilter, String sql, Class<J> classKey, String key) throws Exception {
+		List<T> list = this.findByFilter(queryFilter, sql);
 		return mapKeyEntity(list, classKey, key);
 	}
-	
-	
+
 	/**
 	 * Map key list entity.
 	 *
-	 * @param <J> the generic type
-	 * @param list the list
-	 * @param classKey the class key
+	 * @param <J>       the generic type
+	 * @param list      the list
+	 * @param classKey  the class key
 	 * @param keyFields the key fields
 	 * @return the map
 	 * @throws Exception the exception
 	 */
-	private <J>Map<J, List<T>> mapKeyListEntity(List<T> list,Class<J>classKey,String keyFields) throws Exception {
-		Map<J,List<T>> map=new LinkedHashMap<>();
-		String[] fields=keyFields.split(POINT);
-		for(T t:list) {
-			J key=(J)getKey(fields, t);
-			if(!map.containsKey(key))
+	private <J> Map<J, List<T>> mapKeyListEntity(List<T> list, Class<J> classKey, String keyFields) throws Exception {
+		Map<J, List<T>> map = new LinkedHashMap<>();
+		String[] fields = keyFields.split(POINT);
+		for (T t : list) {
+			J key = (J) getKey(fields, t);
+			if (!map.containsKey(key))
 				map.put(key, new ArrayList<>());
-			map.get((J)getKey(fields, t)).add(t);
+			map.get((J) getKey(fields, t)).add(t);
 		}
-			
+
 		return map;
 	}
-	
+
 	/**
 	 * Map key list find by filter.
 	 *
-	 * @param <J> the generic type
+	 * @param <J>         the generic type
 	 * @param queryFilter the query filter
-	 * @param classKey the class key
-	 * @param key the key
+	 * @param classKey    the class key
+	 * @param key         the key
 	 * @return the map
 	 * @throws Exception the exception
 	 */
 	@Override
-	public <J> Map<J,List<T>> mapKeyListFindByFilter(QueryFilter<T, ID> queryFilter,Class<J>classKey,String key) throws Exception{
-		List<T>list=this.findByFilter(queryFilter);
+	public <J> Map<J, List<T>> mapKeyListFindByFilter(QueryFilter<T, ID> queryFilter, Class<J> classKey, String key) throws Exception {
+		List<T> list = this.findByFilter(queryFilter);
 		return mapKeyListEntity(list, classKey, key);
 	}
-	
+
 	/**
 	 * Map key list find by filter.
 	 *
-	 * @param <J> the generic type
+	 * @param <J>         the generic type
 	 * @param queryFilter the query filter
-	 * @param sql the sql
-	 * @param classKey the class key
-	 * @param key the key
+	 * @param sql         the sql
+	 * @param classKey    the class key
+	 * @param key         the key
 	 * @return the map
 	 * @throws Exception the exception
 	 */
 	@Override
-	public <J> Map<J,List<T>> mapKeyListFindByFilter(QueryFilter<T, ID> queryFilter,String sql,Class<J>classKey,String key) throws Exception{
-		List<T>list=this.findByFilter(queryFilter,sql);
+	public <J> Map<J, List<T>> mapKeyListFindByFilter(QueryFilter<T, ID> queryFilter, String sql, Class<J> classKey, String key) throws Exception {
+		List<T> list = this.findByFilter(queryFilter, sql);
 		return mapKeyListEntity(list, classKey, key);
 	}
 }

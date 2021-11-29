@@ -32,7 +32,7 @@ public class QueryFilter<T, ID> {
 	private ID id;
 
 	/** The check nullable. */
-	private Set<String> checkNullable;
+	private Set<String> nullables;
 
 	/** The map parameters. */
 	private Map<String, Object> mapParameters;
@@ -97,7 +97,7 @@ public class QueryFilter<T, ID> {
 	 * Inits the.
 	 */
 	private void init() {
-		this.checkNullable = new HashSet<>();
+		this.nullables = new HashSet<>();
 		this.mapParameters = new HashMap<>();
 		this.listOrderBy = new ArrayList<>();
 	}
@@ -125,8 +125,8 @@ public class QueryFilter<T, ID> {
 	 *
 	 * @return the check nullable
 	 */
-	public Set<String> getCheckNullable() {
-		return checkNullable;
+	public Set<String> getNullables() {
+		return nullables;
 	}
 
 	/**

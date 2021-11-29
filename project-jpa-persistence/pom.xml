@@ -59,14 +59,15 @@
 			<artifactId>common-jpa-service</artifactId>
 		</dependency>
 		<dependency>
+			<groupId>com.github.bld-commons</groupId>
+			<artifactId>processor-jpa-servcie</artifactId>
+		</dependency>
+		<dependency>
 			<groupId>org.mapstruct</groupId>
 			<artifactId>mapstruct</artifactId>
 			<version>${org.mapstruct-version}</version>
 		</dependency>
-		<dependency>
-			<groupId>com.github.bld-commons</groupId>
-			<artifactId>processor-jpa-servcie</artifactId>
-		</dependency>
+
 	</dependencies>
 
 	<build>

@@ -88,7 +88,7 @@ public class CustomDateDeserializer<T> extends StdDeserializer<T> implements Con
 		if (dateTimeZone != null)
 			this.dateFilterDeserializer = new DateFilterDeserializer(dateTimeZone.timeZone(), dateTimeZone.format());
 		else if (dateFilter != null)
-			this.dateFilterDeserializer = new DateFilterDeserializer(dateFilter.timeZone(), dateFilter.format(), dateFilter.equals(), dateFilter.addYear(), dateFilter.addMonth(), dateFilter.addWeek(), dateFilter.addDay(), dateFilter.addHour(),
+			this.dateFilterDeserializer = new DateFilterDeserializer(dateFilter.timeZone(), dateFilter.format(), dateFilter.addYear(), dateFilter.addMonth(), dateFilter.addWeek(), dateFilter.addDay(), dateFilter.addHour(),
 					dateFilter.addMinute(), dateFilter.addSecond());
 		if (DateUtils.ENV_TIME_ZONE.equals(this.dateFilterDeserializer.getTimeZone())) {
 			if (this.env.getProperty(DateUtils.PROPS_TIME_ZONE) == null)

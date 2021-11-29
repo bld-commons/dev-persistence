@@ -6,7 +6,7 @@ public class DateFilterDeserializer {
 
 	private String format;
 
-	private boolean equals;
+	
 
 	private int addYear;
 
@@ -26,7 +26,6 @@ public class DateFilterDeserializer {
 		super();
 		this.timeZone = timeZone;
 		this.format = format;
-		this.equals = true;
 		this.addDay = 0;
 		this.addHour = 0;
 		this.addMinute = 0;
@@ -36,11 +35,10 @@ public class DateFilterDeserializer {
 		this.addYear = 0;
 	}
 
-	public DateFilterDeserializer(String timeZone, String format, boolean equals, int addYear, int addMonth, int addWeek, int addDay, int addHour, int addMinute, int addSecond) {
+	public DateFilterDeserializer(String timeZone, String format,  int addYear, int addMonth, int addWeek, int addDay, int addHour, int addMinute, int addSecond) {
 		super();
 		this.timeZone = timeZone;
 		this.format = format;
-		this.equals = equals;
 		this.addYear = addYear;
 		this.addMonth = addMonth;
 		this.addWeek = addWeek;
@@ -56,10 +54,6 @@ public class DateFilterDeserializer {
 
 	public String getFormat() {
 		return format;
-	}
-
-	public boolean isEquals() {
-		return equals;
 	}
 
 	public int getAddYear() {

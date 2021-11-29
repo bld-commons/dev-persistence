@@ -31,6 +31,17 @@ public class QueryDetail {
 
 	
 
+	public QueryDetail(String alias, String key, ClassField classField) {
+		super();
+		this.alias = alias;
+		this.key = key;
+		this.classField = classField;
+		this.many=false;
+		this.nullable=false;
+	}
+
+
+
 	public QueryDetail(String alias, String key, boolean nullable, boolean many, ClassField classField) {
 		super();
 		this.alias = alias;
