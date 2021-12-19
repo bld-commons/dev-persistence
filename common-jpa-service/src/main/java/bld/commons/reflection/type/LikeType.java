@@ -5,6 +5,7 @@
  */
 package bld.commons.reflection.type;
 
+// TODO: Auto-generated Javadoc
 /**
  * The Enum LikeType.
  */
@@ -20,6 +21,6 @@ public enum LikeType {
 	LEFT_RIGHT,
 	
 	/** The equal. */
-	EQUAL
+	EQUAL;
 	
 }

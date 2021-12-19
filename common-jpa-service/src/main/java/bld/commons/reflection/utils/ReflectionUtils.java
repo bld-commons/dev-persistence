@@ -168,8 +168,19 @@ public class ReflectionUtils {
 										value = "%" + value + "%";
 										break;
 									}
-									if (likeString.ignoreCase())
+									switch(likeString.upperLowerType()) {
+									case LOWER:
+										value = ((String) value).toLowerCase();
+										break;
+									case UPPER:
 										value = ((String) value).toUpperCase();
+										break;
+									case NONE:
+									default:
+										break;
+									
+									}
+										
 								}
 								if (value instanceof Boolean && (Boolean)value && field.isAnnotationPresent(ListFilter.class))
 									checkNullable.add(field.getName());
@@ -187,7 +198,7 @@ public class ReflectionUtils {
 				}
 			}
 			queryFilter.getMapParameters().putAll(mapParameters);
-			queryFilter.getCheckNullable().addAll(checkNullable);
+			queryFilter.getNullables().addAll(checkNullable);
 
 		}
 		return queryFilter;
@@ -356,6 +367,12 @@ public class ReflectionUtils {
 		return mapField;
 	}
 
+	/**
+	 * Gets the map method.
+	 *
+	 * @param classApp the class app
+	 * @return the map method
+	 */
 	public static Map<String, LinkedHashSet<Method>> getMapMethod(Class<?> classApp) {
 		Map<String, LinkedHashSet<Method>> mapMethod = new HashMap<>();
 		do {
@@ -369,6 +386,14 @@ public class ReflectionUtils {
 		return mapMethod;
 	}
 
+	/**
+	 * Gets the method.
+	 *
+	 * @param mapMethod the map method
+	 * @param methodName the method name
+	 * @param classParameter the class parameter
+	 * @return the method
+	 */
 	public static Method getMethod(Map<String, LinkedHashSet<Method>> mapMethod, String methodName, Class<?>... classParameter) {
 		Set<Method> methods = mapMethod.get(methodName);
 		if (CollectionUtils.isNotEmpty(methods)) {
@@ -392,6 +417,15 @@ public class ReflectionUtils {
 		return null;
 	}
 
+	/**
+	 * Gets the method.
+	 *
+	 * @param mapMethod the map method
+	 * @param field the field
+	 * @param getSetType the get set type
+	 * @param classParameter the class parameter
+	 * @return the method
+	 */
 	public static Method getMethod(Map<String, LinkedHashSet<Method>> mapMethod, Field field, GetSetType getSetType, Class<?>... classParameter) {
 		String methodName = getSetType.name() + Character.toUpperCase(field.getName().charAt(0)) + field.getName().substring(1);
 		return ReflectionUtils.getMethod(mapMethod, methodName, classParameter);

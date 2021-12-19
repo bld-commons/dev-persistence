@@ -1,3 +1,8 @@
+/**
+ * @author Francesco Baldi
+ * @mail francesco.baldi1987@gmail.com
+ * @class bld.commons.reflection.annotations.serialize.CustomDateSerializer.java
+ */
 package bld.commons.reflection.annotations.serialize;
 
 import java.io.IOException;
@@ -21,26 +26,49 @@ import bld.commons.json.annotations.JsonDateTimeZone;
 import bld.commons.reflection.utils.DateUtils;
 import bld.commons.reflection.utils.StaticApplicationContext;
 
+/**
+ * The Class CustomDateSerializer.
+ *
+ * @param <T> the generic type
+ */
 @SuppressWarnings("serial")
 public class CustomDateSerializer<T> extends StdSerializer<T> implements ContextualSerializer {
 
+	/** The env. */
 	private Environment env = null;
 
+	/** The date time zone. */
 	protected JsonDateTimeZone dateTimeZone = null;
 
+	/** The simple date format. */
 	private SimpleDateFormat simpleDateFormat = null;
 
 
+	/**
+	 * Instantiates a new custom date serializer.
+	 */
 	public CustomDateSerializer() {
 		this(null);
 		this.env=StaticApplicationContext.getBean(Environment.class);
 	}
 
+	/**
+	 * Instantiates a new custom date serializer.
+	 *
+	 * @param t the t
+	 */
 	public CustomDateSerializer(Class<T> t) {
 		super(t);
 		this.env=StaticApplicationContext.getBean(Environment.class);
 	}
 
+	/**
+	 * Instantiates a new custom date serializer.
+	 *
+	 * @param classDate the class date
+	 * @param dateTimeZone the date time zone
+	 * @param simpleDateFormat the simple date format
+	 */
 	private CustomDateSerializer(Class<T> classDate, JsonDateTimeZone dateTimeZone, SimpleDateFormat simpleDateFormat) {
 		super(classDate);
 		this.dateTimeZone = dateTimeZone;
@@ -49,6 +77,12 @@ public class CustomDateSerializer<T> extends StdSerializer<T> implements Context
 	}
 	
 	
+	/**
+	 * Format date.
+	 *
+	 * @param date the date
+	 * @return the string
+	 */
 	public String formatDate(T date) {
 		String dateString=null;
 		if(date instanceof Calendar)
@@ -62,16 +96,38 @@ public class CustomDateSerializer<T> extends StdSerializer<T> implements Context
 	
 	
 
+	/**
+	 * Serialize.
+	 *
+	 * @param date the date
+	 * @param gen the gen
+	 * @param provider the provider
+	 * @throws IOException Signals that an I/O exception has occurred.
+	 */
 	@Override
 	public void serialize(T date, JsonGenerator gen, SerializerProvider provider) throws IOException {
 		gen.writeString(this.formatDate(date));
 	}
 
+	/**
+	 * Sets the simple date format.
+	 *
+	 * @param timeZone the time zone
+	 * @param format the format
+	 */
 	private void setSimpleDateFormat(TimeZone timeZone, String format) {
 		this.simpleDateFormat = new SimpleDateFormat(format);
 		this.simpleDateFormat.setTimeZone(timeZone);
 	}
 
+	/**
+	 * Creates the contextual.
+	 *
+	 * @param prov the prov
+	 * @param property the property
+	 * @return the json serializer
+	 * @throws JsonMappingException the json mapping exception
+	 */
 	@Override
 	public JsonSerializer<?> createContextual(SerializerProvider prov, BeanProperty property) throws JsonMappingException {
 		this.dateTimeZone = property.getAnnotation(JsonDateTimeZone.class);

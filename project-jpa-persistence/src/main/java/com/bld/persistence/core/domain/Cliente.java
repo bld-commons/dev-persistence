@@ -1,6 +1,5 @@
 package com.bld.persistence.core.domain;
 
-import java.io.Serializable;
 import java.sql.Timestamp;
 import java.util.Set;
 
@@ -25,8 +24,7 @@ import javax.persistence.Table;
 @Entity
 @Table(name="cliente")
 @NamedQuery(name="Cliente.findAll", query="SELECT c FROM Cliente c")
-public class Cliente implements Serializable {
-	private static final long serialVersionUID = 1L;
+public class Cliente extends BaseEntity {
 
 	@Id
 	@SequenceGenerator(name="CLIENTE_IDCLIENTE_GENERATOR" )
@@ -61,11 +59,7 @@ public class Cliente implements Serializable {
 	@Column(length=10)
 	private String scala;
 
-	@Column(name="update_timestamp", nullable=false)
-	private Timestamp updateTimestamp;
 
-	@Column(name="update_user", nullable=false, length=255)
-	private String updateUser;
 
 	private Long version;
 
@@ -168,21 +162,6 @@ public class Cliente implements Serializable {
 		this.scala = scala;
 	}
 
-	public Timestamp getUpdateTimestamp() {
-		return this.updateTimestamp;
-	}
-
-	public void setUpdateTimestamp(Timestamp updateTimestamp) {
-		this.updateTimestamp = updateTimestamp;
-	}
-
-	public String getUpdateUser() {
-		return this.updateUser;
-	}
-
-	public void setUpdateUser(String updateUser) {
-		this.updateUser = updateUser;
-	}
 
 	public Long getVersion() {
 		return this.version;

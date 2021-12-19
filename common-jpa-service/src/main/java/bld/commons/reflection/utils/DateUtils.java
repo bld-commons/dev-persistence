@@ -25,8 +25,10 @@ public class DateUtils {
 	/** The Constant logger. */
 	private static final Log logger = LogFactory.getLog(DateUtils.class);
 
+	/** The Constant PROPS_TIME_ZONE. */
 	public final static String PROPS_TIME_ZONE = "spring.jackson.time-zone";
 
+	/** The Constant ENV_TIME_ZONE. */
 	public final static String ENV_TIME_ZONE = "${" + PROPS_TIME_ZONE + "}";
 
 	/**
@@ -249,6 +251,7 @@ public class DateUtils {
 	 * @param date   the date
 	 * @param year   the year
 	 * @param month  the month
+	 * @param week the week
 	 * @param day    the day
 	 * @param hour   the hour
 	 * @param minute the minute
@@ -263,6 +266,19 @@ public class DateUtils {
 	}
 	
 	
+	/**
+	 * Sum date.
+	 *
+	 * @param timestamp the timestamp
+	 * @param year the year
+	 * @param month the month
+	 * @param week the week
+	 * @param day the day
+	 * @param hour the hour
+	 * @param minute the minute
+	 * @param second the second
+	 * @return the timestamp
+	 */
 	public static Timestamp sumDate(Timestamp timestamp,int year, int month, int week, int day,int hour,int minute,int second) {
 		Date date=sumDate(timestampToDate(timestamp), year, month, week, day, hour, minute, second);
 		timestamp=dateToTimestamp(date);
@@ -276,6 +292,7 @@ public class DateUtils {
 	 * @param date  the date
 	 * @param year  the year
 	 * @param month the month
+	 * @param week the week
 	 * @param day   the day
 	 * @return the date
 	 */
@@ -290,6 +307,7 @@ public class DateUtils {
 	 * @param calendar the calendar
 	 * @param year     the year
 	 * @param month    the month
+	 * @param week the week
 	 * @param day      the day
 	 * @return the calendar
 	 */
@@ -305,6 +323,7 @@ public class DateUtils {
 	 * @param calendar the calendar
 	 * @param year     the year
 	 * @param month    the month
+	 * @param week the week
 	 * @param day      the day
 	 * @param hour     the hour
 	 * @param minute   the minute
@@ -336,10 +355,21 @@ public class DateUtils {
 		return timestamp;
 	}
 	
+	/**
+	 * Now.
+	 *
+	 * @return the timestamp
+	 */
 	public static Timestamp now() {
 		return new Timestamp((new Date()).getTime());
 	}
 	
+	/**
+	 * Timestamp to date.
+	 *
+	 * @param timestamp the timestamp
+	 * @return the date
+	 */
 	public static Date timestampToDate(Timestamp timestamp) {
 		Date date =null;
 		if(timestamp!=null)

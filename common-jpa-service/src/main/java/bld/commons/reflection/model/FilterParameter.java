@@ -36,20 +36,39 @@ public abstract class FilterParameter {
 	@IgnoreMapping
 	private Integer pageNumber;
 
+	/**
+	 * Instantiates a new filter parameter.
+	 */
 	public FilterParameter() {
 		super();
 		this.orderBy = new ArrayList<>();
 	
 	}
 
+	/**
+	 * Gets the order by.
+	 *
+	 * @return the order by
+	 */
 	public List<OrderBy> getOrderBy() {
 		return orderBy;
 	}
 
+	/**
+	 * Sets the order by.
+	 *
+	 * @param orderBy the new order by
+	 */
 	public void setOrderBy(List<OrderBy> orderBy) {
 		this.orderBy = orderBy;
 	}
 
+	/**
+	 * Adds the order by.
+	 *
+	 * @param sortKey the sort key
+	 * @param orderType the order type
+	 */
 	public void addOrderBy(String sortKey, OrderType orderType) {
 		if (StringUtils.isNoneEmpty(sortKey))
 			this.orderBy.add(new OrderBy(sortKey, orderType));

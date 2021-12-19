@@ -19,6 +19,11 @@ import java.lang.annotation.Target;
 @Target({FIELD,METHOD})
 public @interface IgnoreMapping {
 
+	/**
+	 * Value.
+	 *
+	 * @return true, if successful
+	 */
 	public boolean value() default true;
 	
 }

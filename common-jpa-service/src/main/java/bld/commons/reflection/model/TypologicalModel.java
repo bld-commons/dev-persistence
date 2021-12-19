@@ -1,34 +1,74 @@
+/**
+ * @author Francesco Baldi
+ * @mail francesco.baldi1987@gmail.com
+ * @class bld.commons.reflection.model.TypologicalModel.java
+ */
 package bld.commons.reflection.model;
 
 import javax.validation.constraints.NotNull;
 
+/**
+ * The Class TypologicalModel.
+ *
+ * @param <ID> the generic type
+ */
 public class TypologicalModel<ID> extends BaseModel<ID> {
 
+	/** The name. */
 	@NotNull
 	private String name;
 
+	/**
+	 * Instantiates a new typological model.
+	 */
 	public TypologicalModel() {
 		super();
 	}
 
+	/**
+	 * Instantiates a new typological model.
+	 *
+	 * @param id the id
+	 * @param name the name
+	 */
 	public TypologicalModel(ID id,@NotNull String name) {
 		super(id);
 		this.name = name;
 	}
 
+	/**
+	 * Gets the name.
+	 *
+	 * @return the name
+	 */
 	public String getName() {
 		return name;
 	}
 
+	/**
+	 * Sets the name.
+	 *
+	 * @param name the new name
+	 */
 	public void setName(String name) {
 		this.name = name;
 	}
 
+	/**
+	 * To string.
+	 *
+	 * @return the string
+	 */
 	@Override
 	public String toString() {
 		return "Typological [name=" + name + ", toString()=" + super.toString() + "]";
 	}
 
+	/**
+	 * Hash code.
+	 *
+	 * @return the int
+	 */
 	@Override
 	public int hashCode() {
 		final int prime = 31;
@@ -37,6 +77,12 @@ public class TypologicalModel<ID> extends BaseModel<ID> {
 		return result;
 	}
 
+	/**
+	 * Equals.
+	 *
+	 * @param obj the obj
+	 * @return true, if successful
+	 */
 	@Override
 	public boolean equals(Object obj) {
 		if (this == obj)

@@ -1,3 +1,8 @@
+/**
+ * @author Francesco Baldi
+ * @mail francesco.baldi1987@gmail.com
+ * @class bld.commons.json.annotations.JsonDateFilter.java
+ */
 package bld.commons.json.annotations;
 
 import static java.lang.annotation.ElementType.FIELD;
@@ -40,14 +45,6 @@ public @interface JsonDateFilter {
 	 * @return the string
 	 */
 	public String format() default "yyyy-MM-dd'T'HH:mm:ss";
-	
-	
-	/**
-	 * Equals.
-	 *
-	 * @return true, if successful
-	 */
-	public boolean equals() default true;
 	
 	/**
 	 * Adds the year.
