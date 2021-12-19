@@ -13,6 +13,7 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 
 import bld.commons.reflection.type.LikeType;
+import bld.commons.reflection.type.UpperLowerType;
 
 /**
  * The Interface LikeString.
@@ -28,11 +29,13 @@ public @interface LikeString {
 	 */
 	public LikeType likeType() default LikeType.LEFT_RIGHT; 
 	
+
+	
 	/**
-	 * Ignore case.
+	 * Upper lower type.
 	 *
-	 * @return true, if successful
+	 * @return the upper lower type
 	 */
-	public boolean ignoreCase() default true;
+	public UpperLowerType upperLowerType() default UpperLowerType.NONE;
 	
 }

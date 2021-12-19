@@ -66,8 +66,10 @@ import bld.commons.service.BaseJpaService;
  */
 public class ClassBuilding {
 
+	/** The Constant JOINS. */
 	private static final String JOINS = "joins";
 
+	/** The Constant CONDITIONS. */
 	private static final String CONDITIONS = "conditions";
 
 	/** The Constant SPACE. */
@@ -85,17 +87,22 @@ public class ClassBuilding {
 	/** The Constant SELECT_BY_FILTER. */
 	private static final String SELECT_BY_FILTER = "SELECT_BY_FILTER";
 
+	/** The Constant DELETE_BY_FILTER. */
 	private static final String DELETE_BY_FILTER = "DELETE_BY_FILTER";
 
 	/** The Constant STRING. */
 	private static final String STRING = "String";
 
+	/** The Constant COMPONENT. */
 	private static final String COMPONENT = "Component";
 
+	/** The Constant QUERY_JPQL. */
 	private static final String QUERY_JPQL = "QueryJpql";
 
+	/** The Constant QUERY_JPQL_IMPL. */
 	private static final String QUERY_JPQL_IMPL = QUERY_JPQL + "Impl";
 
+	/** The Constant ANNOTATION_COMPONENT. */
 	private static final ModelAnnotation ANNOTATION_COMPONENT = getModelAnnotation(COMPONENT);
 
 	/** The Constant ANNOTATION_OVERRIDE. */
@@ -107,23 +114,42 @@ public class ClassBuilding {
 	/** The Constant COUNT_BY_FILTER_METHOD. */
 	private static final ModelMethod COUNT_BY_FILTER_METHOD = returnMethodService("countByFilter", STRING, SPACE + "return " + COUNT_BY_FILTER + ";", LevelType.PUBLIC);
 
+	/** The Constant DELETE_BY_FILTER_METHOD. */
 	private static final ModelMethod DELETE_BY_FILTER_METHOD = returnMethodService("deleteByFilter", STRING, SPACE + "return " + DELETE_BY_FILTER + ";", LevelType.PUBLIC);
 
 	/** The Constant MAP_CONDITIONS_FIELD. */
 	private static final ModelField MAP_CONDITIONS_FIELD = getFieldMapConditions("MAP_CONDITIONS", "getMapConditions()");
 
+	/** The Constant MAP_NATIVE_CONDITIONS_FIELD. */
 	private static final ModelField MAP_NATIVE_CONDITIONS_FIELD = getFieldMapConditions("MAP_NATIVE_CONDITIONS", "getMapNativeConditions()");
 
+	/** The Constant MAP_CONDITIONS_METHOD. */
 	private static final ModelMethod MAP_CONDITIONS_METHOD = getConditions("mapConditions", "return MAP_CONDITIONS;");
 
+	/** The Constant MAP_DELETE_CONDITIONS_METHOD. */
 	private static final ModelMethod MAP_DELETE_CONDITIONS_METHOD = getConditions("mapDeleteConditions", "return MAP_DELETE_CONDITIONS;");
 
+	/** The Constant MAP_NATIVE_CONDITIONS_METHOD. */
 	private static final ModelMethod MAP_NATIVE_CONDITIONS_METHOD = getConditions("mapNativeConditions", "return MAP_NATIVE_CONDITIONS;");
 
+	/** The Constant MAP_DELETE_CONDITIONS_FIELD. */
 	private static final ModelField MAP_DELETE_CONDITIONS_FIELD = getFieldMapConditions("MAP_DELETE_CONDITIONS", "getMapDeleteConditions()");
 
+	/** The map class field. */
 	private static Map<String, ClassField> mapClassField = new HashMap<>();
 
+	/**
+	 * Generate query class.
+	 *
+	 * @param modelClasses the model classes
+	 * @param type the type
+	 * @param servicePackage the service package
+	 * @param processingEnv the processing env
+	 * @param queryBuilder the query builder
+	 * @param annotationMirror the annotation mirror
+	 * @param typeService the type service
+	 * @throws Exception the exception
+	 */
 	public static void generateQueryClass(ModelClasses modelClasses, TypeElement type, String servicePackage, ProcessingEnvironment processingEnv, QueryBuilder queryBuilder, AnnotationMirror annotationMirror, TypeElement typeService)
 			throws Exception {
 		ModelClass classQueryJpql = new ModelClass();
@@ -194,7 +220,7 @@ public class ClassBuilding {
 					mapBaseConditions.add(SPACE + "map.put(\"" + fieldName + "To\", \" and " + fieldEntity + "." + fieldName + "<=:" + fieldName + "To \");");
 					mapBaseConditions.add(SPACE + "map.put(\"" + fieldName + "\", \" and " + fieldEntity + "." + fieldName + "=:" + fieldName + " \");");
 				} else if (String.class.isAssignableFrom(classFieldElement)) {
-					mapBaseConditions.add(SPACE + "map.put(\"" + fieldName + "\", \" and <upper>(" + fieldEntity + "." + fieldName + ") like :" + fieldName + " \");");
+					mapBaseConditions.add(SPACE + "map.put(\"" + fieldName + "\", \" and upper(" + fieldEntity + "." + fieldName + ") like :" + fieldName + " \");");
 				} else if (Boolean.class.isAssignableFrom(classFieldElement)) {
 					mapBaseConditions.add(SPACE + "map.put(\"" + fieldName + "\", \" and " + fieldEntity + "." + fieldName + "= :" + fieldName + " \");");
 				} else {
@@ -285,9 +311,8 @@ public class ClassBuilding {
 				classFieldElement = Class.forName(fieldElement.asType().toString());
 
 			if (String.class.isAssignableFrom(classFieldElement)) {
-				mapConditions.add(
-						SPACE + "map.put(\"" + condition.parameter() + "\", \" and <upper>(" + queryDetail.getAlias() + "." + field + ") " + condition.operation().getValue().replace(BaseJpaService.KEY_PROPERTY, ":" + condition.parameter()) + "\");");
-				mapDeleteConditions.add(SPACE + "map.put(\"" + condition.parameter() + "\", \" and <upper>(" + condition.field() + ") " + condition.operation().getValue().replace(BaseJpaService.KEY_PROPERTY, ":" + condition.parameter()) + "\");");
+				mapConditions.add(SPACE + "map.put(\"" + condition.parameter() + "\", \" and "+condition.upperLower().getFunction()+"(" + queryDetail.getAlias() + "." + field + ") " + condition.operation().getValue().replace(BaseJpaService.KEY_PROPERTY, ":" + condition.parameter()) + "\");");
+				mapDeleteConditions.add(SPACE + "map.put(\"" + condition.parameter() + "\", \" and "+condition.upperLower().getFunction()+"(" + condition.field() + ") " + condition.operation().getValue().replace(BaseJpaService.KEY_PROPERTY, ":" + condition.parameter()) + "\");");
 			} else {
 				mapConditions
 						.add(SPACE + "map.put(\"" + condition.parameter() + "\", \" and " + queryDetail.getAlias() + "." + field + " " + condition.operation().getValue().replace(BaseJpaService.KEY_PROPERTY, ":" + condition.parameter()) + "\");");
@@ -355,6 +380,18 @@ public class ClassBuilding {
 		modelClasses.getClasses().add(classQueryJpql);
 	}
 
+	/**
+	 * From many and one to one.
+	 *
+	 * @param fieldEntity the field entity
+	 * @param mapAlias the map alias
+	 * @param aliases the aliases
+	 * @param fromByFilter the from by filter
+	 * @param classField the class field
+	 * @param fieldName the field name
+	 * @param nullable the nullable
+	 * @return the string
+	 */
 	private static String fromManyAndOneToOne(String fieldEntity, Map<String, QueryDetail> mapAlias, Set<String> aliases, String fromByFilter, ClassField classField, String fieldName,boolean nullable) {
 		String alias=getAlias(aliases,fieldName);
 		fromByFilter += "\n" + SPACE + "+\"" + (nullable ? " left" : "") + " join fetch " + fieldEntity + "." + fieldName + " " + alias + " \"";
@@ -363,6 +400,13 @@ public class ClassBuilding {
 		return fromByFilter;
 	}
 
+	/**
+	 * Gets the annotation value.
+	 *
+	 * @param annotationMirror the annotation mirror
+	 * @param element the element
+	 * @return the annotation value
+	 */
 	private static AnnotationValue getAnnotationValue(AnnotationMirror annotationMirror, String element) {
 		for (Entry<? extends ExecutableElement, ? extends AnnotationValue> entryAnnotation : annotationMirror.getElementValues().entrySet()) {
 			if (entryAnnotation.getKey().getSimpleName().toString().equals(element))
@@ -371,6 +415,13 @@ public class ClassBuilding {
 		return null;
 	}
 
+	/**
+	 * Write custom condition.
+	 *
+	 * @param conditions the conditions
+	 * @param deleteConditions the delete conditions
+	 * @param customCondition the custom condition
+	 */
 	private static void writeCustomCondition(List<String> conditions, List<String> deleteConditions, CustomConditionBuilder customCondition) {
 		String condition = SPACE + "map.put(\"" + customCondition.parameter() + "\", \" " + customCondition.condition() + "\");";
 		if (ConditionType.SELECT.equals(customCondition.type()))
@@ -379,6 +430,24 @@ public class ClassBuilding {
 			deleteConditions.add(condition);
 	}
 
+	/**
+	 * Builds the join.
+	 *
+	 * @param type the type
+	 * @param processingEnv the processing env
+	 * @param mapConditions the map conditions
+	 * @param mapOneToMany the map one to many
+	 * @param mapAlias the map alias
+	 * @param aliases the aliases
+	 * @param fromByFilter the from by filter
+	 * @param manyProps the many props
+	 * @param joinPath the join path
+	 * @param parameter the parameter
+	 * @param typeService the type service
+	 * @param annotationMirror the annotation mirror
+	 * @param elementAnnotation the element annotation
+	 * @return the string
+	 */
 	private static String buildJoin(TypeElement type, ProcessingEnvironment processingEnv, List<String> mapConditions, List<String> mapOneToMany, Map<String, QueryDetail> mapAlias, Set<String> aliases, String fromByFilter, Set<String> manyProps,
 			String joinPath, String parameter, TypeElement typeService, AnnotationMirror annotationMirror, String elementAnnotation) {
 		List<String> joins = new ArrayList<>(Arrays.asList(joinPath.split("\\.")));
@@ -510,6 +579,13 @@ public class ClassBuilding {
 		return fromByFilter;
 	}
 
+	/**
+	 * Gets the alias.
+	 *
+	 * @param aliases the aliases
+	 * @param join the join
+	 * @return the alias
+	 */
 	private static String getAlias(Set<String> aliases, String join) {
 		String alias;
 		alias = join;
@@ -522,6 +598,12 @@ public class ClassBuilding {
 		return alias;
 	}
 
+	/**
+	 * Nullable one to one.
+	 *
+	 * @param element the element
+	 * @return true, if successful
+	 */
 	private static boolean nullableOneToOne(Element element) {
 		boolean nullable=true;
 		if (element.getAnnotation(JoinColumn.class)!=null) {
@@ -535,6 +617,12 @@ public class ClassBuilding {
 		return nullable;
 	}
 
+	/**
+	 * Prints the manies.
+	 *
+	 * @param manies the manies
+	 * @return the string
+	 */
 	private static String printManies(List<String> manies) {
 		String joinMany = "";
 		for (String many : manies)
@@ -542,6 +630,12 @@ public class ClassBuilding {
 		return joinMany.substring(1);
 	}
 
+	/**
+	 * Gets the super class query jpql.
+	 *
+	 * @param classEntity the class entity
+	 * @return the super class query jpql
+	 */
 	private static ModelSuperClass getSuperClassQueryJpql(String classEntity) {
 		ModelGenericType genericTypeEntityClass = new ModelGenericType();
 		genericTypeEntityClass.setName(classEntity);
@@ -551,6 +645,13 @@ public class ClassBuilding {
 		return superClassQueryJpql;
 	}
 
+	/**
+	 * Generate jpa class.
+	 *
+	 * @param modelClasses the model classes
+	 * @param type the type
+	 * @throws Exception the exception
+	 */
 	public static void generateJpaClass(ModelClasses modelClasses, TypeElement type) throws Exception {
 		TypeElement typeElement = type;
 		ClassField classField = new ClassField(type.getQualifiedName().toString());
@@ -577,6 +678,13 @@ public class ClassBuilding {
 
 	}
 
+	/**
+	 * Gets the conditions.
+	 *
+	 * @param name the name
+	 * @param command the command
+	 * @return the conditions
+	 */
 	private static ModelMethod getConditions(String name, String command) {
 		ModelMethod mapConditionsMethod = new ModelMethod();
 		mapConditionsMethod.setName(name);
@@ -608,6 +716,7 @@ public class ClassBuilding {
 	 * @param name    the name
 	 * @param type    the type
 	 * @param command the command
+	 * @param levelType the level type
 	 * @return the model method
 	 */
 	private static ModelMethod returnMethodService(String name, String type, String command, LevelType levelType) {
@@ -642,6 +751,8 @@ public class ClassBuilding {
 	/**
 	 * Gets the field map conditions.
 	 *
+	 * @param name the name
+	 * @param value the value
 	 * @return the field map conditions
 	 */
 	private static ModelField getFieldMapConditions(String name, String value) {
@@ -653,9 +764,9 @@ public class ClassBuilding {
 
 	/**
 	 * Gets the map conditions.
-	 * 
-	 * @param commands
 	 *
+	 * @param name the name
+	 * @param commands the commands
 	 * @return the map conditions
 	 */
 	private static ModelMethod getMapConditions(String name, List<String> commands) {

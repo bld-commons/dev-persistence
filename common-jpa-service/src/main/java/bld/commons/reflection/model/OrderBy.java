@@ -1,3 +1,8 @@
+/**
+ * @author Francesco Baldi
+ * @mail francesco.baldi1987@gmail.com
+ * @class bld.commons.reflection.model.OrderBy.java
+ */
 package bld.commons.reflection.model;
 
 import javax.validation.constraints.NotNull;

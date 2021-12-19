@@ -21,6 +21,16 @@ public interface JdbcService<T, ID> extends JpaService<T, ID> {
 
 
 
+	/**
+	 * Jdbc select by filter.
+	 *
+	 * @param <K> the key type
+	 * @param <I> the generic type
+	 * @param queryFilter the query filter
+	 * @param sql the sql
+	 * @return the list
+	 * @throws Exception the exception
+	 */
 	public <K, I> List<K> jdbcSelectByFilter(QueryFilter<K, I> queryFilter,String sql) throws Exception;
 
 	/**
@@ -36,5 +46,15 @@ public interface JdbcService<T, ID> extends JpaService<T, ID> {
 	 */
 	public <K, I> List<K> jdbcSelectByFilter(QueryFilter<K, I> queryFilter,Map<String,String>mapConditions,String sql) throws Exception;
 
+	/**
+	 * Jdbc count by filter.
+	 *
+	 * @param <K> the key type
+	 * @param <I> the generic type
+	 * @param queryFilter the query filter
+	 * @param count the count
+	 * @return the long
+	 * @throws Exception the exception
+	 */
 	public <K, I> Long jdbcCountByFilter(QueryFilter<K, I> queryFilter, String count) throws Exception;
 }

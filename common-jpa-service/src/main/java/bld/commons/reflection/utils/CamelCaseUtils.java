@@ -37,8 +37,9 @@ public class CamelCaseUtils {
 		else {
 			if (UpperLowerType.UPPER.equals(upperLowerType))
 				dbField = dbField.toUpperCase();
-			else
+			else if(UpperLowerType.LOWER.equals(upperLowerType))
 				dbField = dbField.toLowerCase();
+				
 		}
 
 		return dbField;

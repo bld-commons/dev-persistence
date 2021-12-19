@@ -81,6 +81,8 @@ public class QueryFilter<T, ID> {
 
 	/**
 	 * Instantiates a new query filter.
+	 *
+	 * @param mapParameters the map parameters
 	 */
 	public QueryFilter(Map<String, Object> mapParameters) {
 		super();
@@ -88,6 +90,9 @@ public class QueryFilter<T, ID> {
 		this.mapParameters=mapParameters;
 	}
 	
+	/**
+	 * Instantiates a new query filter.
+	 */
 	public QueryFilter() {
 		super();
 		init();

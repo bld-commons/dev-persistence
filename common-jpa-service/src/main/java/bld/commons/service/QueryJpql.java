@@ -1,3 +1,8 @@
+/**
+ * @author Francesco Baldi
+ * @mail francesco.baldi1987@gmail.com
+ * @class bld.commons.service.QueryJpql.java
+ */
 package bld.commons.service;
 
 import java.util.Arrays;

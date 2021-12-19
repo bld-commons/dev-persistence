@@ -1,3 +1,8 @@
+/**
+ * @author Francesco Baldi
+ * @mail francesco.baldi1987@gmail.com
+ * @class com.bld.processor.JpaProcessor.java
+ */
 package com.bld.processor;
 
 import java.lang.annotation.Annotation;
@@ -24,13 +29,24 @@ import bld.commons.classes.generator.impl.ClassesGeneratorImpl;
 import bld.commons.classes.model.ModelClasses;
 import bld.commons.processor.annotations.QueryBuilder;
 
+/**
+ * The Class JpaProcessor.
+ */
 @SupportedAnnotationTypes({ "javax.persistence.Entity", "bld.commons.processor.annotations.QueryBuilder" })
 //@AutoService(Processor.class)
 @SupportedSourceVersion(SourceVersion.RELEASE_8)
 public class JpaProcessor extends AbstractProcessor {
 
+	/** The model classes. */
 	private ModelClasses modelClasses = new ModelClasses();
 
+	/**
+	 * Process.
+	 *
+	 * @param annotations the annotations
+	 * @param roundEnv the round env
+	 * @return true, if successful
+	 */
 	@Override
 	public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
 
@@ -46,12 +62,26 @@ public class JpaProcessor extends AbstractProcessor {
 		return true;
 	}
 
+	/**
+	 * Run annotation with generation.
+	 *
+	 * @param roundEnv the round env
+	 * @param classAnnotation the class annotation
+	 * @throws Exception the exception
+	 */
 	private void runAnnotationWithGeneration(RoundEnvironment roundEnv, Class<? extends Annotation> classAnnotation) throws Exception {
 		this.runAnnotation(roundEnv, classAnnotation);
 		ClassesGenerator generatorClass = new ClassesGeneratorImpl(ConfigurationClassGenerator.configClassGenerator("/template"));
 		generatorClass.writeClass(modelClasses, this.processingEnv);
 	}
 
+	/**
+	 * Run annotation.
+	 *
+	 * @param roundEnv the round env
+	 * @param classAnnotation the class annotation
+	 * @throws Exception the exception
+	 */
 	private void runAnnotation(RoundEnvironment roundEnv, Class<? extends Annotation> classAnnotation) throws Exception {
 		modelClasses = new ModelClasses();
 		Set<? extends Element> annotatedElements = roundEnv.getElementsAnnotatedWith(classAnnotation);

@@ -1,26 +1,60 @@
+/**
+ * @author Francesco Baldi
+ * @mail francesco.baldi1987@gmail.com
+ * @class bld.commons.reflection.model.BaseModel.java
+ */
 package bld.commons.reflection.model;
 
+/**
+ * The Class BaseModel.
+ *
+ * @param <ID> the generic type
+ */
 public class BaseModel<ID> {
 
+	/** The id. */
 	private ID id;
 
+	/**
+	 * Instantiates a new base model.
+	 */
 	public BaseModel() {
 		super();
 	}
 
+	/**
+	 * Instantiates a new base model.
+	 *
+	 * @param id the id
+	 */
 	public BaseModel(ID id) {
 		super();
 		this.id = id;
 	}
 
+	/**
+	 * Gets the id.
+	 *
+	 * @return the id
+	 */
 	public ID getId() {
 		return id;
 	}
 
+	/**
+	 * Sets the id.
+	 *
+	 * @param idModel the new id
+	 */
 	public void setId(ID idModel) {
 		this.id = idModel;
 	}
 
+	/**
+	 * Hash code.
+	 *
+	 * @return the int
+	 */
 	@Override
 	public int hashCode() {
 		final int prime = 31;
@@ -29,6 +63,12 @@ public class BaseModel<ID> {
 		return result;
 	}
 
+	/**
+	 * Equals.
+	 *
+	 * @param obj the obj
+	 * @return true, if successful
+	 */
 	@Override
 	public boolean equals(Object obj) {
 		if (this == obj)
@@ -46,6 +86,11 @@ public class BaseModel<ID> {
 		return true;
 	}
 
+	/**
+	 * To string.
+	 *
+	 * @return the string
+	 */
 	@Override
 	public String toString() {
 		return "BasicModel [id=" + id + "]";

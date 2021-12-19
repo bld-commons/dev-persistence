@@ -1,3 +1,8 @@
+/**
+ * @author Francesco Baldi
+ * @mail francesco.baldi1987@gmail.com
+ * @class bld.commons.json.annotations.JsonDateFilter.java
+ */
 package bld.commons.json.annotations;
 
 import static java.lang.annotation.ElementType.FIELD;

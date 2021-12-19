@@ -1,3 +1,8 @@
+/**
+ * @author Francesco Baldi
+ * @mail francesco.baldi1987@gmail.com
+ * @class bld.commons.workspace.WorkModelImpl.java
+ */
 package bld.commons.workspace;
 
 import java.util.ArrayList;
@@ -16,15 +21,29 @@ import bld.commons.reflection.model.QueryFilter;
 import bld.commons.service.JpaService;
 import bld.commons.workspace.mapper.MapperModel;
 
+/**
+ * The Class WorkModelImpl.
+ */
 @Component
 @Transactional(rollbackFor = Exception.class)
 @SuppressWarnings("unchecked")
 public class WorkModelImpl implements WorkModel {
 
+	/** The context. */
 	@Autowired
 	private ApplicationContext context;
 	
 	
+	/**
+	 * Find by filter.
+	 *
+	 * @param <T> the generic type
+	 * @param <ID> the generic type
+	 * @param <M> the generic type
+	 * @param queryFilter the query filter
+	 * @return the collection response
+	 * @throws Exception the exception
+	 */
 	@Override
 	public <T,ID,M extends BaseModel<ID>> CollectionResponse<M> findByFilter(QueryFilter<T, ID>queryFilter) throws Exception {
 		CollectionResponse<M> response = new CollectionResponse<>();
@@ -54,6 +73,16 @@ public class WorkModelImpl implements WorkModel {
 		return response;
 	}
 
+	/**
+	 * Find single result by filter.
+	 *
+	 * @param <T> the generic type
+	 * @param <ID> the generic type
+	 * @param <M> the generic type
+	 * @param queryFilter the query filter
+	 * @return the object response
+	 * @throws Exception the exception
+	 */
 	@Override
 	public <T,ID,M extends BaseModel<ID>> ObjectResponse<M> findSingleResultByFilter(QueryFilter<T, ID>queryFilter) throws Exception {
 		ObjectResponse<M> response = new ObjectResponse<>();

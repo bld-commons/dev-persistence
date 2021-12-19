@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.Map;
 
 import bld.commons.reflection.model.QueryFilter;
+import bld.commons.utils.PersistenceMap;
 
 // TODO: Auto-generated Javadoc
 /**
@@ -188,6 +189,7 @@ public interface JpaService<T, ID> {
 	 */
 	public Map<ID,T> mapFindByFilter(QueryFilter<T, ID> queryFilter,String sql) throws Exception;
 
+
 	/**
 	 * Map key find by filter.
 	 *
@@ -195,10 +197,11 @@ public interface JpaService<T, ID> {
 	 * @param queryFilter the query filter
 	 * @param classKey the class key
 	 * @param key the key
-	 * @return the map
+	 * @return the persistence map
 	 * @throws Exception the exception
 	 */
-	public <J> Map<J, T> mapKeyFindByFilter(QueryFilter<T, ID> queryFilter, Class<J> classKey, String key) throws Exception;
+	public <J> PersistenceMap<J, T> mapKeyFindByFilter(QueryFilter<T, ID> queryFilter, Class<J> classKey, String key) throws Exception;
+
 
 	/**
 	 * Map key find by filter.
@@ -208,10 +211,11 @@ public interface JpaService<T, ID> {
 	 * @param sql the sql
 	 * @param classKey the class key
 	 * @param key the key
-	 * @return the map
+	 * @return the persistence map
 	 * @throws Exception the exception
 	 */
-	public <J> Map<J, T> mapKeyFindByFilter(QueryFilter<T, ID> queryFilter, String sql, Class<J> classKey, String key) throws Exception;
+	public <J> PersistenceMap<J, T> mapKeyFindByFilter(QueryFilter<T, ID> queryFilter, String sql, Class<J> classKey, String key) throws Exception;
+
 
 	/**
 	 * Map key list find by filter.
@@ -220,10 +224,11 @@ public interface JpaService<T, ID> {
 	 * @param queryFilter the query filter
 	 * @param classKey the class key
 	 * @param key the key
-	 * @return the map
+	 * @return the persistence map
 	 * @throws Exception the exception
 	 */
-	public <J> Map<J, List<T>> mapKeyListFindByFilter(QueryFilter<T, ID> queryFilter, Class<J> classKey, String key) throws Exception;
+	public <J> PersistenceMap<J, List<T>> mapKeyListFindByFilter(QueryFilter<T, ID> queryFilter, Class<J> classKey, String key) throws Exception;
+
 
 	/**
 	 * Map key list find by filter.
@@ -233,9 +238,9 @@ public interface JpaService<T, ID> {
 	 * @param sql the sql
 	 * @param classKey the class key
 	 * @param key the key
-	 * @return the map
+	 * @return the persistence map
 	 * @throws Exception the exception
 	 */
-	public <J> Map<J, List<T>> mapKeyListFindByFilter(QueryFilter<T, ID> queryFilter, String sql, Class<J> classKey, String key) throws Exception;
+	public <J> PersistenceMap<J, List<T>> mapKeyListFindByFilter(QueryFilter<T, ID> queryFilter, String sql, Class<J> classKey, String key) throws Exception;
 
 }

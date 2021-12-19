@@ -1,3 +1,8 @@
+/**
+ * @author Francesco Baldi
+ * @mail francesco.baldi1987@gmail.com
+ * @class bld.commons.reflection.annotations.deserialize.CustomDateDeserializer.java
+ */
 package bld.commons.reflection.annotations.deserialize;
 
 import java.io.IOException;
@@ -29,22 +34,41 @@ import bld.commons.reflection.annotations.deserialize.data.DateFilterDeserialize
 import bld.commons.reflection.utils.DateUtils;
 import bld.commons.reflection.utils.StaticApplicationContext;
 
+/**
+ * The Class CustomDateDeserializer.
+ *
+ * @param <T> the generic type
+ */
 @SuppressWarnings({ "serial", "unchecked" })
 public class CustomDateDeserializer<T> extends StdDeserializer<T> implements ContextualDeserializer {
 
+	/** The env. */
 	private Environment env = null;
 
+	/** The date filter deserializer. */
 	private DateFilterDeserializer dateFilterDeserializer = null;
 
+	/** The simple date format. */
 	private SimpleDateFormat simpleDateFormat = null;
 
+	/** The Constant logger. */
 	private final static Log logger = LogFactory.getLog(CustomDateDeserializer.class);
 
+	/**
+	 * Instantiates a new custom date deserializer.
+	 */
 	public CustomDateDeserializer() {
 		super(Object.class);
 		this.env = StaticApplicationContext.getBean(Environment.class);
 	}
 
+	/**
+	 * Instantiates a new custom date deserializer.
+	 *
+	 * @param classDate the class date
+	 * @param dateDeserializer the date deserializer
+	 * @param simpleDateFormat the simple date format
+	 */
 	private CustomDateDeserializer(Class<T> classDate, DateFilterDeserializer dateDeserializer, SimpleDateFormat simpleDateFormat) {
 		super(classDate);
 		this.dateFilterDeserializer = dateDeserializer;
@@ -52,6 +76,13 @@ public class CustomDateDeserializer<T> extends StdDeserializer<T> implements Con
 		this.env = StaticApplicationContext.getBean(Environment.class);
 	}
 
+	/**
+	 * Gets the date.
+	 *
+	 * @param dateString the date string
+	 * @return the date
+	 * @throws JpaServiceException the jpa service exception
+	 */
 	protected Date getDate(String dateString) throws JpaServiceException {
 		try {
 			Date date=this.simpleDateFormat.parse(dateString);
@@ -62,11 +93,26 @@ public class CustomDateDeserializer<T> extends StdDeserializer<T> implements Con
 		}
 	}
 
+	/**
+	 * Sets the simple date format.
+	 *
+	 * @param timeZone the time zone
+	 * @param format the format
+	 */
 	private void setSimpleDateFormat(TimeZone timeZone, String format) {
 		this.simpleDateFormat = new SimpleDateFormat(format);
 		this.simpleDateFormat.setTimeZone(timeZone);
 	}
 
+	/**
+	 * Deserialize.
+	 *
+	 * @param p the p
+	 * @param ctxt the ctxt
+	 * @return the t
+	 * @throws IOException Signals that an I/O exception has occurred.
+	 * @throws JsonProcessingException the json processing exception
+	 */
 	@Override
 	public T deserialize(JsonParser p, DeserializationContext ctxt) throws IOException, JsonProcessingException {
 		String dateString = p.getText();
@@ -81,6 +127,14 @@ public class CustomDateDeserializer<T> extends StdDeserializer<T> implements Con
 		return value;
 	}
 
+	/**
+	 * Creates the contextual.
+	 *
+	 * @param ctxt the ctxt
+	 * @param property the property
+	 * @return the json deserializer
+	 * @throws JsonMappingException the json mapping exception
+	 */
 	@Override
 	public JsonDeserializer<?> createContextual(DeserializationContext ctxt, BeanProperty property) throws JsonMappingException {
 		JsonDateTimeZone dateTimeZone = property.getAnnotation(JsonDateTimeZone.class);
