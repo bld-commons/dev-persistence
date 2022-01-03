@@ -316,11 +316,11 @@ public abstract class BaseJpaService {
 	 */
 	public <T, ID> Long countByFilter(BuildQueryFilter<T, ID> buildQueryFilter) {
 		QueryFilter<T, ID> queryFilter = buildQueryFilter.getQueryFilter();
-		String count = buildQueryFilter.getSql().replaceAll(fetch, "");
+		String count = buildQueryFilter.getSql();
 		ManageOneToMany manageOneToMany = addRelationshipsOneToMany(queryFilter.getMapParameters(), count, queryFilter.getNullables());
 		count = manageOneToMany.getSelect();
 		buildQueryFilter.setSql(count);
-		count = buildSql(buildQueryFilter);
+		count = buildSql(buildQueryFilter).replaceAll(fetch, "");
 		Query query = this.getEntityManager().createQuery(count, Long.class);
 		query = setQueryParameters(queryFilter.getMapParameters(), query);
 		return (Long) query.getSingleResult();
@@ -367,9 +367,8 @@ public abstract class BaseJpaService {
 	 * @param <ID>             the generic type
 	 * @param buildQueryFilter the build query filter
 	 * @return the list
-	 * @throws Exception the exception
 	 */
-	public <T, ID> List<T> jdbcSelectByFilter(BuildQueryFilter<T, ID> buildQueryFilter) throws Exception {
+	public <T, ID> List<T> jdbcSelectByFilter(BuildQueryFilter<T, ID> buildQueryFilter){
 		QueryFilter<T, ID> queryFilter = buildQueryFilter.getQueryFilter();
 		String select = buildNativeSql(buildQueryFilter);
 		select=getNativeOrderBy(queryFilter, select);
@@ -379,6 +378,7 @@ public abstract class BaseJpaService {
 		return this.jdbcSelect(buildQueryFilter);
 	}
 
+
 	/**
 	 * Jdbc count native query.
 	 *
@@ -386,9 +386,8 @@ public abstract class BaseJpaService {
 	 * @param <ID> the generic type
 	 * @param buildQueryFilter the build query filter
 	 * @return the long
-	 * @throws Exception the exception
 	 */
-	public <T, ID> Long jdbcCountNativeQuery(BuildQueryFilter<T, ID> buildQueryFilter) throws Exception {
+	public <T, ID> Long jdbcCountNativeQuery(BuildQueryFilter<T, ID> buildQueryFilter){
 		QueryFilter<T, ID> queryFilter = buildQueryFilter.getQueryFilter();
 		String count = buildNativeSql(buildQueryFilter);
 		return this.getJdbcTemplate().queryForObject(count, queryFilter.getMapParameters(), Long.class);
@@ -455,9 +454,8 @@ public abstract class BaseJpaService {
 	 * @param <ID>             the generic type
 	 * @param buildQueryFilter the build query filter
 	 * @return the list
-	 * @throws Exception the exception
 	 */
-	public <T, ID> List<T> jdbcSelect(BuildQueryFilter<T, ID> buildQueryFilter) throws Exception {
+	public <T, ID> List<T> jdbcSelect(BuildQueryFilter<T, ID> buildQueryFilter) {
 		QueryFilter<T, ID> queryFilter = buildQueryFilter.getQueryFilter();
 		String select = buildQueryFilter.getSql();
 		if (this.getJdbcTemplate().getJdbcTemplate().getDataSource() instanceof HikariConfig && queryFilter.getPageable() != null) {
@@ -474,9 +472,14 @@ public abstract class BaseJpaService {
 		List<Map<String, Object>> listResult = this.getJdbcTemplate().queryForList(select, mapSqlParameterSource);
 		List<T> listT = new ArrayList<T>();
 		for (Map<String, Object> mapResult : listResult) {
-			T t = queryFilter.getResultClass().getConstructor().newInstance();
-			this.reflectionUtils.reflection(t, mapResult);
-			listT.add(t);
+			try {
+				T t = queryFilter.getResultClass().getConstructor().newInstance();
+				this.reflectionUtils.reflection(t, mapResult);
+				listT.add(t);
+			} catch (Exception e) {
+				new RuntimeException(e);
+			}
+			
 		}
 		return listT;
 	}

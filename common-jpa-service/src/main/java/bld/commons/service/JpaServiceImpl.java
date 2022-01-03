@@ -24,6 +24,7 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.repository.JpaRepository;
 
+import bld.commons.exception.PropertiesException;
 import bld.commons.reflection.model.BuildQueryFilter;
 import bld.commons.reflection.model.QueryFilter;
 import bld.commons.reflection.utils.ReflectionUtils;
@@ -376,10 +377,9 @@ public abstract class JpaServiceImpl<T, ID> extends BaseJpaService implements Jp
 	 *
 	 * @param queryFilter the query filter
 	 * @return the map
-	 * @throws Exception the exception
 	 */
 	@Override
-	public Map<ID, T> mapFindByFilter(QueryFilter<T, ID> queryFilter) throws Exception {
+	public Map<ID, T> mapFindByFilter(QueryFilter<T, ID> queryFilter) {
 		List<T> list = this.findByFilter(queryFilter);
 		return mapIdEntity(list);
 	}
@@ -389,14 +389,17 @@ public abstract class JpaServiceImpl<T, ID> extends BaseJpaService implements Jp
 	 *
 	 * @param list the list
 	 * @return the map
-	 * @throws IllegalAccessException    the illegal access exception
-	 * @throws InvocationTargetException the invocation target exception
-	 * @throws NoSuchMethodException     the no such method exception
 	 */
-	private Map<ID, T> mapIdEntity(List<T> list) throws IllegalAccessException, InvocationTargetException, NoSuchMethodException {
+	private Map<ID, T> mapIdEntity(List<T> list) {
 		Map<ID, T> map = new HashMap<>();
-		for (T t : list)
-			map.put((ID) PropertyUtils.getProperty(t, id.getName()), t);
+		for (T t : list) {
+			try {
+				map.put((ID) PropertyUtils.getProperty(t, id.getName()), t);
+			} catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
+				throw new PropertiesException(e);
+			}
+		}
+
 		return map;
 	}
 
@@ -406,10 +409,9 @@ public abstract class JpaServiceImpl<T, ID> extends BaseJpaService implements Jp
 	 * @param queryFilter the query filter
 	 * @param sql         the sql
 	 * @return the map
-	 * @throws Exception the exception
 	 */
 	@Override
-	public Map<ID, T> mapFindByFilter(QueryFilter<T, ID> queryFilter, String sql) throws Exception {
+	public Map<ID, T> mapFindByFilter(QueryFilter<T, ID> queryFilter, String sql) {
 		List<T> list = this.findByFilter(queryFilter, sql);
 		return mapIdEntity(list);
 	}
@@ -420,27 +422,30 @@ public abstract class JpaServiceImpl<T, ID> extends BaseJpaService implements Jp
 	 * @param fields the fields
 	 * @param t      the t
 	 * @return the key
-	 * @throws Exception the exception
 	 */
-	private Object getKey(String[] fields, T t) throws Exception {
+	private Object getKey(String[] fields, T t) {
 		Object value = t;
-		for (String field : fields)
-			value = PropertyUtils.getProperty(value, field);
+		for (String field : fields) {
+			try {
+				value = PropertyUtils.getProperty(value, field);
+			} catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
+				throw new PropertiesException(e);
+			}
+		}
+
 		return value;
 	}
-
 
 	/**
 	 * Map key entity.
 	 *
-	 * @param <J> the generic type
-	 * @param list the list
+	 * @param <J>      the generic type
+	 * @param list     the list
 	 * @param classKey the class key
-	 * @param key the key
+	 * @param key      the key
 	 * @return the persistence map
-	 * @throws Exception the exception
 	 */
-	private <J> PersistenceMap<J, T> mapKeyEntity(List<T> list, Class<J> classKey, String key) throws Exception {
+	private <J> PersistenceMap<J, T> mapKeyEntity(List<T> list, Class<J> classKey, String key) {
 		PersistenceMap<J, T> map = new PersistenceMap<>();
 		String[] fields = key.split(POINT);
 		for (T t : list)
@@ -448,53 +453,47 @@ public abstract class JpaServiceImpl<T, ID> extends BaseJpaService implements Jp
 		return map;
 	}
 
-
 	/**
 	 * Map key find by filter.
 	 *
-	 * @param <J> the generic type
+	 * @param <J>         the generic type
 	 * @param queryFilter the query filter
-	 * @param classKey the class key
-	 * @param key the key
+	 * @param classKey    the class key
+	 * @param key         the key
 	 * @return the persistence map
-	 * @throws Exception the exception
 	 */
 	@Override
-	public <J> PersistenceMap<J, T> mapKeyFindByFilter(QueryFilter<T, ID> queryFilter, Class<J> classKey, String key) throws Exception {
+	public <J> PersistenceMap<J, T> mapKeyFindByFilter(QueryFilter<T, ID> queryFilter, Class<J> classKey, String key) {
 		List<T> list = this.findByFilter(queryFilter);
 		return mapKeyEntity(list, classKey, key);
 	}
 
-
 	/**
 	 * Map key find by filter.
 	 *
-	 * @param <J> the generic type
+	 * @param <J>         the generic type
 	 * @param queryFilter the query filter
-	 * @param sql the sql
-	 * @param classKey the class key
-	 * @param key the key
+	 * @param sql         the sql
+	 * @param classKey    the class key
+	 * @param key         the key
 	 * @return the persistence map
-	 * @throws Exception the exception
 	 */
 	@Override
-	public <J> PersistenceMap<J, T> mapKeyFindByFilter(QueryFilter<T, ID> queryFilter, String sql, Class<J> classKey, String key) throws Exception {
+	public <J> PersistenceMap<J, T> mapKeyFindByFilter(QueryFilter<T, ID> queryFilter, String sql, Class<J> classKey, String key) {
 		List<T> list = this.findByFilter(queryFilter, sql);
 		return mapKeyEntity(list, classKey, key);
 	}
 
-
 	/**
 	 * Map key list entity.
 	 *
-	 * @param <J> the generic type
-	 * @param list the list
-	 * @param classKey the class key
+	 * @param <J>       the generic type
+	 * @param list      the list
+	 * @param classKey  the class key
 	 * @param keyFields the key fields
 	 * @return the persistence map
-	 * @throws Exception the exception
 	 */
-	private <J> PersistenceMap<J, List<T>> mapKeyListEntity(List<T> list, Class<J> classKey, String keyFields) throws Exception {
+	private <J> PersistenceMap<J, List<T>> mapKeyListEntity(List<T> list, Class<J> classKey, String keyFields) {
 		PersistenceMap<J, List<T>> map = new PersistenceMap<>();
 		String[] fields = keyFields.split(POINT);
 		for (T t : list) {
@@ -507,38 +506,33 @@ public abstract class JpaServiceImpl<T, ID> extends BaseJpaService implements Jp
 		return map;
 	}
 
-
-
 	/**
 	 * Map key list find by filter.
 	 *
-	 * @param <J> the generic type
+	 * @param <J>         the generic type
 	 * @param queryFilter the query filter
-	 * @param classKey the class key
-	 * @param key the key
+	 * @param classKey    the class key
+	 * @param key         the key
 	 * @return the persistence map
-	 * @throws Exception the exception
 	 */
 	@Override
-	public <J> PersistenceMap<J, List<T>> mapKeyListFindByFilter(QueryFilter<T, ID> queryFilter, Class<J> classKey, String key) throws Exception {
+	public <J> PersistenceMap<J, List<T>> mapKeyListFindByFilter(QueryFilter<T, ID> queryFilter, Class<J> classKey, String key) {
 		List<T> list = this.findByFilter(queryFilter);
 		return mapKeyListEntity(list, classKey, key);
 	}
 
-
 	/**
 	 * Map key list find by filter.
 	 *
-	 * @param <J> the generic type
+	 * @param <J>         the generic type
 	 * @param queryFilter the query filter
-	 * @param sql the sql
-	 * @param classKey the class key
-	 * @param key the key
+	 * @param sql         the sql
+	 * @param classKey    the class key
+	 * @param key         the key
 	 * @return the persistence map
-	 * @throws Exception the exception
 	 */
 	@Override
-	public <J> PersistenceMap<J, List<T>> mapKeyListFindByFilter(QueryFilter<T, ID> queryFilter, String sql, Class<J> classKey, String key) throws Exception {
+	public <J> PersistenceMap<J, List<T>> mapKeyListFindByFilter(QueryFilter<T, ID> queryFilter, String sql, Class<J> classKey, String key) {
 		List<T> list = this.findByFilter(queryFilter, sql);
 		return mapKeyListEntity(list, classKey, key);
 	}

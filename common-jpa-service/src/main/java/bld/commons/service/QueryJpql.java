@@ -10,6 +10,8 @@ import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
 
+import org.apache.commons.collections4.MapUtils;
+
 // TODO: Auto-generated Javadoc
 /**
  * The Class QueryJpql.
@@ -103,6 +105,8 @@ public abstract class QueryJpql<T> {
 	 * @return the map one to many
 	 */
 	public Map<String, LinkedHashSet<String>> getMapOneToMany() {
+		if(MapUtils.isEmpty(this.mapOneToMany))
+			this.mapOneToMany();
 		return mapOneToMany;
 	}
 	

@@ -20,6 +20,7 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
 import bld.commons.reflection.annotations.deserialize.CustomByteDeserializer;
 import bld.commons.reflection.annotations.serialize.CustomByteSerializer;
+import bld.commons.reflection.type.MimeType;
 
 /**
  * The Interface JsonFile.
@@ -32,4 +33,7 @@ import bld.commons.reflection.annotations.serialize.CustomByteSerializer;
 @JsonInclude(Include.NON_NULL)
 public @interface JsonFile {
 
+	public MimeType mimeType() default MimeType.none;
+	
+	
 }

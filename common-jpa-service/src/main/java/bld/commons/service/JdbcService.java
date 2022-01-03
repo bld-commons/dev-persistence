@@ -20,7 +20,6 @@ import bld.commons.reflection.model.QueryFilter;
 public interface JdbcService<T, ID> extends JpaService<T, ID> {
 
 
-
 	/**
 	 * Jdbc select by filter.
 	 *
@@ -29,9 +28,9 @@ public interface JdbcService<T, ID> extends JpaService<T, ID> {
 	 * @param queryFilter the query filter
 	 * @param sql the sql
 	 * @return the list
-	 * @throws Exception the exception
 	 */
-	public <K, I> List<K> jdbcSelectByFilter(QueryFilter<K, I> queryFilter,String sql) throws Exception;
+	public <K, I> List<K> jdbcSelectByFilter(QueryFilter<K, I> queryFilter,String sql);
+
 
 	/**
 	 * Jdbc select by filter.
@@ -42,9 +41,9 @@ public interface JdbcService<T, ID> extends JpaService<T, ID> {
 	 * @param mapConditions the map conditions
 	 * @param sql the sql
 	 * @return the list
-	 * @throws Exception the exception
 	 */
-	public <K, I> List<K> jdbcSelectByFilter(QueryFilter<K, I> queryFilter,Map<String,String>mapConditions,String sql) throws Exception;
+	public <K, I> List<K> jdbcSelectByFilter(QueryFilter<K, I> queryFilter,Map<String,String>mapConditions,String sql);
+
 
 	/**
 	 * Jdbc count by filter.
@@ -54,7 +53,6 @@ public interface JdbcService<T, ID> extends JpaService<T, ID> {
 	 * @param queryFilter the query filter
 	 * @param count the count
 	 * @return the long
-	 * @throws Exception the exception
 	 */
-	public <K, I> Long jdbcCountByFilter(QueryFilter<K, I> queryFilter, String count) throws Exception;
+	public <K, I> Long jdbcCountByFilter(QueryFilter<K, I> queryFilter, String count);
 }

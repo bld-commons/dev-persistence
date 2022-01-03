@@ -9,44 +9,83 @@ import java.io.IOException;
 import java.util.Base64;
 
 import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.databind.BeanProperty;
+import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.JsonSerializer;
 import com.fasterxml.jackson.databind.SerializerProvider;
+import com.fasterxml.jackson.databind.ser.ContextualSerializer;
 import com.fasterxml.jackson.databind.ser.std.StdSerializer;
+
+import bld.commons.json.annotations.JsonFile;
+import bld.commons.reflection.type.MimeType;
 
 /**
  * The Class CustomByteSerializer.
  */
 @SuppressWarnings("serial")
-public class CustomByteSerializer  extends StdSerializer<byte[]>  {
+public class CustomByteSerializer extends StdSerializer<byte[]> implements ContextualSerializer {
 
-	 /**
- 	 * Instantiates a new custom byte serializer.
- 	 */
- 	public CustomByteSerializer() {
-	        this(null);
-	    }
-	  
-	    /**
-    	 * Instantiates a new custom byte serializer.
-    	 *
-    	 * @param t the t
-    	 */
-    	public CustomByteSerializer(Class<byte[]> t) {
-	        super(t);
-	    }
+	/** The mime type. */
+	private MimeType mimeType;
 
+	/**
+	 * Instantiates a new custom byte serializer.
+	 */
+	public CustomByteSerializer() {
+		this(null);
+	}
 
+	/**
+	 * Instantiates a new custom byte serializer.
+	 *
+	 * @param t the t
+	 */
+	public CustomByteSerializer(Class<byte[]> t) {
+		super(t);
+	}
 
+	
+	
+	/**
+	 * File base 64.
+	 *
+	 * @param value the value
+	 * @return the string
+	 */
+	private String fileBase64(byte[] value) {
+		String file=Base64.getEncoder().encodeToString(value);
+		if(!MimeType.none.equals(this.mimeType))
+			file="data:" + this.mimeType.getMimeType() + ";base64,"+file;
+		return file;
+	}
+	
+	
 	/**
 	 * Serialize.
 	 *
-	 * @param value the value
-	 * @param gen the gen
+	 * @param value    the value
+	 * @param gen      the gen
 	 * @param provider the provider
 	 * @throws IOException Signals that an I/O exception has occurred.
 	 */
 	@Override
 	public void serialize(byte[] value, JsonGenerator gen, SerializerProvider provider) throws IOException {
-		gen.writeString(Base64.getEncoder().encodeToString(value));
+		gen.writeString(fileBase64(value));
+	}
+
+	/**
+	 * Creates the contextual.
+	 *
+	 * @param prov the prov
+	 * @param property the property
+	 * @return the json serializer
+	 * @throws JsonMappingException the json mapping exception
+	 */
+	@Override
+	public JsonSerializer<?> createContextual(SerializerProvider prov, BeanProperty property) throws JsonMappingException {
+		JsonFile jsonFile = property.getAnnotation(JsonFile.class);
+		this.mimeType = jsonFile.mimeType();
+		return this;
 	}
 
 }

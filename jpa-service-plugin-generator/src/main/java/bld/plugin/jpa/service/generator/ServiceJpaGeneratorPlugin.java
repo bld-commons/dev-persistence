@@ -132,8 +132,13 @@ public class ServiceJpaGeneratorPlugin extends AbstractMojo {
 
 				String nameClass = file.getPath().replace(target, "").replace("/", ".").replace(".class", "");
 				Class<?> entityClass = urlClassLoader.loadClass(nameClass);
-				if (entityClass.isAnnotationPresent(Entity.class))
-					ClassBuilding.generateClass(modelClasses, entityClass, classesDirectory, servicePackage, repositoryPackage);
+				try {
+					if (entityClass.isAnnotationPresent(Entity.class))
+						ClassBuilding.generateClass(modelClasses, entityClass, classesDirectory, servicePackage, repositoryPackage);
+				}catch(ArrayStoreException e) {
+					getLog().error("TypeNotPresentExceptionProxy to: "+entityClass.getName());
+				}
+				
 			}
 
 			getLog().info("Entities size: " + modelClasses.getClasses().size());

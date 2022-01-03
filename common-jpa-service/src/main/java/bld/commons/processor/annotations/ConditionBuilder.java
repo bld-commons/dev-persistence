@@ -46,4 +46,7 @@ public @interface ConditionBuilder {
 	public UpperLowerType upperLower() default UpperLowerType.NONE;
 	
 	
+	public boolean nullable() default false;
+	
+	
 }

@@ -23,6 +23,7 @@ public abstract class JdbcServiceImpl<T, ID> extends JpaServiceImpl<T, ID> imple
 	
 	
 
+
 	/**
 	 * Jdbc select by filter.
 	 *
@@ -31,12 +32,12 @@ public abstract class JdbcServiceImpl<T, ID> extends JpaServiceImpl<T, ID> imple
 	 * @param queryFilter the query filter
 	 * @param sql the sql
 	 * @return the list
-	 * @throws Exception the exception
 	 */
 	@Override
-	public <K, I> List<K> jdbcSelectByFilter(QueryFilter<K, I> queryFilter,String sql) throws Exception {
+	public <K, I> List<K> jdbcSelectByFilter(QueryFilter<K, I> queryFilter,String sql) {
 		return this.jdbcSelectByFilter(queryFilter,super.queryJpl.mapNativeConditions(),sql);
 	}
+
 
 	/**
 	 * Jdbc count by filter.
@@ -46,10 +47,9 @@ public abstract class JdbcServiceImpl<T, ID> extends JpaServiceImpl<T, ID> imple
 	 * @param queryFilter the query filter
 	 * @param count the count
 	 * @return the long
-	 * @throws Exception the exception
 	 */
 	@Override
-	public <K,I>Long jdbcCountByFilter(QueryFilter<K, I> queryFilter,String count) throws Exception {
+	public <K,I>Long jdbcCountByFilter(QueryFilter<K, I> queryFilter,String count) {
 		BuildQueryFilter<K, I> buildQueryFilter = getBuildQueryFilter(queryFilter, count);
 		return this.jdbcCountNativeQuery(buildQueryFilter);
 	}
@@ -73,6 +73,7 @@ public abstract class JdbcServiceImpl<T, ID> extends JpaServiceImpl<T, ID> imple
 		return buildQueryFilter;
 	}
 
+
 	/**
 	 * Jdbc select by filter.
 	 *
@@ -82,10 +83,9 @@ public abstract class JdbcServiceImpl<T, ID> extends JpaServiceImpl<T, ID> imple
 	 * @param mapConditions the map conditions
 	 * @param sql the sql
 	 * @return the list
-	 * @throws Exception the exception
 	 */
 	@Override
-	public <K, I> List<K> jdbcSelectByFilter(QueryFilter<K, I> queryFilter,Map<String,String>mapConditions,String sql) throws Exception {
+	public <K, I> List<K> jdbcSelectByFilter(QueryFilter<K, I> queryFilter,Map<String,String>mapConditions,String sql){
 		BuildQueryFilter<K, I> buildQueryFilter = getBuildQueryFilter(queryFilter, sql);
 		buildQueryFilter.setMapConditions(mapConditions);
 		return super.jdbcSelectByFilter(buildQueryFilter);
