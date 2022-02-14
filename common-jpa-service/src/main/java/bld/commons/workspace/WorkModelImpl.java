@@ -72,6 +72,14 @@ public class WorkModelImpl implements WorkModel {
 		
 		return response;
 	}
+	
+	@Override
+	public <T,ID> ObjectResponse<Long> countByFilter(QueryFilter<T, ID>queryFilter){
+		WorkspaceClasses workspaceClasses=queryFilter.getFilterParameter().getClass().getAnnotation(WorkspaceClasses.class);
+		JpaService<T,ID> service=(JpaService<T, ID>) this.context.getBean(workspaceClasses.service());
+		Long totalCount = service.countByFilter(queryFilter);
+		return new ObjectResponse<>(totalCount);
+	}
 
 	/**
 	 * Find single result by filter.

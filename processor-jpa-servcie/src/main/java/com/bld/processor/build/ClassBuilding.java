@@ -299,7 +299,13 @@ public class ClassBuilding {
 			LinkedHashSet<String> manies = new LinkedHashSet<>();
 			fromByFilter = buildJoin(type, processingEnv, mapConditions, mapOneToMany, mapAlias, aliases, fromByFilter, manyProps, joinPath, condition.parameter(), typeService, annotationMirror, CONDITIONS,manies);
 			QueryDetail queryDetail = mapAlias.get(joinPath);
-
+			if(queryDetail==null) {
+				String errorMessage = "The field path \"" + condition.field() + "\" is not valid";
+				AnnotationValue annotationValue = getAnnotationValue(annotationMirror, CONDITIONS);
+				processingEnv.getMessager().printMessage(Kind.ERROR, errorMessage, typeService, annotationMirror, annotationValue);
+				throw new ProcessorJpaServiceException(errorMessage);
+			}
+				
 			ClassField classField = queryDetail.getClassField();
 
 			Element fieldElement = classField.getMapElement().get(field);

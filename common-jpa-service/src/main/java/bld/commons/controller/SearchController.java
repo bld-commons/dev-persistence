@@ -51,6 +51,14 @@ public class SearchController<ID,T extends BaseModel<ID>, F extends FilterParame
 	}
 	
 	
+	@PostMapping(path = "/count", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+	@ResponseBody
+	@Valid
+	public ObjectResponse<Long> countByFilter(@RequestBody F filter) throws Exception {
+		QueryFilter<?, ID> queryFilter = new QueryFilter<>(filter);
+		return this.workModel.countByFilter(queryFilter);
+	}
+	
 	
 	/**
 	 * Single result find by filter.

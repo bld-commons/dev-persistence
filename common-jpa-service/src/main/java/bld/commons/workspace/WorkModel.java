@@ -38,5 +38,7 @@ public interface WorkModel {
 	 * @throws Exception the exception
 	 */
 	public <T, ID, M extends BaseModel<ID>> ObjectResponse<M> findSingleResultByFilter(QueryFilter<T, ID> queryFilter) throws Exception;
+
+	public <T, ID> ObjectResponse<Long> countByFilter(QueryFilter<T, ID> queryFilter);
 	
 }
