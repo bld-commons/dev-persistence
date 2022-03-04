@@ -40,7 +40,7 @@ import bld.commons.reflection.utils.StaticApplicationContext;
  * @param <T> the generic type
  */
 @SuppressWarnings({ "serial", "unchecked" })
-public class CustomDateDeserializer<T> extends StdDeserializer<T> implements ContextualDeserializer {
+public class DateDeserializer<T> extends StdDeserializer<T> implements ContextualDeserializer {
 
 	/** The env. */
 	private Environment env = null;
@@ -52,12 +52,12 @@ public class CustomDateDeserializer<T> extends StdDeserializer<T> implements Con
 	private SimpleDateFormat simpleDateFormat = null;
 
 	/** The Constant logger. */
-	private final static Log logger = LogFactory.getLog(CustomDateDeserializer.class);
+	private final static Log logger = LogFactory.getLog(DateDeserializer.class);
 
 	/**
 	 * Instantiates a new custom date deserializer.
 	 */
-	public CustomDateDeserializer() {
+	public DateDeserializer() {
 		super(Object.class);
 		this.env = StaticApplicationContext.getBean(Environment.class);
 	}
@@ -69,7 +69,7 @@ public class CustomDateDeserializer<T> extends StdDeserializer<T> implements Con
 	 * @param dateDeserializer the date deserializer
 	 * @param simpleDateFormat the simple date format
 	 */
-	private CustomDateDeserializer(Class<T> classDate, DateFilterDeserializer dateDeserializer, SimpleDateFormat simpleDateFormat) {
+	private DateDeserializer(Class<T> classDate, DateFilterDeserializer dateDeserializer, SimpleDateFormat simpleDateFormat) {
 		super(classDate);
 		this.dateFilterDeserializer = dateDeserializer;
 		this.simpleDateFormat = simpleDateFormat;
@@ -155,7 +155,7 @@ public class CustomDateDeserializer<T> extends StdDeserializer<T> implements Con
 		}
 
 		if (property.getType() != null && property.getType().getRawClass() != null)
-			return new CustomDateDeserializer<>(property.getType().getRawClass(), this.dateFilterDeserializer, this.simpleDateFormat);
+			return new DateDeserializer<>(property.getType().getRawClass(), this.dateFilterDeserializer, this.simpleDateFormat);
 		else
 			return this;
 	}

@@ -5,12 +5,15 @@
  */
 package bld.commons.reflection.model;
 
+import java.io.Serializable;
+
 /**
  * The Class BaseModel.
  *
  * @param <ID> the generic type
  */
-public class BaseModel<ID> {
+@SuppressWarnings("serial")
+public class BaseModel<ID> implements Serializable{
 
 	/** The id. */
 	private ID id;

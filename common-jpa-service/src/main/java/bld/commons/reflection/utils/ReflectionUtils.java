@@ -210,9 +210,8 @@ public class ReflectionUtils {
 	 * @param <T>       the generic type
 	 * @param t         the t
 	 * @param mapResult the map result
-	 * @throws Exception the exception
 	 */
-	public <T> void reflection(T t, Map<String, Object> mapResult) throws Exception {
+	public <T> void reflection(T t, Map<String, Object> mapResult) {
 		Map<String, Object> mapResultApp = new HashMap<>();
 		for (String keyResult : mapResult.keySet()) {
 			String nameField = CamelCaseUtils.camelCase(keyResult, true);
@@ -223,10 +222,16 @@ public class ReflectionUtils {
 		beanUtilsBean.getConvertUtils().register(converter, Date.class);
 		converter = new CalendarConverter(null);
 		beanUtilsBean.getConvertUtils().register(converter, Calendar.class);
-		BeanUtils.copyProperties(t, mapResultApp);
+		try {
+			BeanUtils.copyProperties(t, mapResultApp);
+		} catch (IllegalAccessException | InvocationTargetException e) {
+			throw new RuntimeException(e);
+		}
 
 	}
 
+	
+	
 	/**
 	 * Gets the bean name.
 	 *

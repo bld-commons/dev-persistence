@@ -5,6 +5,7 @@
  */
 package bld.commons.reflection.model;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -19,7 +20,8 @@ import bld.commons.reflection.type.OrderType;
  * The Class BaseFilterRequest.
  *
  */
-public abstract class FilterParameter {
+@SuppressWarnings("serial")
+public abstract class FilterParameter implements Serializable{
 	
 	
 

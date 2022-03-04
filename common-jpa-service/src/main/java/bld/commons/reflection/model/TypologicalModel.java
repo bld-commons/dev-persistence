@@ -12,6 +12,7 @@ import javax.validation.constraints.NotNull;
  *
  * @param <ID> the generic type
  */
+@SuppressWarnings("serial")
 public class TypologicalModel<ID> extends BaseModel<ID> {
 
 	/** The name. */

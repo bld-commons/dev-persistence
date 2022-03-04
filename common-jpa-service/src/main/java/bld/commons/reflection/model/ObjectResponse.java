@@ -5,6 +5,8 @@
  */
 package bld.commons.reflection.model;
 
+import java.io.Serializable;
+
 import javax.validation.Valid;
 
 /**
@@ -12,7 +14,8 @@ import javax.validation.Valid;
  *
  * @param <T> the generic type
  */
-public class ObjectResponse<T> {
+@SuppressWarnings("serial")
+public class ObjectResponse<T> implements Serializable{
 
 	/** The data. */
 	@Valid

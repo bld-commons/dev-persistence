@@ -9,19 +9,22 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 
 import com.fasterxml.jackson.annotation.JacksonAnnotationsInside;
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 
-import bld.commons.reflection.annotations.deserialize.UpperLowerDeserializer;
-import bld.commons.reflection.type.UpperLowerType;
+import bld.commons.reflection.annotations.deserialize.MaxConsecutiveSpaceDeserializer;
 
 @Retention(RUNTIME)
-@Target({ FIELD, METHOD,PARAMETER })
+@Target({ FIELD, METHOD, PARAMETER })
 @JacksonAnnotationsInside
-@JsonDeserialize(using = UpperLowerDeserializer.class)
-@JsonInclude(Include.NON_NULL)
-public @interface JsonUpperLowerCase {
+@JsonDeserialize(using = MaxConsecutiveSpaceDeserializer.class)
+public @interface MaxConsecutiveSpace {
 
-	public UpperLowerType value();
+	public boolean removeAllSpaceType() default false;
+	
+	public int consecutive() default 1;
+	
+	public boolean trim() default true;
+	
+	public boolean removeEndline() default false;
+	
 }

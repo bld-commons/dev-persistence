@@ -88,14 +88,14 @@ public class ClassBuilding {
 	/** The Constant ENTITY_MANAGER_FIELD. */
 	private static final ModelField ENTITY_MANAGER_FIELD = getEntityManagerField();
 	
-	/** The Constant JDBC_TEMPLATE_FIELD. */
-	private static final ModelField JDBC_TEMPLATE_FIELD = getJdbcTemplate();
+//	/** The Constant JDBC_TEMPLATE_FIELD. */
+//	private static final ModelField JDBC_TEMPLATE_FIELD = getJdbcTemplate();
 
 	/** The Constant ENTITY_MANAGER_METHOD. */
 	private static final ModelMethod ENTITY_MANAGER_METHOD = returnMethodService("getEntityManager", ENTITY_MANAGER, SPACE+"return this." + ENTITY_MANAGER_FIELD.getName() + ";");
 	
-	/** The Constant JDBC_TEMPLATE_METHOD. */
-	private static final ModelMethod JDBC_TEMPLATE_METHOD = returnMethodService("getJdbcTemplate", NAMED_PARAMETER_JDBC_TEMPLATE, SPACE+"return this." + JDBC_TEMPLATE_FIELD.getName() + ";");
+//	/** The Constant JDBC_TEMPLATE_METHOD. */
+//	private static final ModelMethod JDBC_TEMPLATE_METHOD = returnMethodService("getJdbcTemplate", NAMED_PARAMETER_JDBC_TEMPLATE, SPACE+"return this." + JDBC_TEMPLATE_FIELD.getName() + ";");
 	
 	
 
@@ -192,7 +192,7 @@ public class ClassBuilding {
 		classService.getFields().add(repositoryField);
 
 		classService.getFields().add(ENTITY_MANAGER_FIELD);
-		classService.getFields().add(JDBC_TEMPLATE_FIELD);
+	//	classService.getFields().add(JDBC_TEMPLATE_FIELD);
 
 		ModelMethod jpaRepositoryMethod = new ModelMethod();
 		jpaRepositoryMethod.setName("getJpaRepository");
@@ -204,7 +204,7 @@ public class ClassBuilding {
 		jpaRepositoryMethod.getCommands().add(SPACE+"return this." + repoField + ";");
 		classService.getMethods().add(jpaRepositoryMethod);
 		classService.getMethods().add(ENTITY_MANAGER_METHOD);
-		classService.getMethods().add(JDBC_TEMPLATE_METHOD);
+	//	classService.getMethods().add(JDBC_TEMPLATE_METHOD);
 		
 		modelClasses.getClasses().add(classService);
 		

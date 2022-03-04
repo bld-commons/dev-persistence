@@ -5,18 +5,23 @@
  */
 package bld.commons.reflection.model;
 
+import java.io.Serializable;
+
 import javax.validation.constraints.NotNull;
 
+import bld.commons.json.annotations.MaxConsecutiveSpace;
 import bld.commons.reflection.type.OrderType;
 
 // TODO: Auto-generated Javadoc
 /**
  * The Class OrderBy.
  */
-public class OrderBy {
+@SuppressWarnings("serial")
+public class OrderBy implements Serializable{
 
 	/** The sort key. */
 	@NotNull
+	@MaxConsecutiveSpace(removeAllSpaceType = true)
 	private String sortKey;
 
 	/** The order type. */

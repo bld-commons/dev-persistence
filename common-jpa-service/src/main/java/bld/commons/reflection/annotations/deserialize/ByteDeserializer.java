@@ -16,7 +16,7 @@ import com.fasterxml.jackson.databind.JsonDeserializer;
 /**
  * The Class CustomByteDeserializer.
  */
-public class CustomByteDeserializer extends JsonDeserializer<byte[]> {
+public class ByteDeserializer extends JsonDeserializer<byte[]> {
 
 	/**
 	 * Deserialize.

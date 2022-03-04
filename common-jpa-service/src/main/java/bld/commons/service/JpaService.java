@@ -242,4 +242,10 @@ public interface JpaService<T, ID> {
 	 */
 	public <J> PersistenceMap<J, List<T>> mapKeyListFindByFilter(QueryFilter<T, ID> queryFilter, String sql, Class<J> classKey, String key);
 
+	public <K> List<K> nativeQuerySelectByFilter(QueryFilter<K, ID> queryFilter, String sql);
+
+	public <K> Long nativeQueryCountByFilter(QueryFilter<K, ID> queryFilter, String count);
+	
+	
+
 }

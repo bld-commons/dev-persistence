@@ -536,4 +536,28 @@ public abstract class JpaServiceImpl<T, ID> extends BaseJpaService implements Jp
 		List<T> list = this.findByFilter(queryFilter, sql);
 		return mapKeyListEntity(list, classKey, key);
 	}
+
+	@Override
+	public <K> List<K> nativeQuerySelectByFilter(QueryFilter<K, ID> queryFilter, String sql) {
+		BuildQueryFilter<K, ID> buildQueryFilter = getBuildNativeQueryFilter(queryFilter, sql);
+		return super.nativeQuerySelectByFilter(buildQueryFilter);
+
+	}
+
+	@Override
+	public <K> Long nativeQueryCountByFilter(QueryFilter<K, ID> queryFilter, String count) {
+		BuildQueryFilter<K, ID> buildQueryFilter = getBuildNativeQueryFilter(queryFilter, count);
+		return this.nativeQueryCountByFilter(buildQueryFilter);
+	}
+
+	private <K> BuildQueryFilter<K, ID> getBuildNativeQueryFilter(QueryFilter<K, ID> queryFilter, String sql) {
+		BuildQueryFilter<K, ID> buildQueryFilter = new BuildQueryFilter<>();
+		if (queryFilter.getFilterParameter() != null)
+			queryFilter = reflectionUtils.dataToMap(queryFilter);
+		buildQueryFilter.setQueryFilter(queryFilter);
+		buildQueryFilter.setSql(sql);
+		buildQueryFilter.setMapConditions(this.queryJpl.mapNativeConditions());
+		return buildQueryFilter;
+	}
+
 }

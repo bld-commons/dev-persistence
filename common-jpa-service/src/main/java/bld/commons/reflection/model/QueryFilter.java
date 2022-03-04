@@ -5,6 +5,7 @@
  */
 package bld.commons.reflection.model;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -23,7 +24,8 @@ import org.springframework.data.domain.Pageable;
  * @param <T>  the generic type
  * @param <ID> the generic type
  */
-public class QueryFilter<T, ID> {
+@SuppressWarnings("serial")
+public class QueryFilter<T, ID> implements Serializable{
 
 	/** The Constant ID. */
 	public final static String ID = "id";

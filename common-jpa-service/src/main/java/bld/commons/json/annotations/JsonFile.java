@@ -18,7 +18,7 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
-import bld.commons.reflection.annotations.deserialize.CustomByteDeserializer;
+import bld.commons.reflection.annotations.deserialize.ByteDeserializer;
 import bld.commons.reflection.annotations.serialize.CustomByteSerializer;
 import bld.commons.reflection.type.MimeType;
 
@@ -28,7 +28,7 @@ import bld.commons.reflection.type.MimeType;
 @Retention(RUNTIME)
 @Target({ FIELD, METHOD })
 @JacksonAnnotationsInside
-@JsonDeserialize(using = CustomByteDeserializer.class)
+@JsonDeserialize(using = ByteDeserializer.class)
 @JsonSerialize(using = CustomByteSerializer.class)
 @JsonInclude(Include.NON_NULL)
 public @interface JsonFile {

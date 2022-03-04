@@ -15,39 +15,39 @@ import bld.commons.json.annotations.JsonUpperLowerCase;
 import bld.commons.reflection.type.UpperLowerType;
 
 @SuppressWarnings("serial")
-public class CustomUpperLowerDeserializer extends StdDeserializer<String> implements ContextualDeserializer {
+public class UpperLowerDeserializer extends StdDeserializer<String> implements ContextualDeserializer {
 
 	private UpperLowerType upperLower;
 
-	 public CustomUpperLowerDeserializer() {
-	       super(String.class);
-	   }
-	
-	protected CustomUpperLowerDeserializer(Class<?> vc) {
+	public UpperLowerDeserializer() {
+		super(String.class);
+	}
+
+	protected UpperLowerDeserializer(Class<?> vc) {
 		super(vc);
 	}
 
 	@Override
 	public JsonDeserializer<?> createContextual(DeserializationContext ctxt, BeanProperty property) throws JsonMappingException {
 		JsonUpperLowerCase jsonUpperLower = property.getAnnotation(JsonUpperLowerCase.class);
-		this.upperLower=jsonUpperLower.value();
+		this.upperLower = jsonUpperLower.value();
 		return this;
 	}
 
 	@Override
 	public String deserialize(JsonParser p, DeserializationContext ctxt) throws IOException, JacksonException {
-		String word=p.getText();
-		switch(this.upperLower) {
+		String word = p.getText();
+		switch (this.upperLower) {
 		case LOWER:
-			word=word.toLowerCase();
+			word = word.toLowerCase();
 			break;
 		case UPPER:
-			word=word.toUpperCase();
+			word = word.toUpperCase();
 			break;
 		case NONE:
 		default:
 			break;
-		
+
 		}
 		return word;
 	}

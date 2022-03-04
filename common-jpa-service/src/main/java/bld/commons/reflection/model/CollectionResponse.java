@@ -12,6 +12,7 @@ import java.util.Collection;
  *
  * @param <T> the generic type
  */
+@SuppressWarnings("serial")
 public class CollectionResponse<T> extends ObjectResponse<Collection<T>> {
 
 	/** The num results. */
