@@ -2,3 +2,4 @@
 **/target/
 **/.projects
 **/.classpath
+**/bin/**
