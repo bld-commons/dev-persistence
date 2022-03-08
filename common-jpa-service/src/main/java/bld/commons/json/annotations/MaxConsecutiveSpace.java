@@ -1,3 +1,8 @@
+/**
+ * @author Francesco Baldi
+ * @mail francesco.baldi1987@gmail.com
+ * @class bld.commons.json.annotations.MaxConsecutiveSpace.java
+ */
 package bld.commons.json.annotations;
 
 import static java.lang.annotation.ElementType.FIELD;
@@ -13,18 +18,41 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 
 import bld.commons.reflection.annotations.deserialize.MaxConsecutiveSpaceDeserializer;
 
+/**
+ * The Interface MaxConsecutiveSpace.
+ */
 @Retention(RUNTIME)
 @Target({ FIELD, METHOD, PARAMETER })
 @JacksonAnnotationsInside
 @JsonDeserialize(using = MaxConsecutiveSpaceDeserializer.class)
 public @interface MaxConsecutiveSpace {
 
+	/**
+	 * Removes the all space type.
+	 *
+	 * @return true, if successful
+	 */
 	public boolean removeAllSpaceType() default false;
 	
+	/**
+	 * Consecutive.
+	 *
+	 * @return the int
+	 */
 	public int consecutive() default 1;
 	
+	/**
+	 * Trim.
+	 *
+	 * @return true, if successful
+	 */
 	public boolean trim() default true;
 	
+	/**
+	 * Removes the endline.
+	 *
+	 * @return true, if successful
+	 */
 	public boolean removeEndline() default false;
 	
 }

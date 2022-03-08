@@ -51,6 +51,13 @@ public class SearchController<ID,T extends BaseModel<ID>, F extends FilterParame
 	}
 	
 	
+	/**
+	 * Count by filter.
+	 *
+	 * @param filter the filter
+	 * @return the object response
+	 * @throws Exception the exception
+	 */
 	@PostMapping(path = "/count", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
 	@ResponseBody
 	@Valid

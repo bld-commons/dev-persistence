@@ -1,3 +1,8 @@
+/**
+ * @author Francesco Baldi
+ * @mail francesco.baldi1987@gmail.com
+ * @class bld.commons.reflection.annotations.deserialize.MaxConsecutiveSpaceDeserializer.java
+ */
 package bld.commons.reflection.annotations.deserialize;
 
 import java.io.IOException;
@@ -16,21 +21,42 @@ import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
 import bld.commons.json.annotations.MaxConsecutiveSpace;
 import bld.commons.reflection.annotations.deserialize.data.MaxConsecutiveSpaceProps;
 
+/**
+ * The Class MaxConsecutiveSpaceDeserializer.
+ */
 @SuppressWarnings("serial")
 public class MaxConsecutiveSpaceDeserializer extends StdDeserializer<String> implements ContextualDeserializer{
 
+	/** The max consecutive space props. */
 	private MaxConsecutiveSpaceProps maxConsecutiveSpaceProps;
 	
+	/**
+	 * Instantiates a new max consecutive space deserializer.
+	 */
 	public MaxConsecutiveSpaceDeserializer() {
 		super(String.class);
 	}
 
 
+	/**
+	 * Instantiates a new max consecutive space deserializer.
+	 *
+	 * @param src the src
+	 * @param maxConsecutiveSpaceProps the max consecutive space props
+	 */
 	protected MaxConsecutiveSpaceDeserializer(Class<String> src,MaxConsecutiveSpaceProps maxConsecutiveSpaceProps) {
 		super(src);
 		this.maxConsecutiveSpaceProps=maxConsecutiveSpaceProps;
 	}
 
+	/**
+	 * Creates the contextual.
+	 *
+	 * @param ctxt the ctxt
+	 * @param property the property
+	 * @return the json deserializer
+	 * @throws JsonMappingException the json mapping exception
+	 */
 	@Override
 	public JsonDeserializer<?> createContextual(DeserializationContext ctxt, BeanProperty property) throws JsonMappingException {
 		MaxConsecutiveSpace maxConsecutiveSpace = property.getAnnotation(MaxConsecutiveSpace.class);
@@ -38,6 +64,15 @@ public class MaxConsecutiveSpaceDeserializer extends StdDeserializer<String> imp
 		return new MaxConsecutiveSpaceDeserializer(String.class, maxConsecutiveSpaceProps);
 	}
 
+	/**
+	 * Deserialize.
+	 *
+	 * @param p the p
+	 * @param ctxt the ctxt
+	 * @return the string
+	 * @throws IOException Signals that an I/O exception has occurred.
+	 * @throws JsonProcessingException the json processing exception
+	 */
 	@Override
 	public String deserialize(JsonParser p, DeserializationContext ctxt) throws IOException, JsonProcessingException {
 		String text=p.getText();
@@ -59,6 +94,14 @@ public class MaxConsecutiveSpaceDeserializer extends StdDeserializer<String> imp
 	}
 
 	
+	/**
+	 * Removes the space.
+	 *
+	 * @param remveText the remve text
+	 * @param replaceText the replace text
+	 * @param text the text
+	 * @return the string
+	 */
 	private String removeSpace(String remveText,String replaceText,String text) {
 		if(text.contains(remveText))
 			text=removeSpace(remveText, replaceText, text.replace(remveText, replaceText));

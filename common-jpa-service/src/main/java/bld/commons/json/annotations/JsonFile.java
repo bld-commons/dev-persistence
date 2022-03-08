@@ -33,6 +33,11 @@ import bld.commons.reflection.type.MimeType;
 @JsonInclude(Include.NON_NULL)
 public @interface JsonFile {
 
+	/**
+	 * Mime type.
+	 *
+	 * @return the mime type
+	 */
 	public MimeType mimeType() default MimeType.none;
 	
 	

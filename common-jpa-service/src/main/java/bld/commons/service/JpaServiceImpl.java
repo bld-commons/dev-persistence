@@ -537,6 +537,14 @@ public abstract class JpaServiceImpl<T, ID> extends BaseJpaService implements Jp
 		return mapKeyListEntity(list, classKey, key);
 	}
 
+	/**
+	 * Native query select by filter.
+	 *
+	 * @param <K> the key type
+	 * @param queryFilter the query filter
+	 * @param sql the sql
+	 * @return the list
+	 */
 	@Override
 	public <K> List<K> nativeQuerySelectByFilter(QueryFilter<K, ID> queryFilter, String sql) {
 		BuildQueryFilter<K, ID> buildQueryFilter = getBuildNativeQueryFilter(queryFilter, sql);
@@ -544,12 +552,28 @@ public abstract class JpaServiceImpl<T, ID> extends BaseJpaService implements Jp
 
 	}
 
+	/**
+	 * Native query count by filter.
+	 *
+	 * @param <K> the key type
+	 * @param queryFilter the query filter
+	 * @param count the count
+	 * @return the long
+	 */
 	@Override
 	public <K> Long nativeQueryCountByFilter(QueryFilter<K, ID> queryFilter, String count) {
 		BuildQueryFilter<K, ID> buildQueryFilter = getBuildNativeQueryFilter(queryFilter, count);
 		return this.nativeQueryCountByFilter(buildQueryFilter);
 	}
 
+	/**
+	 * Gets the builds the native query filter.
+	 *
+	 * @param <K> the key type
+	 * @param queryFilter the query filter
+	 * @param sql the sql
+	 * @return the builds the native query filter
+	 */
 	private <K> BuildQueryFilter<K, ID> getBuildNativeQueryFilter(QueryFilter<K, ID> queryFilter, String sql) {
 		BuildQueryFilter<K, ID> buildQueryFilter = new BuildQueryFilter<>();
 		if (queryFilter.getFilterParameter() != null)

@@ -46,6 +46,11 @@ public @interface ConditionBuilder {
 	public UpperLowerType upperLower() default UpperLowerType.NONE;
 	
 	
+	/**
+	 * Nullable.
+	 *
+	 * @return true, if successful
+	 */
 	public boolean nullable() default false;
 	
 	

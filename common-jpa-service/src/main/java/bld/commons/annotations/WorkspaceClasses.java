@@ -21,9 +21,19 @@ import bld.commons.workspace.mapper.MapperModel;
 @Target(TYPE)
 public @interface WorkspaceClasses {
 
+	/**
+	 * Service.
+	 *
+	 * @return the class<? extends jpa service<?,?>>
+	 */
 	public Class<? extends JpaService<?,?>> service();
 	
 
+	/**
+	 * Mapper.
+	 *
+	 * @return the class<? extends mapper model<?,?>>
+	 */
 	public Class<? extends MapperModel<?,?>> mapper();
 	
 }

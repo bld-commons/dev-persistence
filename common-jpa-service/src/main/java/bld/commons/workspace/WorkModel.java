@@ -39,6 +39,14 @@ public interface WorkModel {
 	 */
 	public <T, ID, M extends BaseModel<ID>> ObjectResponse<M> findSingleResultByFilter(QueryFilter<T, ID> queryFilter) throws Exception;
 
+	/**
+	 * Count by filter.
+	 *
+	 * @param <T> the generic type
+	 * @param <ID> the generic type
+	 * @param queryFilter the query filter
+	 * @return the object response
+	 */
 	public <T, ID> ObjectResponse<Long> countByFilter(QueryFilter<T, ID> queryFilter);
 	
 }

@@ -459,7 +459,7 @@ public class ClassBuilding {
 	 * @param typeService the type service
 	 * @param annotationMirror the annotation mirror
 	 * @param elementAnnotation the element annotation
-	 * @param manies 
+	 * @param manies the manies
 	 * @return the string
 	 */
 	private static String buildJoin(TypeElement type, ProcessingEnvironment processingEnv, List<String> mapConditions, LinkedHashSet<String> mapOneToMany, Map<String, QueryDetail> mapAlias, Set<String> aliases, String fromByFilter, Set<String> manyProps,

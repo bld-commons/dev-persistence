@@ -50,8 +50,10 @@ public abstract class BaseJpaService {
 	/** The Constant KEY_PROPERTY. */
 	public final static String KEY_PROPERTY = "<PROPERTY>";
 
+	/** The Constant WHERE_1_1. */
 	public static final String WHERE_1_1 = " WHERE 1=1 ";
 
+	/** The Constant WHERE. */
 	public static final String WHERE = "<WHERE>";
 
 	/** The map one to many. */
@@ -356,6 +358,14 @@ public abstract class BaseJpaService {
 		return findSingleResultByFilter(buildQueryFilter);
 	}
 
+	/**
+	 * Native query select by filter.
+	 *
+	 * @param <T> the generic type
+	 * @param <ID> the generic type
+	 * @param buildQueryFilter the build query filter
+	 * @return the list
+	 */
 	public <T, ID> List<T> nativeQuerySelectByFilter(BuildQueryFilter<T, ID> buildQueryFilter) {
 		String sql = buildNativeQuery(buildQueryFilter);
 		sql = addOrderBy(buildQueryFilter.getQueryFilter().getListOrderBy(), sql);
@@ -389,6 +399,14 @@ public abstract class BaseJpaService {
 		return listT;
 	}
 
+	/**
+	 * Native query count by filter.
+	 *
+	 * @param <T> the generic type
+	 * @param <ID> the generic type
+	 * @param buildQueryFilter the build query filter
+	 * @return the long
+	 */
 	public <T, ID> Long nativeQueryCountByFilter(BuildQueryFilter<T, ID> buildQueryFilter) {
 		String sql = buildNativeQuery(buildQueryFilter);
 		sql = addOrderBy(buildQueryFilter.getQueryFilter().getListOrderBy(), sql);
@@ -399,6 +417,14 @@ public abstract class BaseJpaService {
 		return count;
 	}
 
+	/**
+	 * Builds the native query.
+	 *
+	 * @param <T> the generic type
+	 * @param <ID> the generic type
+	 * @param buildQueryFilter the build query filter
+	 * @return the string
+	 */
 	private <T, ID> String buildNativeQuery(BuildQueryFilter<T, ID> buildQueryFilter) {
 		String where = WHERE_1_1;
 		String sql = buildQueryFilter.getSql();

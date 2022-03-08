@@ -73,6 +73,14 @@ public class WorkModelImpl implements WorkModel {
 		return response;
 	}
 	
+	/**
+	 * Count by filter.
+	 *
+	 * @param <T> the generic type
+	 * @param <ID> the generic type
+	 * @param queryFilter the query filter
+	 * @return the object response
+	 */
 	@Override
 	public <T,ID> ObjectResponse<Long> countByFilter(QueryFilter<T, ID>queryFilter){
 		WorkspaceClasses workspaceClasses=queryFilter.getFilterParameter().getClass().getAnnotation(WorkspaceClasses.class);
