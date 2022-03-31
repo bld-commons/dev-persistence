@@ -470,8 +470,6 @@ public class ClassBuilding {
 		String key = joins.get(0);
 		String classJoin = null;
 
-
-		System.out.println("type.getAnnotation(OneToMany.class) != null || type.getAnnotation(ManyToMany.class) != null>>>>" + (type.getAnnotation(OneToMany.class) != null || type.getAnnotation(ManyToMany.class) != null));
 		if (type.getAnnotation(OneToMany.class) != null || type.getAnnotation(ManyToMany.class) != null) {
 			DeclaredType dclt = (DeclaredType) type.asType();
 			classJoin = dclt.getTypeArguments().get(0).toString();
@@ -481,7 +479,6 @@ public class ClassBuilding {
 		if (CollectionUtils.isNotEmpty(joins))
 			joins.remove(0);
 		for (String join : joins) {
-			System.out.println("ClassJoin: " + classJoin);
 			ClassField classFieldJoin = mapClassField.get(classJoin);
 			Element elementJoin = classFieldJoin.getMapElement().get(join);
 			if (elementJoin == null) {

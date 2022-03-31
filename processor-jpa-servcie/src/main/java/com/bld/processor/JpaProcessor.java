@@ -33,7 +33,6 @@ import bld.commons.processor.annotations.QueryBuilder;
  * The Class JpaProcessor.
  */
 @SupportedAnnotationTypes({ "javax.persistence.Entity", "bld.commons.processor.annotations.QueryBuilder" })
-//@AutoService(Processor.class)
 @SupportedSourceVersion(SourceVersion.RELEASE_8)
 public class JpaProcessor extends AbstractProcessor {
 
@@ -95,9 +94,7 @@ public class JpaProcessor extends AbstractProcessor {
 				} else if (QueryBuilder.class.isAssignableFrom(classAnnotation)) {
 					AnnotationMirror annotationMirror=null;
 					for(AnnotationMirror am:type.getAnnotationMirrors()) {
-						System.out.println(classAnnotation.getName()+"=="+am.getAnnotationType().toString());
 						if(classAnnotation.getName().equals(am.getAnnotationType().toString())) {
-							System.out.println("Set Annotation ");
 							annotationMirror=am;
 							break;
 						}
