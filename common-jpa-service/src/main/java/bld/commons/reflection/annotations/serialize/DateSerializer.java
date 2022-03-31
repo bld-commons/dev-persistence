@@ -32,7 +32,7 @@ import bld.commons.reflection.utils.StaticApplicationContext;
  * @param <T> the generic type
  */
 @SuppressWarnings("serial")
-public class CustomDateSerializer<T> extends StdSerializer<T> implements ContextualSerializer {
+public class DateSerializer<T> extends StdSerializer<T> implements ContextualSerializer {
 
 	/** The env. */
 	private Environment env = null;
@@ -47,7 +47,7 @@ public class CustomDateSerializer<T> extends StdSerializer<T> implements Context
 	/**
 	 * Instantiates a new custom date serializer.
 	 */
-	public CustomDateSerializer() {
+	public DateSerializer() {
 		this(null);
 		this.env=StaticApplicationContext.getBean(Environment.class);
 	}
@@ -57,7 +57,7 @@ public class CustomDateSerializer<T> extends StdSerializer<T> implements Context
 	 *
 	 * @param t the t
 	 */
-	public CustomDateSerializer(Class<T> t) {
+	public DateSerializer(Class<T> t) {
 		super(t);
 		this.env=StaticApplicationContext.getBean(Environment.class);
 	}
@@ -69,7 +69,7 @@ public class CustomDateSerializer<T> extends StdSerializer<T> implements Context
 	 * @param dateTimeZone the date time zone
 	 * @param simpleDateFormat the simple date format
 	 */
-	private CustomDateSerializer(Class<T> classDate, JsonDateTimeZone dateTimeZone, SimpleDateFormat simpleDateFormat) {
+	private DateSerializer(Class<T> classDate, JsonDateTimeZone dateTimeZone, SimpleDateFormat simpleDateFormat) {
 		super(classDate);
 		this.dateTimeZone = dateTimeZone;
 		this.simpleDateFormat = simpleDateFormat;
@@ -141,7 +141,7 @@ public class CustomDateSerializer<T> extends StdSerializer<T> implements Context
 			this.setSimpleDateFormat(TimeZone.getTimeZone(this.env.getProperty(timeZone, timeZone)), this.dateTimeZone.format());
 		}
 		if (property.getType() != null && property.getType().getRawClass() != null)
-			return new CustomDateSerializer<>(property.getType().getRawClass(), this.dateTimeZone, this.simpleDateFormat);
+			return new DateSerializer<>(property.getType().getRawClass(), this.dateTimeZone, this.simpleDateFormat);
 		else
 			return this;
 	}

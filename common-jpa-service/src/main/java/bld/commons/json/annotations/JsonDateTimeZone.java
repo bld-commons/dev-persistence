@@ -20,7 +20,7 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
 import bld.commons.reflection.annotations.deserialize.DateDeserializer;
-import bld.commons.reflection.annotations.serialize.CustomDateSerializer;
+import bld.commons.reflection.annotations.serialize.DateSerializer;
 
 /**
  * The Interface JsonDateTimeZone.
@@ -29,7 +29,7 @@ import bld.commons.reflection.annotations.serialize.CustomDateSerializer;
 @Target({ FIELD, METHOD,PARAMETER })
 @JacksonAnnotationsInside
 @JsonDeserialize(using = DateDeserializer.class)
-@JsonSerialize(using=CustomDateSerializer.class)
+@JsonSerialize(using=DateSerializer.class)
 @JsonInclude(Include.NON_NULL)
 public @interface JsonDateTimeZone {
 

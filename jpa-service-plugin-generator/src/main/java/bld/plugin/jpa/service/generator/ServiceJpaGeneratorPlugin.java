@@ -104,7 +104,6 @@ public class ServiceJpaGeneratorPlugin extends AbstractMojo {
 
 			String packages = this.project.getCompileSourceRoots().get(0) + slash + persistencePackage.replace(".", slash) + "*.java";
 			String target = this.project.getBuild().getOutputDirectory() + "/";
-			getLog().info(target);
 			if (CollectionUtils.isNotEmpty(buildPackages)) {
 				for (String buildPackage : this.buildPackages) {
 					packages += " " + this.project.getCompileSourceRoots().get(0) + slash + buildPackage.replace(".", slash) + "/*.java";
@@ -112,7 +111,7 @@ public class ServiceJpaGeneratorPlugin extends AbstractMojo {
 			}
 
 			String command = "javac -cp ." + importJar + " -d " + classesDirectory + " " + packages;
-			getLog().info(command);
+			getLog().debug(command);
 
 			ProcessBuilder processBuilder = new ProcessBuilder(new String[] { shell, "-c", command });
 			processBuilder.redirectOutput(new File(this.project.getBuild().getOutputDirectory() + "/out.log"));
@@ -141,7 +140,7 @@ public class ServiceJpaGeneratorPlugin extends AbstractMojo {
 				
 			}
 
-			getLog().info("Entities size: " + modelClasses.getClasses().size());
+			getLog().debug("Entities size: " + modelClasses.getClasses().size());
 
 			ClassesGenerator generatorClass = new ClassesGeneratorImpl(ConfigurationClassGenerator.configClassGenerator(resourceTemplateDirectory));
 			generatorClass.writeClass(modelClasses, outputDirectory);

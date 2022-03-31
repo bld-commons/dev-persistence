@@ -44,10 +44,10 @@ public class ClassBuilding {
 	private static final ModelAnnotation ANNOTATION_QUERY_BUILDER = getModelAnnotation(QUERY_BUILDER);
 	
 	/** The Constant NAMED_PARAMETER_JDBC_TEMPLATE. */
-	private static final String NAMED_PARAMETER_JDBC_TEMPLATE = "NamedParameterJdbcTemplate";
+	//private static final String NAMED_PARAMETER_JDBC_TEMPLATE = "NamedParameterJdbcTemplate";
 	
 	/** The Constant JDBC_TEMPLATE. */
-	private static final String JDBC_TEMPLATE = "jdbcTemplate";
+	//private static final String JDBC_TEMPLATE = "jdbcTemplate";
 	
 	/** The Constant AUTOWIRED. */
 	private static final String AUTOWIRED = "Autowired";
@@ -266,14 +266,14 @@ public class ClassBuilding {
 	 *
 	 * @return the jdbc template
 	 */
-	private static ModelField getJdbcTemplate() {
-		ModelField entityManagerField = new ModelField();
-		entityManagerField.setGetterSetter(false);
-		entityManagerField.setType(NAMED_PARAMETER_JDBC_TEMPLATE);
-		entityManagerField.setName(JDBC_TEMPLATE);
-		entityManagerField.getAnnotations().add(ANNOTATION_AUTOWIRED);
-		return entityManagerField;
-	}
+//	private static ModelField getJdbcTemplate() {
+//		ModelField entityManagerField = new ModelField();
+//		entityManagerField.setGetterSetter(false);
+//		entityManagerField.setType(NAMED_PARAMETER_JDBC_TEMPLATE);
+//		entityManagerField.setName(JDBC_TEMPLATE);
+//		entityManagerField.getAnnotations().add(ANNOTATION_AUTOWIRED);
+//		return entityManagerField;
+//	}
 
 
 	
