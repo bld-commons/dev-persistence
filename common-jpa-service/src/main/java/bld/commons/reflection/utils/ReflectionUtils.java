@@ -20,7 +20,6 @@ import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
 
-import org.apache.commons.beanutils.BeanUtils;
 import org.apache.commons.beanutils.BeanUtilsBean;
 import org.apache.commons.beanutils.Converter;
 import org.apache.commons.beanutils.PropertyUtils;
@@ -223,7 +222,7 @@ public class ReflectionUtils {
 		converter = new CalendarConverter(null);
 		beanUtilsBean.getConvertUtils().register(converter, Calendar.class);
 		try {
-			BeanUtils.copyProperties(t, mapResultApp);
+			beanUtilsBean.copyProperties(t, mapResultApp);
 		} catch (IllegalAccessException | InvocationTargetException e) {
 			throw new RuntimeException(e);
 		}

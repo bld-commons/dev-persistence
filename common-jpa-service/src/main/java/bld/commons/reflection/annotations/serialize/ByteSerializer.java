@@ -20,10 +20,10 @@ import bld.commons.json.annotations.JsonFile;
 import bld.commons.reflection.type.MimeType;
 
 /**
- * The Class CustomByteSerializer.
+ * The Class ByteSerializer.
  */
 @SuppressWarnings("serial")
-public class CustomByteSerializer extends StdSerializer<byte[]> implements ContextualSerializer {
+public class ByteSerializer extends StdSerializer<byte[]> implements ContextualSerializer {
 
 	/** The mime type. */
 	private MimeType mimeType;
@@ -31,7 +31,7 @@ public class CustomByteSerializer extends StdSerializer<byte[]> implements Conte
 	/**
 	 * Instantiates a new custom byte serializer.
 	 */
-	public CustomByteSerializer() {
+	public ByteSerializer() {
 		this(null);
 	}
 
@@ -40,7 +40,7 @@ public class CustomByteSerializer extends StdSerializer<byte[]> implements Conte
 	 *
 	 * @param t the t
 	 */
-	public CustomByteSerializer(Class<byte[]> t) {
+	public ByteSerializer(Class<byte[]> t) {
 		super(t);
 	}
 
