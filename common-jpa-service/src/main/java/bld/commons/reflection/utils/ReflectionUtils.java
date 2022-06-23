@@ -150,37 +150,37 @@ public class ReflectionUtils {
 									else if (value instanceof Timestamp)
 										value = DateUtils.sumDate((Timestamp) value, dateFilter.addYear(), dateFilter.addMonth(),dateFilter.addWeek(), dateFilter.addDay(), dateFilter.addHour(), dateFilter.addMinute(), dateFilter.addSecond());
 
-								} else if (value instanceof String && likeString != null) {
-									switch (likeString.likeType()) {
-									case LEFT:
-										value = "%" + value;
-										break;
-									case LEFT_RIGHT:
-										value = "%" + value + "%";
-										break;
-									case RIGHT:
-										value = value + "%";
-										break;
-									case EQUAL:
-										break;
-									default:
-										value = "%" + value + "%";
-										break;
-									}
-									switch(likeString.upperLowerType()) {
-									case LOWER:
-										value = ((String) value).toLowerCase();
-										break;
-									case UPPER:
-										value = ((String) value).toUpperCase();
-										break;
-									case NONE:
-									default:
-										break;
-									
-									}
+								}else if(likeString != null && value instanceof String) {
+										switch (likeString.likeType()) {
+										case LEFT:
+											value = "%" + value;
+											break;
+										case LEFT_RIGHT:
+											value = "%" + value + "%";
+											break;
+										case RIGHT:
+											value = value + "%";
+											break;
+										case NONE:
+											break;
+										default:
+											value = "%" + value + "%";
+											break;
+										}
+										switch(likeString.upperLowerType()) {
+										case LOWER:
+											value = ((String) value).toLowerCase();
+											break;
+										case UPPER:
+											value = ((String) value).toUpperCase();
+											break;
+										case NONE:
+										default:
+											break;
 										
-								}
+										}
+								} 
+									
 								if (value instanceof Boolean && (Boolean)value && field.isAnnotationPresent(ListFilter.class))
 									checkNullable.add(field.getName());
 								else if (value.getClass().isArray()) {

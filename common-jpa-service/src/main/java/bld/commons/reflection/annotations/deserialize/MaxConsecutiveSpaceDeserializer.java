@@ -60,7 +60,7 @@ public class MaxConsecutiveSpaceDeserializer extends StdDeserializer<String> imp
 	@Override
 	public JsonDeserializer<?> createContextual(DeserializationContext ctxt, BeanProperty property) throws JsonMappingException {
 		MaxConsecutiveSpace maxConsecutiveSpace = property.getAnnotation(MaxConsecutiveSpace.class);
-		MaxConsecutiveSpaceProps maxConsecutiveSpaceProps = new MaxConsecutiveSpaceProps(maxConsecutiveSpace.consecutive(), maxConsecutiveSpace.trim(),maxConsecutiveSpace.removeEndline(),maxConsecutiveSpace.removeAllSpaceType());
+		MaxConsecutiveSpaceProps maxConsecutiveSpaceProps = new MaxConsecutiveSpaceProps(maxConsecutiveSpace.consecutive(), maxConsecutiveSpace.trim(),maxConsecutiveSpace.removeEndline(),maxConsecutiveSpace.removeAllSpaceType(),maxConsecutiveSpace.upperLowerType());
 		return new MaxConsecutiveSpaceDeserializer(String.class, maxConsecutiveSpaceProps);
 	}
 
@@ -88,7 +88,20 @@ public class MaxConsecutiveSpaceDeserializer extends StdDeserializer<String> imp
 				for(int i=0;i<maxConsecutiveSpaceProps.getConsecutive();i++)
 					space+=" ";
 				text=removeSpace(space+" ", space, text);
-			}	
+			}
+			
+			switch(this.maxConsecutiveSpaceProps.getUpperLowerType()) {
+			case LOWER:
+				text=text.toLowerCase();
+				break;
+			case UPPER:
+				text=text.toUpperCase();
+				break;
+			case NONE:
+			default:
+				break;
+			
+			}
 		}
 		return text;
 	}

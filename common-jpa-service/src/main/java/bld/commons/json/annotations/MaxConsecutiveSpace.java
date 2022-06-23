@@ -14,9 +14,12 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 
 import com.fasterxml.jackson.annotation.JacksonAnnotationsInside;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 
 import bld.commons.reflection.annotations.deserialize.MaxConsecutiveSpaceDeserializer;
+import bld.commons.reflection.type.UpperLowerType;
 
 /**
  * The Interface MaxConsecutiveSpace.
@@ -25,6 +28,7 @@ import bld.commons.reflection.annotations.deserialize.MaxConsecutiveSpaceDeseria
 @Target({ FIELD, METHOD, PARAMETER })
 @JacksonAnnotationsInside
 @JsonDeserialize(using = MaxConsecutiveSpaceDeserializer.class)
+@JsonInclude(Include.NON_NULL)
 public @interface MaxConsecutiveSpace {
 
 	/**
@@ -54,5 +58,8 @@ public @interface MaxConsecutiveSpace {
 	 * @return true, if successful
 	 */
 	public boolean removeEndline() default false;
+	
+	
+	public UpperLowerType upperLowerType() default UpperLowerType.NONE;
 	
 }

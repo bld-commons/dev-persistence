@@ -5,6 +5,8 @@
  */
 package bld.commons.reflection.annotations.deserialize.data;
 
+import bld.commons.reflection.type.UpperLowerType;
+
 /**
  * The Class MaxConsecutiveSpaceProps.
  */
@@ -21,7 +23,8 @@ public class MaxConsecutiveSpaceProps {
 	
 	/** The remove all space type. */
 	private boolean removeAllSpaceType;
-
+	
+	private UpperLowerType upperLowerType;
 
 
 	/**
@@ -32,12 +35,13 @@ public class MaxConsecutiveSpaceProps {
 	 * @param removeEndline the remove endline
 	 * @param removeAllSpaceType the remove all space type
 	 */
-	public MaxConsecutiveSpaceProps(int consecutive, boolean trim, boolean removeEndline, boolean removeAllSpaceType) {
+	public MaxConsecutiveSpaceProps(int consecutive, boolean trim, boolean removeEndline, boolean removeAllSpaceType,UpperLowerType upperLowerType) {
 		super();
 		this.consecutive = consecutive;
 		this.trim = trim;
 		this.removeEndline = removeEndline;
 		this.removeAllSpaceType = removeAllSpaceType;
+		this.upperLowerType=upperLowerType;
 	}
 
 	/**
@@ -74,6 +78,10 @@ public class MaxConsecutiveSpaceProps {
 	 */
 	public boolean isRemoveAllSpaceType() {
 		return removeAllSpaceType;
+	}
+
+	public UpperLowerType getUpperLowerType() {
+		return upperLowerType;
 	}
 
 	
