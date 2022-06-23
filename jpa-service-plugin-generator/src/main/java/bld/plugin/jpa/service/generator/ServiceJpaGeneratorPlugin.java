@@ -12,6 +12,7 @@ import java.io.InputStreamReader;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.List;
+import java.util.Set;
 
 import javax.persistence.Entity;
 
@@ -41,7 +42,6 @@ import bld.plugin.jpa.service.generator.classes.ClassBuilding;
 @SuppressWarnings("resource")
 public class ServiceJpaGeneratorPlugin extends AbstractMojo {
 
-
 	/** The Constant TARGET_GENERATED_SOURCES_CLASSES. */
 	private static final String TARGET_GENERATED_SOURCES_CLASSES = "/target/generated-sources/classes";
 
@@ -60,6 +60,9 @@ public class ServiceJpaGeneratorPlugin extends AbstractMojo {
 	@Parameter(required = true)
 	private String servicePackage;
 
+	@Parameter(required = true)
+	private String basePackage;
+
 	@Parameter(required = false)
 	private String repositoryPackage;
 
@@ -67,8 +70,8 @@ public class ServiceJpaGeneratorPlugin extends AbstractMojo {
 	@Parameter(defaultValue = "/template")
 	private String resourceTemplateDirectory;
 
-	@Parameter
-	private List<String> buildPackages;
+//	@Parameter
+//	private List<String> buildPackages;
 
 	/**
 	 * Execute.
@@ -78,18 +81,21 @@ public class ServiceJpaGeneratorPlugin extends AbstractMojo {
 	 */
 	public void execute() throws MojoExecutionException, MojoFailureException {
 		try {
-
-			String outputDirectory = this.project.getBasedir() + "/" + this.outputDirectory.getValue();
-			String classesDirectory = this.project.getBuild().getOutputDirectory();
-
-			project.addCompileSourceRoot(new File(this.project.getBasedir() + TARGET_GENERATED_SOURCES_CLASSES).getAbsolutePath());
-
 			String slash = "/";
 			String shell = "bash";
 			if (System.getProperty("os.name").toLowerCase().contains("win")) {
 				slash = "\\";
 				shell = "cmd.exe";
 			}
+			
+			
+			String outputDirectory = this.project.getBasedir() + this.outputDirectory.getValue();
+			String classesDirectory = this.project.getBuild().getOutputDirectory();
+
+			project.addCompileSourceRoot(new File(this.project.getBasedir() + TARGET_GENERATED_SOURCES_CLASSES).getAbsolutePath());
+			
+			Set<String>buildPackages=ClassGeneratorUtils.buildPackage(outputDirectory,persistencePackage.replace(".", slash), "^import "+basePackage+".*;$", slash,null);
+
 
 			if (!persistencePackage.endsWith("."))
 				persistencePackage = persistencePackage + ".";
@@ -102,11 +108,14 @@ public class ServiceJpaGeneratorPlugin extends AbstractMojo {
 			for (Artifact artifact : this.project.getArtifacts())
 				importJar += ":" + artifact.getFile().getPath();
 
-			String packages = this.project.getCompileSourceRoots().get(0) + slash + persistencePackage.replace(".", slash) + "*.java";
-			String target = this.project.getBuild().getOutputDirectory() + "/";
+			String compileSoruceRoot = this.project.getCompileSourceRoots().get(0);
+			String persistenceDirectory = compileSoruceRoot + slash + persistencePackage.replace(".", slash);
+
+			String packages = persistenceDirectory + "*.java";
+			String target = this.project.getBuild().getOutputDirectory() + slash;
 			if (CollectionUtils.isNotEmpty(buildPackages)) {
-				for (String buildPackage : this.buildPackages) {
-					packages += " " + this.project.getCompileSourceRoots().get(0) + slash + buildPackage.replace(".", slash) + "/*.java";
+				for (String buildPackage : buildPackages) {
+					packages += " " + compileSoruceRoot + slash + buildPackage.replace(".", slash) +slash+ "*.java";
 				}
 			}
 
@@ -114,8 +123,8 @@ public class ServiceJpaGeneratorPlugin extends AbstractMojo {
 			getLog().debug(command);
 
 			ProcessBuilder processBuilder = new ProcessBuilder(new String[] { shell, "-c", command });
-			processBuilder.redirectOutput(new File(this.project.getBuild().getOutputDirectory() + "/out.log"));
-			File errorFile = new File(this.project.getBuild().getOutputDirectory() + "/out-error.log");
+			processBuilder.redirectOutput(new File(this.project.getBuild().getOutputDirectory() +slash+ "out.log"));
+			File errorFile = new File(this.project.getBuild().getOutputDirectory() +slash+ "out-error.log");
 			processBuilder.redirectError(errorFile);
 			processBuilder.start().waitFor();
 			readLog(errorFile);
@@ -129,15 +138,15 @@ public class ServiceJpaGeneratorPlugin extends AbstractMojo {
 			List<File> files = ClassGeneratorUtils.getFiles(classesDirectory + slash + persistencePackage.replace(".", slash), "class");
 			for (File file : files) {
 
-				String nameClass = file.getPath().replace(target, "").replace("/", ".").replace(".class", "");
+				String nameClass = file.getPath().replace(target, "").replace(slash, ".").replace(".class", "");
 				Class<?> entityClass = urlClassLoader.loadClass(nameClass);
 				try {
 					if (entityClass.isAnnotationPresent(Entity.class))
 						ClassBuilding.generateClass(modelClasses, entityClass, classesDirectory, servicePackage, repositoryPackage);
-				}catch(ArrayStoreException e) {
-					getLog().error("TypeNotPresentExceptionProxy to: "+entityClass.getName());
+				} catch (ArrayStoreException e) {
+					getLog().error("TypeNotPresentExceptionProxy to: " + entityClass.getName());
 				}
-				
+
 			}
 
 			getLog().debug("Entities size: " + modelClasses.getClasses().size());
@@ -163,5 +172,6 @@ public class ServiceJpaGeneratorPlugin extends AbstractMojo {
 			e.printStackTrace();
 		}
 	}
+
 
 }
