@@ -570,8 +570,9 @@ public class ClassBuilding {
 								keyProps = alias + Character.toUpperCase(fieldManyToMany.getSimpleName().toString().charAt(0)) + fieldManyToMany.getSimpleName().toString().substring(1);
 							manyProps.add(keyProps);
 							manies.add(" left join fetch " + queryDetail.getAlias() + "." + join + " " + alias + " \"");
-							mapOneToMany.add(SPACE + "addJoinOneToMany(\"" + keyProps + "\", " + printManies(manies) + " );");
-							mapConditions.add(SPACE + "map.put(\"" + keyProps + "\", \" and " + alias + "." + fieldManyToMany.getSimpleName().toString() + " in (:" + keyProps + ") \");");
+							mapOneToMany.add(SPACE + "addJoinOneToMany(" + keyProps + ", " + printManies(manies) + " );");
+							mapConditions.add(SPACE + "map.put(" + keyProps + ", \" and " + alias + "." + fieldManyToMany.getSimpleName().toString() + " in (:" + keyProps + ") \");");
+							keyConditions.add(keyProps);
 							queryDetail = new QueryDetail(alias, key, nullable, true, classFieldRefernce);
 							mapAlias.put(key, queryDetail);
 						}
@@ -585,11 +586,11 @@ public class ClassBuilding {
 						Set<Element> listFieldReference = classField.getElements();
 						for (Element fieldReference : listFieldReference) {
 							if (fieldReference.getAnnotation(Id.class) != null || fieldReference.getAnnotation(EmbeddedId.class) != null) {
-								mapConditions.add(
-										SPACE + "map.put(\"" + fieldReference.getSimpleName().toString() + "\", \" and " + alias + "." + fieldReference.getSimpleName().toString() + " in (:" + fieldReference.getSimpleName().toString() + ") \");");
+								mapConditions.add(SPACE + "map.put(" + fieldReference.getSimpleName().toString() + ", \" and " + alias + "." + fieldReference.getSimpleName().toString() + " in (:" + fieldReference.getSimpleName().toString() + ") \");");
 								manies.add("\" left join fetch " + queryDetail.getAlias() + "." + join + " " + alias + " \"");
-								mapOneToMany.add(SPACE + "addJoinOneToMany(\"" + fieldReference.getSimpleName().toString() + "\", " + printManies(manies) + " );");
+								mapOneToMany.add(SPACE + "addJoinOneToMany(" + fieldReference.getSimpleName().toString() + ", " + printManies(manies) + " );");
 								manyProps.add(fieldReference.getSimpleName().toString());
+								keyConditions.add(fieldReference.getSimpleName().toString());
 								break;
 							}
 						}
@@ -607,10 +608,11 @@ public class ClassBuilding {
 						for (Element fieldReference : listFieldReference) {
 							if (fieldReference.getAnnotation(Id.class) != null || fieldReference.getAnnotation(EmbeddedId.class) != null) {
 								mapConditions.add(
-										SPACE + "map.put(\"" + fieldReference.getSimpleName().toString() + "\", \" and " + alias + "." + fieldReference.getSimpleName().toString() + " in (:" + fieldReference.getSimpleName().toString() + ") \");");
+										SPACE + "map.put(" + fieldReference.getSimpleName().toString() + ", \" and " + alias + "." + fieldReference.getSimpleName().toString() + " in (:" + fieldReference.getSimpleName().toString() + ") \");");
 								manies.add("\"" + (nullable ? " left" : "") + " join fetch " + queryDetail.getAlias() + "." + join + " " + alias + " \"");
-								mapOneToMany.add(SPACE + "addJoinOneToMany(\"" + fieldReference.getSimpleName().toString() + "\", " + printManies(manies) + " );");
+								mapOneToMany.add(SPACE + "addJoinOneToMany(" + fieldReference.getSimpleName().toString() + ", " + printManies(manies) + " );");
 								manyProps.add(fieldReference.getSimpleName().toString());
+								keyConditions.add(fieldReference.getSimpleName().toString());
 								break;
 							}
 						}
@@ -623,8 +625,11 @@ public class ClassBuilding {
 			}
 
 		}
-		if (CollectionUtils.isNotEmpty(manies) && StringUtils.isNotEmpty(parameter))
-			mapOneToMany.add(SPACE + "addJoinOneToMany(\"" + parameter + "\", " + printManies(manies) + " );");
+		if (CollectionUtils.isNotEmpty(manies) && StringUtils.isNotEmpty(parameter)) {
+			mapOneToMany.add(SPACE + "addJoinOneToMany(" + parameter + ", " + printManies(manies) + " );");
+			keyConditions.add(parameter);
+		}
+			
 
 		return fromByFilter;
 	}
