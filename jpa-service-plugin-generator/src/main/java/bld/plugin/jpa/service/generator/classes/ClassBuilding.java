@@ -31,8 +31,10 @@ import bld.commons.reflection.utils.ReflectionUtils;
  */
 public class ClassBuilding {
 
+	/** The Constant BASE_JPA_REPOSITORY. */
 	private static final String BASE_JPA_REPOSITORY = "BaseJpaRepository";
 	
+	/** The Constant QUERY_BUILDER. */
 	private static final String QUERY_BUILDER = "QueryBuilder";
 
 	/** The Constant SPACE. */
@@ -41,6 +43,7 @@ public class ClassBuilding {
 	/** The Constant OVERRIDE. */
 	private static final String OVERRIDE = "Override";
 	
+	/** The Constant ANNOTATION_QUERY_BUILDER. */
 	private static final ModelAnnotation ANNOTATION_QUERY_BUILDER = getModelAnnotation(QUERY_BUILDER);
 	
 	/** The Constant NAMED_PARAMETER_JDBC_TEMPLATE. */
@@ -103,13 +106,15 @@ public class ClassBuilding {
 	
 
 	/**
-	 * Generate class.
-	 *
-	 * @param modelClasses the model classes
-	 * @param classEntity  the class entity
-	 * @param path         the path
-	 * @throws Exception the exception
-	 */
+ * Generate class.
+ *
+ * @param modelClasses the model classes
+ * @param classEntity  the class entity
+ * @param path         the path
+ * @param servicePackage the service package
+ * @param repositoryPackage the repository package
+ * @throws Exception the exception
+ */
 	public static void generateClass(ModelClasses modelClasses, Class<?> classEntity, String path,String servicePackage,String repositoryPackage) throws Exception {
 		ModelClass interfaceRepository = new ModelClass();
 		ModelClass interfaceService = new ModelClass();
@@ -264,6 +269,9 @@ public class ClassBuilding {
 	/**
 	 * Gets the jdbc template.
 	 *
+	 * @param name the name
+	 * @param type the type
+	 * @param command the command
 	 * @return the jdbc template
 	 */
 //	private static ModelField getJdbcTemplate() {

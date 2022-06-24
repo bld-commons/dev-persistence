@@ -57,12 +57,15 @@ public class ServiceJpaGeneratorPlugin extends AbstractMojo {
 	@Parameter(defaultValue = "src_main_java")
 	private OutputDirectoryType outputDirectory;
 
+	/** The service package. */
 	@Parameter(required = true)
 	private String servicePackage;
 
+	/** The base package. */
 	@Parameter(required = true)
 	private String basePackage;
 
+	/** The repository package. */
 	@Parameter(required = false)
 	private String repositoryPackage;
 
@@ -160,6 +163,11 @@ public class ServiceJpaGeneratorPlugin extends AbstractMojo {
 
 	}
 
+	/**
+	 * Read log.
+	 *
+	 * @param file the file
+	 */
 	private void readLog(File file) {
 		try {
 			FileInputStream fstream = new FileInputStream(file);
