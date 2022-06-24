@@ -23,8 +23,7 @@ public class IDFilterParameter<ID> extends FilterParameter {
 	 * Instantiates a new ID filter parameter.
 	 */
 	public IDFilterParameter() {
-		super();
-		this.id = new ArrayList<>();
+		super();	
 	}
 
 	/**
@@ -43,6 +42,13 @@ public class IDFilterParameter<ID> extends FilterParameter {
 	 */
 	public void setId(List<ID> id) {
 		this.id = id;
+	}
+	
+	
+	public void addId(ID id) {
+		if(this.id==null)
+			this.id=new ArrayList<>();
+		this.id.add(id);
 	}
 
 }

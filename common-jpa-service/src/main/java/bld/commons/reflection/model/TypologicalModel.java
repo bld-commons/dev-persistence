@@ -5,6 +5,7 @@
  */
 package bld.commons.reflection.model;
 
+import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 
 /**
@@ -16,7 +17,7 @@ import javax.validation.constraints.NotNull;
 public class TypologicalModel<ID> extends BaseModel<ID> {
 
 	/** The name. */
-	@NotNull
+	@NotBlank
 	private String name;
 
 	/**
@@ -25,6 +26,13 @@ public class TypologicalModel<ID> extends BaseModel<ID> {
 	public TypologicalModel() {
 		super();
 	}
+
+	
+	public TypologicalModel(@NotBlank String name) {
+		super();
+		this.name = name;
+	}
+
 
 	/**
 	 * Instantiates a new typological model.
