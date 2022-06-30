@@ -27,7 +27,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import bld.commons.exception.PropertiesException;
 import bld.commons.reflection.model.BuildQueryFilter;
 import bld.commons.reflection.model.QueryFilter;
-import bld.commons.reflection.utils.ReflectionUtils;
+import bld.commons.reflection.utils.ReflectionCommons;
 import bld.commons.utils.PersistenceMap;
 
 // TODO: Auto-generated Javadoc
@@ -51,7 +51,7 @@ public abstract class JpaServiceImpl<T, ID> extends BaseJpaService implements Jp
 
 	/** The reflection utils. */
 	@Autowired
-	protected ReflectionUtils reflectionUtils;
+	protected ReflectionCommons reflectionCommons;
 
 	/** The query jpl. */
 	@Autowired
@@ -80,8 +80,8 @@ public abstract class JpaServiceImpl<T, ID> extends BaseJpaService implements Jp
 	 */
 	public JpaServiceImpl() {
 		super();
-		this.clazz = ReflectionUtils.getGenericTypeClass(this);
-		Set<Field> fields = ReflectionUtils.getListField(this.clazz);
+		this.clazz = ReflectionCommons.getGenericTypeClass(this);
+		Set<Field> fields = ReflectionCommons.getListField(this.clazz);
 		for (Field field : fields)
 			if (field.isAnnotationPresent(Id.class)) {
 				this.id = field;
@@ -110,7 +110,7 @@ public abstract class JpaServiceImpl<T, ID> extends BaseJpaService implements Jp
 			this.setMapOneToMany();
 		}
 		if (queryFilter.getFilterParameter() != null)
-			queryFilter = reflectionUtils.dataToMap(queryFilter);
+			queryFilter = reflectionCommons.dataToMap(queryFilter);
 		queryFilter.setResultClass(clazz);
 		return new BuildQueryFilter<>(mapConditions, queryFilter, query);
 	}
@@ -577,7 +577,7 @@ public abstract class JpaServiceImpl<T, ID> extends BaseJpaService implements Jp
 	private <K> BuildQueryFilter<K, ID> getBuildNativeQueryFilter(QueryFilter<K, ID> queryFilter, String sql) {
 		BuildQueryFilter<K, ID> buildQueryFilter = new BuildQueryFilter<>();
 		if (queryFilter.getFilterParameter() != null)
-			queryFilter = reflectionUtils.dataToMap(queryFilter);
+			queryFilter = reflectionCommons.dataToMap(queryFilter);
 		buildQueryFilter.setQueryFilter(queryFilter);
 		buildQueryFilter.setSql(sql);
 		buildQueryFilter.setMapConditions(this.queryJpl.mapNativeConditions());

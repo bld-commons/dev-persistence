@@ -29,7 +29,7 @@ import bld.commons.reflection.model.BuildQueryFilter;
 import bld.commons.reflection.model.FilterParameter;
 import bld.commons.reflection.model.OrderBy;
 import bld.commons.reflection.model.QueryFilter;
-import bld.commons.reflection.utils.ReflectionUtils;
+import bld.commons.reflection.utils.ReflectionCommons;
 
 /**
  * The Class BaseJpaService.
@@ -86,7 +86,7 @@ public abstract class BaseJpaService {
 
 	/** The reflection utils. */
 	@Autowired
-	protected ReflectionUtils reflectionUtils;
+	protected ReflectionCommons reflectionCommons;
 
 	/**
 	 * Instantiates a new base jpa service.
@@ -291,7 +291,7 @@ public abstract class BaseJpaService {
 			if (mapParameters.containsKey(key) || (nullables != null && nullables.contains(key))) {
 				Set<String> joins = mapOneToMany.get(key);
 				for (String join : joins) {
-					join = ReflectionUtils.removeExtraSpace(join);
+					join = ReflectionCommons.removeExtraSpace(join);
 					if (!listJoin.contains(join)) {
 						listJoin.add(join);
 						innerJoin += " " + join + " ";
@@ -393,7 +393,7 @@ public abstract class BaseJpaService {
 				if (value != null)
 					mapRow.put(element.getAlias(), value);
 			}
-			this.reflectionUtils.reflection(t, mapRow);
+			this.reflectionCommons.reflection(t, mapRow);
 			listT.add(t);
 		}
 		return listT;

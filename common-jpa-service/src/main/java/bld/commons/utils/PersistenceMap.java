@@ -26,7 +26,7 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.tuple.Pair;
 
 import bld.commons.exception.PropertiesException;
-import bld.commons.reflection.utils.ReflectionUtils;
+import bld.commons.reflection.utils.ReflectionCommons;
 
 /**
  * The Class PersistenceMap.
@@ -125,7 +125,7 @@ public class PersistenceMap<K, V> {
 	private List<Field> fields(Object key) {
 		List<Field> listField = null;
 		if (!mapFields.containsKey(key.getClass())) {
-			Set<Field> fields = ReflectionUtils.getListField(key.getClass());
+			Set<Field> fields = ReflectionCommons.getListField(key.getClass());
 			listField = new ArrayList<>();
 			if (key.getClass().isAnnotationPresent(Entity.class)) {
 				for (Field field : fields) {

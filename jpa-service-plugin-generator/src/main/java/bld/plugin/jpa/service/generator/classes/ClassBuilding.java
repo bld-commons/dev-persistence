@@ -24,7 +24,7 @@ import bld.commons.classes.model.ModelField;
 import bld.commons.classes.model.ModelGenericType;
 import bld.commons.classes.model.ModelMethod;
 import bld.commons.classes.model.ModelSuperClass;
-import bld.commons.reflection.utils.ReflectionUtils;
+import bld.commons.reflection.utils.ReflectionCommons;
 
 /**
  * The Class ClassBuilding.
@@ -143,15 +143,15 @@ public class ClassBuilding {
 		ModelGenericType genericTypeEntityClass = new ModelGenericType();
 		genericTypeEntityClass.setName(className);
 
-		Set<Field> listField = ReflectionUtils.getListField(classEntity);
+		Set<Field> listField = ReflectionCommons.getListField(classEntity);
 		ModelGenericType genericTypeId = new ModelGenericType();
 		
 		for (Field field : listField) {
 
 			if (field.isAnnotationPresent(Id.class) || field.isAnnotationPresent(EmbeddedId.class)) {
 				Class<?> classType = field.getType();
-				if (ReflectionUtils.mapPrimitiveToObject.containsKey(classType))
-					classType = ReflectionUtils.mapPrimitiveToObject.get(classType);
+				if (ReflectionCommons.mapPrimitiveToObject.containsKey(classType))
+					classType = ReflectionCommons.mapPrimitiveToObject.get(classType);
 				genericTypeId.setName(classType.getSimpleName());
 				if (!classType.getName().startsWith("java.lang")) {
 					interfaceRepository.getImports().add(classType.getName());

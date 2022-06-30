@@ -1,7 +1,7 @@
 /**
  * @author Francesco Baldi
  * @mail francesco.baldi1987@gmail.com
- * @class bld.commons.persistence.reflection.utils.ReflectionUtils.java
+ * @class bld.commons.persistence.reflection.utils.ReflectionCommons.java
  */
 package bld.commons.reflection.utils;
 
@@ -45,11 +45,11 @@ import bld.commons.reflection.model.QueryFilter;
 import bld.commons.reflection.type.GetSetType;
 
 /**
- * The Class ReflectionUtils.
+ * The Class ReflectionCommons.
  */
 @Component
 @SuppressWarnings("unchecked")
-public class ReflectionUtils {
+public class ReflectionCommons {
 
 	/** The Constant PK. */
 	public static final String PK = "PK";
@@ -59,7 +59,7 @@ public class ReflectionUtils {
 	private ApplicationContext applicationContext;
 
 	/** The logger. */
-	private final static Log logger = LogFactory.getLog(ReflectionUtils.class);
+	private final static Log logger = LogFactory.getLog(ReflectionCommons.class);
 
 	/** The Constant SERVICE_IMPL. */
 	public static final String SERVICE_IMPL = "ServiceImpl";
@@ -126,10 +126,10 @@ public class ReflectionUtils {
 		FilterParameter obj = queryFilter.getFilterParameter();
 
 		if (obj != null) {
-			Set<Field> fields = ReflectionUtils.getListField(obj.getClass());
-			Map<String, LinkedHashSet<Method>> mapMethod = ReflectionUtils.getMapMethod(obj.getClass());
+			Set<Field> fields = ReflectionCommons.getListField(obj.getClass());
+			Map<String, LinkedHashSet<Method>> mapMethod = ReflectionCommons.getMapMethod(obj.getClass());
 			for (Field field : fields) {
-				Method method = ReflectionUtils.getMethod(mapMethod, field, GetSetType.get);
+				Method method = ReflectionCommons.getMethod(mapMethod, field, GetSetType.get);
 				if (method != null) {
 					IgnoreMapping ignoreMapping = method.isAnnotationPresent(IgnoreMapping.class) ? method.getAnnotation(IgnoreMapping.class) : field.getAnnotation(IgnoreMapping.class);
 					if (ignoreMapping == null || !ignoreMapping.value()) {
@@ -432,7 +432,7 @@ public class ReflectionUtils {
 	 */
 	public static Method getMethod(Map<String, LinkedHashSet<Method>> mapMethod, Field field, GetSetType getSetType, Class<?>... classParameter) {
 		String methodName = getSetType.name() + Character.toUpperCase(field.getName().charAt(0)) + field.getName().substring(1);
-		return ReflectionUtils.getMethod(mapMethod, methodName, classParameter);
+		return ReflectionCommons.getMethod(mapMethod, methodName, classParameter);
 
 	}
 
