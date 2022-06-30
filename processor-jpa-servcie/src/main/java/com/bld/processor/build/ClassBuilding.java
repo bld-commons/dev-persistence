@@ -61,7 +61,7 @@ import bld.commons.processor.ConditionType;
 import bld.commons.processor.annotations.ConditionBuilder;
 import bld.commons.processor.annotations.CustomConditionBuilder;
 import bld.commons.processor.annotations.QueryBuilder;
-import bld.commons.reflection.utils.ReflectionUtils;
+import bld.commons.reflection.utils.ReflectionCommons;
 import bld.commons.service.BaseJpaService;
 
 /**
@@ -465,7 +465,7 @@ public class ClassBuilding {
 	 * @param conditions       the conditions
 	 * @param deleteConditions the delete conditions
 	 * @param customCondition  the custom condition
-	 * @param keyConditions 
+	 * @param keyConditions the key conditions
 	 */
 	private static void writeCustomCondition(List<String> conditions, List<String> deleteConditions, CustomConditionBuilder customCondition, Set<String> keyConditions) {
 		String condition = SPACE + "map.put(" + customCondition.parameter() + ", \" " + customCondition.condition() + "\");";
@@ -493,7 +493,7 @@ public class ClassBuilding {
 	 * @param annotationMirror  the annotation mirror
 	 * @param elementAnnotation the element annotation
 	 * @param manies            the manies
-	 * @param keyConditions 
+	 * @param keyConditions the key conditions
 	 * @return the string
 	 */
 	private static String buildJoin(TypeElement type, ProcessingEnvironment processingEnv, List<String> mapConditions, LinkedHashSet<String> mapOneToMany, Map<String, QueryDetail> mapAlias, Set<String> aliases, String fromByFilter,
@@ -684,6 +684,12 @@ public class ClassBuilding {
 		return joinMany.substring(1);
 	}
 
+	/**
+	 * Gets the interface query jpql.
+	 *
+	 * @param classEntity the class entity
+	 * @return the interface query jpql
+	 */
 	private static ModelSuperClass getInterfaceQueryJpql(String classEntity) {
 		ModelSuperClass superClassQueryJpql = new ModelSuperClass();
 		superClassQueryJpql.setName(classEntity + QUERY_JPQL);
@@ -725,8 +731,8 @@ public class ClassBuilding {
 						Class<?> classTypeField = null;
 						if (element.getAnnotation(EmbeddedId.class) == null) {
 							classTypeField = Class.forName(element.asType().toString());
-							if (ReflectionUtils.mapPrimitiveToObject.containsKey(classTypeField))
-								classTypeField = ReflectionUtils.mapPrimitiveToObject.get(classTypeField);
+							if (ReflectionCommons.mapPrimitiveToObject.containsKey(classTypeField))
+								classTypeField = ReflectionCommons.mapPrimitiveToObject.get(classTypeField);
 
 						}
 					}
@@ -787,6 +793,15 @@ public class ClassBuilding {
 		return modelMethod;
 	}
 
+	/**
+	 * Final static field.
+	 *
+	 * @param name the name
+	 * @param type the type
+	 * @param value the value
+	 * @param showQuotes the show quotes
+	 * @return the model field
+	 */
 	private static ModelField finalStaticField(String name, String type, Object value, boolean showQuotes) {
 		ModelField modelField = new ModelField();
 		modelField.setType(type);
@@ -806,6 +821,7 @@ public class ClassBuilding {
 	 * @param type       the type
 	 * @param value      the value
 	 * @param showQuotes the show quotes
+	 * @param levelType the level type
 	 * @return the model field
 	 */
 	private static ModelField finalStaticField(String name, String type, Object value, boolean showQuotes, LevelType levelType) {
