@@ -49,7 +49,7 @@ public abstract class JpaServiceImpl<T, ID> extends BaseJpaService implements Jp
 	/** The id. */
 	private Field id = null;
 
-	/** The reflection utils. */
+	/** The reflection commons. */
 	@Autowired
 	protected ReflectionCommons reflectionCommons;
 

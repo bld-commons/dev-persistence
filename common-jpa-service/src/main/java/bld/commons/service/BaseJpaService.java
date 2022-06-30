@@ -84,7 +84,7 @@ public abstract class BaseJpaService {
 		return mapOneToMany;
 	}
 
-	/** The reflection utils. */
+	/** The reflection commons. */
 	@Autowired
 	protected ReflectionCommons reflectionCommons;
 
