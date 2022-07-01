@@ -9,7 +9,8 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
-import bld.commons.reflection.model.QueryFilter;
+import bld.commons.reflection.model.NativeQueryParameter;
+import bld.commons.reflection.model.QueryParameter;
 import bld.commons.utils.PersistenceMap;
 
 // TODO: Auto-generated Javadoc
@@ -110,96 +111,96 @@ public interface JpaService<T, ID> {
 	/**
 	 * Find by filter.
 	 *
-	 * @param queryFilter the query filter
+	 * @param queryParameter the query filter
 	 * @return the list
 	 */
-	public List<T> findByFilter(QueryFilter<T, ID> queryFilter);
+	public List<T> findByFilter(QueryParameter<T, ID> queryParameter);
 
 
 	/**
 	 * Count by filter.
 	 *
-	 * @param queryFilter the query filter
+	 * @param queryParameter the query filter
 	 * @return the long
 	 */
-	public Long countByFilter(QueryFilter<T, ID> queryFilter);
+	public Long countByFilter(QueryParameter<T, ID> queryParameter);
 	
 	
 	/**
 	 * Find by filter.
 	 *
-	 * @param queryFilter the query filter
+	 * @param queryParameter the query filter
 	 * @param sql the sql
 	 * @return the list
 	 */
-	public List<T> findByFilter(QueryFilter<T, ID> queryFilter,String sql);
+	public List<T> findByFilter(QueryParameter<T, ID> queryParameter,String sql);
 
 
 	/**
 	 * Count by filter.
 	 *
-	 * @param queryFilter the query filter
+	 * @param queryParameter the query filter
 	 * @param sql the sql
 	 * @return the long
 	 */
-	public Long countByFilter(QueryFilter<T, ID> queryFilter,String sql);	
+	public Long countByFilter(QueryParameter<T, ID> queryParameter,String sql);	
 	
 	
 	/**
 	 * Delete by filter.
 	 *
-	 * @param queryFilter the query filter
+	 * @param queryParameter the query filter
 	 */
-	public void deleteByFilter(QueryFilter<T, ID> queryFilter);
+	public void deleteByFilter(QueryParameter<T, ID> queryParameter);
 
 	/**
 	 * Find single result by filter.
 	 *
-	 * @param queryFilter the query filter
+	 * @param queryParameter the query filter
 	 * @return the t
 	 */
-	public T findSingleResultByFilter(QueryFilter<T, ID> queryFilter);
+	public T findSingleResultByFilter(QueryParameter<T, ID> queryParameter);
 
 	/**
 	 * Find single result by filter.
 	 *
-	 * @param queryFilter the query filter
+	 * @param queryParameter the query filter
 	 * @param select      the select
 	 * @return the t
 	 */
-	public T findSingleResultByFilter(QueryFilter<T, ID> queryFilter, String select);
+	public T findSingleResultByFilter(QueryParameter<T, ID> queryParameter, String select);
 	
 
 	/**
 	 * Map find by filter.
 	 *
-	 * @param queryFilter the query filter
+	 * @param queryParameter the query filter
 	 * @return the map
 	 */
-	public Map<ID,T> mapFindByFilter(QueryFilter<T, ID> queryFilter);
+	public Map<ID,T> mapFindByFilter(QueryParameter<T, ID> queryParameter);
 	
 	
 
 	/**
 	 * Map find by filter.
 	 *
-	 * @param queryFilter the query filter
+	 * @param queryParameter the query filter
 	 * @param sql the sql
 	 * @return the map
 	 */
-	public Map<ID,T> mapFindByFilter(QueryFilter<T, ID> queryFilter,String sql);
+	public Map<ID,T> mapFindByFilter(QueryParameter<T, ID> queryParameter,String sql);
 
 
 	/**
 	 * Map key find by filter.
 	 *
 	 * @param <J> the generic type
-	 * @param queryFilter the query filter
+	 * @param queryParameter the query filter
 	 * @param classKey the class key
 	 * @param key the key
 	 * @return the persistence map
 	 */
-	public <J> PersistenceMap<J, T> mapKeyFindByFilter(QueryFilter<T, ID> queryFilter, Class<J> classKey, String key);
+	public <J> PersistenceMap<J, T> mapKeyFindByFilter(QueryParameter<T, ID> queryParameter, Class<J> classKey, String key);
 
 
 
@@ -207,13 +208,13 @@ public interface JpaService<T, ID> {
 	 * Map key find by filter.
 	 *
 	 * @param <J> the generic type
-	 * @param queryFilter the query filter
+	 * @param queryParameter the query filter
 	 * @param sql the sql
 	 * @param classKey the class key
 	 * @param key the key
 	 * @return the persistence map
 	 */
-	public <J> PersistenceMap<J, T> mapKeyFindByFilter(QueryFilter<T, ID> queryFilter, String sql, Class<J> classKey, String key);
+	public <J> PersistenceMap<J, T> mapKeyFindByFilter(QueryParameter<T, ID> queryParameter, String sql, Class<J> classKey, String key);
 
 
 
@@ -221,12 +222,12 @@ public interface JpaService<T, ID> {
 	 * Map key list find by filter.
 	 *
 	 * @param <J> the generic type
-	 * @param queryFilter the query filter
+	 * @param queryParameter the query filter
 	 * @param classKey the class key
 	 * @param key the key
 	 * @return the persistence map
 	 */
-	public <J> PersistenceMap<J, List<T>> mapKeyListFindByFilter(QueryFilter<T, ID> queryFilter, Class<J> classKey, String key);
+	public <J> PersistenceMap<J, List<T>> mapKeyListFindByFilter(QueryParameter<T, ID> queryParameter, Class<J> classKey, String key);
 
 
 
@@ -234,34 +235,34 @@ public interface JpaService<T, ID> {
 	 * Map key list find by filter.
 	 *
 	 * @param <J> the generic type
-	 * @param queryFilter the query filter
+	 * @param queryParameter the query parameter
 	 * @param sql the sql
 	 * @param classKey the class key
 	 * @param key the key
 	 * @return the persistence map
 	 */
-	public <J> PersistenceMap<J, List<T>> mapKeyListFindByFilter(QueryFilter<T, ID> queryFilter, String sql, Class<J> classKey, String key);
+	public <J> PersistenceMap<J, List<T>> mapKeyListFindByFilter(QueryParameter<T, ID> queryParameter, String sql, Class<J> classKey, String key);
 
 	/**
-	 * Native query select by filter.
+	 * Native query find by filter.
 	 *
 	 * @param <K> the key type
-	 * @param queryFilter the query filter
+	 * @param queryParameter the query parameter
 	 * @param sql the sql
 	 * @return the list
 	 */
-	public <K> List<K> nativeQuerySelectByFilter(QueryFilter<K, ID> queryFilter, String sql);
+	public <K> List<K> nativeQueryFindByFilter(NativeQueryParameter<K, ID> queryParameter, String sql);
 
 	/**
 	 * Native query count by filter.
 	 *
 	 * @param <K> the key type
-	 * @param queryFilter the query filter
+	 * @param queryParameter the query filter
 	 * @param count the count
 	 * @return the long
 	 */
-	public <K> Long nativeQueryCountByFilter(QueryFilter<K, ID> queryFilter, String count);
+	public <K> Long nativeQueryCountByFilter(NativeQueryParameter<K, ID> queryParameter, String count);
 	
-	
+	public <K> K nativeQuerySingleResultByFilter(NativeQueryParameter<K, ID> queryParameter, String sql);
 
 }

@@ -14,7 +14,7 @@ import java.util.List;
  * @param <ID> the generic type
  */
 @SuppressWarnings("serial")
-public class IDFilterParameter<ID> extends FilterParameter {
+public class IDFilterParameter<ID> extends BaseParameter {
 
 	/** The id. */
 	private List<ID> id;

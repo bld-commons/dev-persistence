@@ -17,7 +17,6 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 
-// TODO: Auto-generated Javadoc
 /**
  * The Class QueryFilter.
  *
@@ -25,7 +24,7 @@ import org.springframework.data.domain.Pageable;
  * @param <ID> the generic type
  */
 @SuppressWarnings("serial")
-public class QueryFilter<T, ID> implements Serializable{
+public class QueryParameter<T, ID> implements Serializable{
 
 	/** The Constant ID. */
 	public final static String ID = "id";
@@ -45,18 +44,15 @@ public class QueryFilter<T, ID> implements Serializable{
 	/** The pageable. */
 	private Pageable pageable;
 
-	/** The result class. */
-	private Class<T> resultClass;
-
 	/** The parameter filter. */
-	private FilterParameter filterParameter;
+	private BaseParameter filterParameter;
 
 	/**
 	 * Instantiates a new query filter.
 	 *
 	 * @param id the id
 	 */
-	public QueryFilter(ID id) {
+	public QueryParameter(ID id) {
 		init();
 		this.id = id;
 		this.mapParameters.put("id", id);
@@ -68,7 +64,7 @@ public class QueryFilter<T, ID> implements Serializable{
 	 *
 	 * @param filterParameter the filter
 	 */
-	public QueryFilter(FilterParameter filterParameter) {
+	public QueryParameter(BaseParameter filterParameter) {
 		super();
 		init();
 		this.filterParameter = filterParameter;
@@ -86,7 +82,7 @@ public class QueryFilter<T, ID> implements Serializable{
 	 *
 	 * @param mapParameters the map parameters
 	 */
-	public QueryFilter(Map<String, Object> mapParameters) {
+	public QueryParameter(Map<String, Object> mapParameters) {
 		super();
 		init();
 		this.mapParameters=mapParameters;
@@ -95,7 +91,7 @@ public class QueryFilter<T, ID> implements Serializable{
 	/**
 	 * Instantiates a new query filter.
 	 */
-	public QueryFilter() {
+	public QueryParameter() {
 		super();
 		init();
 	}
@@ -196,30 +192,11 @@ public class QueryFilter<T, ID> implements Serializable{
 
 
 	/**
-	 * Gets the result class.
-	 *
-	 * @return the result class
-	 */
-	public Class<T> getResultClass() {
-		return resultClass;
-	}
-
-	
-	/**
-	 * Sets the result class.
-	 *
-	 * @param classFilter the new result class
-	 */
-	public void setResultClass(Class<T> classFilter) {
-		this.resultClass = classFilter;
-	}
-
-	/**
 	 * Gets the parameter filter.
 	 *
 	 * @return the parameter filter
 	 */
-	public FilterParameter getFilterParameter() {
+	public BaseParameter getFilterParameter() {
 		return filterParameter;
 	}
 
@@ -228,7 +205,7 @@ public class QueryFilter<T, ID> implements Serializable{
 	 *
 	 * @param parameterFilter the new parameter filter
 	 */
-	public void setFilterParameter(FilterParameter parameterFilter) {
+	public void setFilterParameter(BaseParameter parameterFilter) {
 		this.filterParameter = parameterFilter;
 	}
 

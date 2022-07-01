@@ -21,7 +21,7 @@ import bld.commons.reflection.type.OrderType;
  *
  */
 @SuppressWarnings("serial")
-public abstract class FilterParameter implements Serializable{
+public abstract class BaseParameter implements Serializable{
 	
 	
 
@@ -41,7 +41,7 @@ public abstract class FilterParameter implements Serializable{
 	/**
 	 * Instantiates a new filter parameter.
 	 */
-	public FilterParameter() {
+	public BaseParameter() {
 		super();
 		this.orderBy = new ArrayList<>();
 	
