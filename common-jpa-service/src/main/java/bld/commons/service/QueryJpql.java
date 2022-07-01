@@ -12,7 +12,6 @@ import java.util.Map;
 
 import org.apache.commons.collections4.MapUtils;
 
-// TODO: Auto-generated Javadoc
 /**
  * The Class QueryJpql.
  *
@@ -93,9 +92,8 @@ public abstract class QueryJpql<T> {
 	 * @param join the join
 	 */
 	protected void addJoinOneToMany(String key, String... join) {
-		if (!this.mapOneToMany.containsKey(key)) {
+		if (!this.mapOneToMany.containsKey(key)) 
 			this.mapOneToMany.put(key, new LinkedHashSet<>());
-		}
 		this.mapOneToMany.get(key).addAll(new LinkedHashSet<>(Arrays.asList(join)));
 	}
 

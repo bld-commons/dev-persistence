@@ -5,7 +5,8 @@
  */
 package bld.commons.reflection.utils;
 
-import org.apache.commons.lang.WordUtils;
+
+import org.apache.commons.text.WordUtils;
 
 import bld.commons.reflection.type.UpperLowerType;
 

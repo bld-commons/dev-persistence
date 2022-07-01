@@ -3,17 +3,18 @@
  * @mail francesco.baldi1987@gmail.com
  * @class bld.commons.workspace.mapper.MapperModel.java
  */
-package bld.commons.workspace.mapper;
+package bld.commons.controller.mapper;
 
 import bld.commons.reflection.model.BaseModel;
 
 /**
- * The Interface MapperModel.
+ * The Interface ModelMapper.
  *
- * @param <T> the generic type
+ * @param <E> the element type
  * @param <M> the generic type
  */
-public interface MapperModel<T,M extends BaseModel<?>> {
+public interface ModelMapper<E,M extends BaseModel<?>> {
+
 
 	/**
 	 * Convert to model.
@@ -21,5 +22,5 @@ public interface MapperModel<T,M extends BaseModel<?>> {
 	 * @param entity the entity
 	 * @return the m
 	 */
-	public M convertToModel(T entity);
+	public M convertToModel(E entity);
 }

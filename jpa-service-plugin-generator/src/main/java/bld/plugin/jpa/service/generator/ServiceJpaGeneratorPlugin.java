@@ -11,12 +11,12 @@ import java.io.FileInputStream;
 import java.io.InputStreamReader;
 import java.net.URL;
 import java.net.URLClassLoader;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import javax.persistence.Entity;
-
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
@@ -96,8 +96,8 @@ public class ServiceJpaGeneratorPlugin extends AbstractMojo {
 			String classesDirectory = this.project.getBuild().getOutputDirectory();
 
 			project.addCompileSourceRoot(new File(this.project.getBasedir() + TARGET_GENERATED_SOURCES_CLASSES).getAbsolutePath());
-			
-			Set<String>buildPackages=ClassGeneratorUtils.buildPackage(outputDirectory,persistencePackage.replace(".", slash), "^import "+basePackage+".*;$", slash,null);
+			Set<String> entities=new HashSet<>();
+			Set<String>buildPackages=ClassGeneratorUtils.buildPackage(outputDirectory,persistencePackage.replace(".", slash), "^import "+basePackage+".*;$", slash,null,entities);
 
 
 			if (!persistencePackage.endsWith("."))
@@ -115,7 +115,7 @@ public class ServiceJpaGeneratorPlugin extends AbstractMojo {
 			String persistenceDirectory = compileSoruceRoot + slash + persistencePackage.replace(".", slash);
 
 			String packages = persistenceDirectory + "*.java";
-			String target = this.project.getBuild().getOutputDirectory() + slash;
+			//String target = this.project.getBuild().getOutputDirectory() + slash;
 			if (CollectionUtils.isNotEmpty(buildPackages)) {
 				for (String buildPackage : buildPackages) {
 					packages += " " + compileSoruceRoot + slash + buildPackage.replace(".", slash) +slash+ "*.java";
@@ -138,19 +138,34 @@ public class ServiceJpaGeneratorPlugin extends AbstractMojo {
 				urls[i] = new File(runtimeClasspathElements.get(i)).toURI().toURL();
 
 			URLClassLoader urlClassLoader = new URLClassLoader(urls, Thread.currentThread().getContextClassLoader());
-			List<File> files = ClassGeneratorUtils.getFiles(classesDirectory + slash + persistencePackage.replace(".", slash), "class");
-			for (File file : files) {
+//			List<File> files = ClassGeneratorUtils.getFiles(classesDirectory + slash + persistencePackage.replace(".", slash), "class");
+//			for (File file : files) {
+//
+//				String nameClass = file.getPath().replace(target, "").replace(slash, ".").replace(".class", "");
+//				Class<?> entityClass = urlClassLoader.loadClass(nameClass);
+//				try {
+//					if (entityClass.isAnnotationPresent(Entity.class))
+//						ClassBuilding.generateClass(modelClasses, entityClass, classesDirectory, servicePackage, repositoryPackage);
+//				} catch (ArrayStoreException e) {
+//					getLog().error(ExceptionUtils.getStackTrace(e));
+//					getLog().error("TypeNotPresentExceptionProxy to: " + entityClass.getName());
+//				}
+//
+//			}
+			
+			for (String entity:entities) {
 
-				String nameClass = file.getPath().replace(target, "").replace(slash, ".").replace(".class", "");
-				Class<?> entityClass = urlClassLoader.loadClass(nameClass);
+				//String nameClass = file.getPath().replace(target, "").replace(slash, ".").replace(".class", "");
+				Class<?> entityClass = urlClassLoader.loadClass(entity);
 				try {
-					if (entityClass.isAnnotationPresent(Entity.class))
 						ClassBuilding.generateClass(modelClasses, entityClass, classesDirectory, servicePackage, repositoryPackage);
 				} catch (ArrayStoreException e) {
+					getLog().error(ExceptionUtils.getStackTrace(e));
 					getLog().error("TypeNotPresentExceptionProxy to: " + entityClass.getName());
 				}
 
 			}
+
 
 			getLog().debug("Entities size: " + modelClasses.getClasses().size());
 

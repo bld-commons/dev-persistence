@@ -13,14 +13,15 @@ import java.util.Map;
  *
  * @param <T> the generic type
  * @param <ID> the generic type
+ * @param <QP> the generic type
  */
-public class BuildQueryFilter<T, ID> {
+public abstract class BuildQueryParameter<T, ID,QP extends QueryParameter<T,ID>> {
 
 	/** The map conditions. */
 	private Map<String, String> mapConditions;
 
-	/** The query filter. */
-	private QueryFilter<T, ID> queryFilter;
+	/** The query parameter. */
+	private QP queryParameter;
 	
 	/** The sql. */
 	private String sql;
@@ -30,20 +31,20 @@ public class BuildQueryFilter<T, ID> {
 	 * Instantiates a new builds the query filter.
 	 *
 	 * @param mapConditions the map conditions
-	 * @param queryFilter the query filter
+	 * @param queryParameter the query filter
 	 * @param sql the sql
 	 */
-	public BuildQueryFilter(Map<String, String> mapConditions,QueryFilter<T, ID> queryFilter, String sql) {
+	public BuildQueryParameter(Map<String, String> mapConditions,QP queryParameter, String sql) {
 		super();
 		this.mapConditions = mapConditions;
-		this.queryFilter = queryFilter;
+		this.queryParameter = queryParameter;
 		this.sql = sql;
 	}
 
 	/**
 	 * Instantiates a new builds the query filter.
 	 */
-	public BuildQueryFilter() {
+	public BuildQueryParameter() {
 		super();
 		this.mapConditions=new HashMap<>();
 	}
@@ -58,31 +59,14 @@ public class BuildQueryFilter<T, ID> {
 	}
 
 	/**
-	 * Sets the map conditions.
-	 *
-	 * @param mapConditions the new map conditions
-	 */
-	public void setMapConditions(Map<String, String> mapConditions) {
-		this.mapConditions = mapConditions;
-	}
-
-	/**
 	 * Gets the query filter.
 	 *
 	 * @return the query filter
 	 */
-	public QueryFilter<T, ID> getQueryFilter() {
-		return queryFilter;
+	public QP getQueryParameter() {
+		return queryParameter;
 	}
 
-	/**
-	 * Sets the query filter.
-	 *
-	 * @param queryFilter the new query filter
-	 */
-	public void setQueryFilter(QueryFilter<T, ID> queryFilter) {
-		this.queryFilter = queryFilter;
-	}
 
 	/**
 	 * Gets the sql.
@@ -101,8 +85,6 @@ public class BuildQueryFilter<T, ID> {
 	public void setSql(String sql) {
 		this.sql = sql;
 	}
-
-	
 
 	
 	

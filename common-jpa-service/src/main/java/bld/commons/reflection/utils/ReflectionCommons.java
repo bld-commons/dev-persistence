@@ -40,8 +40,8 @@ import bld.commons.reflection.annotations.FilterNullValue;
 import bld.commons.reflection.annotations.IgnoreMapping;
 import bld.commons.reflection.annotations.LikeString;
 import bld.commons.reflection.annotations.ListFilter;
-import bld.commons.reflection.model.FilterParameter;
-import bld.commons.reflection.model.QueryFilter;
+import bld.commons.reflection.model.BaseParameter;
+import bld.commons.reflection.model.QueryParameter;
 import bld.commons.reflection.type.GetSetType;
 
 /**
@@ -110,20 +110,22 @@ public class ReflectionCommons {
 		return map;
 	}
 
+
 	/**
 	 * Data to map.
 	 *
-	 * @param <T>         the generic type
-	 * @param <ID>        the generic type
-	 * @param queryFilter the query filter
-	 * @return the query filter
+	 * @param <T> the generic type
+	 * @param <ID> the generic type
+	 * @param <QP> the generic type
+	 * @param queryParameter the query parameter
+	 * @return the qp
 	 */
-	public <T, ID> QueryFilter<T, ID> dataToMap(QueryFilter<T, ID> queryFilter) {
+	public <T, ID,QP extends QueryParameter<T, ID>> QP dataToMap(QP queryParameter) {
 
 		Map<String, Object> mapParameters = new HashMap<String, Object>();
 		Set<String> checkNullable = new HashSet<>();
 
-		FilterParameter obj = queryFilter.getFilterParameter();
+		BaseParameter obj = queryParameter.getFilterParameter();
 
 		if (obj != null) {
 			Set<Field> fields = ReflectionCommons.getListField(obj.getClass());
@@ -196,11 +198,11 @@ public class ReflectionCommons {
 					}
 				}
 			}
-			queryFilter.getMapParameters().putAll(mapParameters);
-			queryFilter.getNullables().addAll(checkNullable);
+			queryParameter.getMapParameters().putAll(mapParameters);
+			queryParameter.getNullables().addAll(checkNullable);
 
 		}
-		return queryFilter;
+		return queryParameter;
 	}
 
 	/**
