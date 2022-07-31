@@ -125,7 +125,7 @@ public class ReflectionCommons {
 		Map<String, Object> mapParameters = new HashMap<String, Object>();
 		Set<String> checkNullable = new HashSet<>();
 
-		BaseParameter obj = queryParameter.getFilterParameter();
+		BaseParameter obj = queryParameter.getBaseParameter();
 
 		if (obj != null) {
 			Set<Field> fields = ReflectionCommons.getListField(obj.getClass());

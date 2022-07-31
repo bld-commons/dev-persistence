@@ -45,7 +45,7 @@ public class QueryParameter<T, ID> implements Serializable{
 	private Pageable pageable;
 
 	/** The parameter filter. */
-	private BaseParameter filterParameter;
+	private BaseParameter baseParameter;
 
 	/**
 	 * Instantiates a new query filter.
@@ -59,20 +59,21 @@ public class QueryParameter<T, ID> implements Serializable{
 		
 	}
 
+
 	/**
-	 * Instantiates a new query filter.
+	 * Instantiates a new query parameter.
 	 *
-	 * @param filterParameter the filter
+	 * @param baseParameter the base parameter
 	 */
-	public QueryParameter(BaseParameter filterParameter) {
+	public QueryParameter(BaseParameter baseParameter) {
 		super();
 		init();
-		this.filterParameter = filterParameter;
-		if (filterParameter != null) {
-			if (CollectionUtils.isNotEmpty(filterParameter.getOrderBy()))
-				this.listOrderBy = filterParameter.getOrderBy();
-			if (filterParameter.getPageNumber() != null && filterParameter.getPageSize() != null)
-				this.pageable = PageRequest.of(filterParameter.getPageNumber(), filterParameter.getPageSize());
+		this.baseParameter = baseParameter;
+		if (baseParameter != null) {
+			if (CollectionUtils.isNotEmpty(baseParameter.getOrderBy()))
+				this.listOrderBy = baseParameter.getOrderBy();
+			if (baseParameter.getPageNumber() != null && baseParameter.getPageSize() != null)
+				this.pageable = PageRequest.of(baseParameter.getPageNumber(), baseParameter.getPageSize());
 		}
 
 	}
@@ -191,22 +192,24 @@ public class QueryParameter<T, ID> implements Serializable{
 	}
 
 
-	/**
-	 * Gets the parameter filter.
-	 *
-	 * @return the parameter filter
-	 */
-	public BaseParameter getFilterParameter() {
-		return filterParameter;
-	}
 
 	/**
-	 * Sets the parameter filter.
+	 * Gets the base parameter.
 	 *
-	 * @param parameterFilter the new parameter filter
+	 * @return the base parameter
 	 */
-	public void setFilterParameter(BaseParameter parameterFilter) {
-		this.filterParameter = parameterFilter;
+	public BaseParameter getBaseParameter() {
+		return baseParameter;
+	}
+
+
+	/**
+	 * Sets the base parameter.
+	 *
+	 * @param baseParameter the new base parameter
+	 */
+	public void setBaseParameter(BaseParameter baseParameter) {
+		this.baseParameter = baseParameter;
 	}
 
 }
