@@ -98,7 +98,7 @@ public abstract class JpaServiceImpl<T, ID> extends BaseJpaService<T, ID> implem
 		if (MapUtils.isEmpty(this.getMapOneToMany())) {
 			this.setMapOneToMany();
 		}
-		if (queryParameter.getFilterParameter() != null)
+		if (queryParameter.getBaseParameter() != null)
 			queryParameter = reflectionCommons.dataToMap(queryParameter);
 		return new BuildJpqlQueryParameter<>(mapConditions, queryParameter, query);
 	}
@@ -563,7 +563,7 @@ public abstract class JpaServiceImpl<T, ID> extends BaseJpaService<T, ID> implem
 	 * @return the builds the native query filter
 	 */
 	private <K> BuildNativeQueryParameter<K, ID> getBuildNativeQueryFilter(NativeQueryParameter<K, ID> queryParameter, String sql) {
-		if (queryParameter.getFilterParameter() != null)
+		if (queryParameter.getBaseParameter() != null)
 			queryParameter = reflectionCommons.dataToMap(queryParameter);
 		BuildNativeQueryParameter<K, ID> buildQueryFilter = new BuildNativeQueryParameter<>(this.queryJpl.mapNativeConditions(), queryParameter, sql);
 		return buildQueryFilter;

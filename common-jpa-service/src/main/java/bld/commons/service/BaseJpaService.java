@@ -5,6 +5,7 @@
  */
 package bld.commons.service;
 
+import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -241,8 +242,8 @@ public abstract class BaseJpaService<T,ID> {
 	 */
 	private  Class<? extends BaseParameter> getClassFilterParameter(QueryParameter<T, ID> queryFilter) {
 		Class<? extends BaseParameter> classFilterParameter = null;
-		if (queryFilter.getFilterParameter() != null)
-			classFilterParameter = (Class<? extends BaseParameter>) queryFilter.getFilterParameter().getClass();
+		if (queryFilter.getBaseParameter() != null)
+			classFilterParameter = (Class<? extends BaseParameter>) queryFilter.getBaseParameter().getClass();
 		return classFilterParameter;
 	}
 
@@ -407,12 +408,10 @@ public abstract class BaseJpaService<T,ID> {
 	 */
 	public <K> Long nativeQueryCountByFilter(BuildNativeQueryParameter<K, ID> buildQueryFilter) {
 		String sql = buildNativeQuery(buildQueryFilter);
-		sql = addOrderBy(buildQueryFilter.getQueryParameter().getListOrderBy(), sql);
-
-		Query query = this.getEntityManager().createNativeQuery(sql, Long.class);
+		Query query = this.getEntityManager().createNativeQuery(sql);
 		query = setQueryParameters(buildQueryFilter.getQueryParameter().getMapParameters(), query);
-		Long count = (Long) query.getSingleResult();
-		return count;
+		BigInteger count = (BigInteger) query.getSingleResult();
+		return count.longValue();
 	}
 
 	/**
