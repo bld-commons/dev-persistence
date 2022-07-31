@@ -3,3 +3,4 @@
 **/.projects
 **/.classpath
 **/bin/**
+**/dependency-reduced-pom.xml
