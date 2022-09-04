@@ -15,8 +15,9 @@ import com.fasterxml.jackson.databind.BeanProperty;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonDeserializer;
 import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.annotation.JacksonStdImpl;
 import com.fasterxml.jackson.databind.deser.ContextualDeserializer;
-import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
+import com.fasterxml.jackson.databind.deser.std.StdScalarDeserializer;
 
 import bld.commons.json.annotations.MaxConsecutiveSpace;
 import bld.commons.reflection.annotations.deserialize.data.MaxConsecutiveSpaceProps;
@@ -25,7 +26,8 @@ import bld.commons.reflection.annotations.deserialize.data.MaxConsecutiveSpacePr
  * The Class MaxConsecutiveSpaceDeserializer.
  */
 @SuppressWarnings("serial")
-public class MaxConsecutiveSpaceDeserializer extends StdDeserializer<String> implements ContextualDeserializer{
+@JacksonStdImpl
+public class MaxConsecutiveSpaceDeserializer extends StdScalarDeserializer<String> implements ContextualDeserializer{
 
 	/** The max consecutive space props. */
 	private MaxConsecutiveSpaceProps maxConsecutiveSpaceProps;

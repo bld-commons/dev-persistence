@@ -5,7 +5,6 @@
  */
 package bld.commons.service;
 
-import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -410,7 +409,7 @@ public abstract class BaseJpaService<T,ID> {
 		String sql = buildNativeQuery(buildQueryFilter);
 		Query query = this.getEntityManager().createNativeQuery(sql);
 		query = setQueryParameters(buildQueryFilter.getQueryParameter().getMapParameters(), query);
-		BigInteger count = (BigInteger) query.getSingleResult();
+		Number count = (Number) query.getSingleResult();
 		return count.longValue();
 	}
 

@@ -19,8 +19,9 @@ import com.fasterxml.jackson.databind.BeanProperty;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonSerializer;
 import com.fasterxml.jackson.databind.SerializerProvider;
+import com.fasterxml.jackson.databind.annotation.JacksonStdImpl;
 import com.fasterxml.jackson.databind.ser.ContextualSerializer;
-import com.fasterxml.jackson.databind.ser.std.StdSerializer;
+import com.fasterxml.jackson.databind.ser.std.StdScalarSerializer;
 
 import bld.commons.json.annotations.JsonDateTimeZone;
 import bld.commons.reflection.utils.DateUtils;
@@ -32,7 +33,8 @@ import bld.commons.reflection.utils.StaticApplicationContext;
  * @param <T> the generic type
  */
 @SuppressWarnings("serial")
-public class DateSerializer<T> extends StdSerializer<T> implements ContextualSerializer {
+@JacksonStdImpl
+public class DateSerializer<T> extends StdScalarSerializer<T> implements ContextualSerializer {
 
 	/** The env. */
 	private Environment env = null;
