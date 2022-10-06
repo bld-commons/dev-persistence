@@ -366,7 +366,7 @@ public abstract class BaseJpaService<T,ID> {
 	public <K> List<K> nativeQuerySelectByFilter(BuildNativeQueryParameter<K, ID> buildQueryFilter) {
 		String sql = buildNativeQuery(buildQueryFilter);
 		sql = addOrderBy(buildQueryFilter.getQueryParameter().getListOrderBy(), sql);
-
+		logger.debug(sql);
 		Query query = this.getEntityManager().createNativeQuery(sql, Tuple.class);
 		query = setQueryParameters(buildQueryFilter.getQueryParameter().getMapParameters(), query);
 		if (buildQueryFilter.getQueryParameter().getPageable() != null) {
@@ -407,6 +407,7 @@ public abstract class BaseJpaService<T,ID> {
 	 */
 	public <K> Long nativeQueryCountByFilter(BuildNativeQueryParameter<K, ID> buildQueryFilter) {
 		String sql = buildNativeQuery(buildQueryFilter);
+		logger.debug(sql);
 		Query query = this.getEntityManager().createNativeQuery(sql);
 		query = setQueryParameters(buildQueryFilter.getQueryParameter().getMapParameters(), query);
 		Number count = (Number) query.getSingleResult();
@@ -431,7 +432,7 @@ public abstract class BaseJpaService<T,ID> {
 			if (buildQueryFilter.getMapConditions().containsKey(nullable))
 				where += buildQueryFilter.getMapConditions().get(nullable);
 
-		sql = sql.replace("(?i)" + WHERE, where);
+		sql = sql.replace(WHERE, where);
 		return sql;
 	}
 
