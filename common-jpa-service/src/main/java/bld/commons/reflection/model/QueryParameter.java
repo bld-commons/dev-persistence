@@ -46,6 +46,7 @@ public class QueryParameter<T, ID> extends BaseQueryParameter<T, ID> {
 
 	public QueryParameter(ID id) {
 		super(id);
+		init();
 		this.parameters.put(ID, id);
 	}
 
