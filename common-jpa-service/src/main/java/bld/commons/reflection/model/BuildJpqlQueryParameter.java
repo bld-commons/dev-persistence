@@ -9,6 +9,6 @@ public class BuildJpqlQueryParameter<T, ID> extends BuildQueryParameter<T, ID,Qu
 		super(mapConditions, queryParameter, sql);
 	}
 
-	
-	
+
+
 }

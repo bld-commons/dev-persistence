@@ -72,7 +72,7 @@ public abstract class BaseParameter implements Serializable{
 	 * @param orderType the order type
 	 */
 	public void addOrderBy(String sortKey, OrderType orderType) {
-		if (StringUtils.isNoneEmpty(sortKey))
+		if (StringUtils.isNotBlank(sortKey))
 			this.orderBy.add(new OrderBy(sortKey, orderType));
 	}
 

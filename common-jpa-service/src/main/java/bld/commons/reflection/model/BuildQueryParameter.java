@@ -15,7 +15,7 @@ import java.util.Map;
  * @param <ID> the generic type
  * @param <QP> the generic type
  */
-public abstract class BuildQueryParameter<T, ID,QP extends QueryParameter<T,ID>> {
+public abstract class BuildQueryParameter<T, ID,QP extends BaseQueryParameter<T,ID>> {
 
 	/** The map conditions. */
 	private Map<String, String> mapConditions;
@@ -24,7 +24,7 @@ public abstract class BuildQueryParameter<T, ID,QP extends QueryParameter<T,ID>>
 	private QP queryParameter;
 	
 	/** The sql. */
-	private String sql;
+	private StringBuilder sql;
 
 
 	/**
@@ -38,9 +38,10 @@ public abstract class BuildQueryParameter<T, ID,QP extends QueryParameter<T,ID>>
 		super();
 		this.mapConditions = mapConditions;
 		this.queryParameter = queryParameter;
-		this.sql = sql;
+		this.sql = new StringBuilder(sql);
 	}
-
+	
+	
 	/**
 	 * Instantiates a new builds the query filter.
 	 */
@@ -73,7 +74,7 @@ public abstract class BuildQueryParameter<T, ID,QP extends QueryParameter<T,ID>>
 	 *
 	 * @return the sql
 	 */
-	public String getSql() {
+	public StringBuilder getSql() {
 		return sql;
 	}
 
@@ -82,9 +83,11 @@ public abstract class BuildQueryParameter<T, ID,QP extends QueryParameter<T,ID>>
 	 *
 	 * @param sql the new sql
 	 */
-	public void setSql(String sql) {
+	public void setSql(StringBuilder sql) {
 		this.sql = sql;
 	}
+	
+	
 
 	
 	

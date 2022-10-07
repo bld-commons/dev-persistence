@@ -35,12 +35,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;
 
+import bld.commons.reflection.annotations.ConditionsZones;
 import bld.commons.reflection.annotations.DateFilter;
 import bld.commons.reflection.annotations.FilterNullValue;
 import bld.commons.reflection.annotations.IgnoreMapping;
 import bld.commons.reflection.annotations.LikeString;
 import bld.commons.reflection.annotations.ListFilter;
 import bld.commons.reflection.model.BaseParameter;
+import bld.commons.reflection.model.NativeQueryParameter;
 import bld.commons.reflection.model.QueryParameter;
 import bld.commons.reflection.type.GetSetType;
 
@@ -110,20 +112,16 @@ public class ReflectionCommons {
 		return map;
 	}
 
-
 	/**
 	 * Data to map.
 	 *
-	 * @param <T> the generic type
-	 * @param <ID> the generic type
-	 * @param <QP> the generic type
+	 * @param <T>            the generic type
+	 * @param <ID>           the generic type
+	 * @param <QP>           the generic type
 	 * @param queryParameter the query parameter
 	 * @return the qp
 	 */
-	public <T, ID,QP extends QueryParameter<T, ID>> QP dataToMap(QP queryParameter) {
-
-		Map<String, Object> mapParameters = new HashMap<String, Object>();
-		Set<String> checkNullable = new HashSet<>();
+	public <T, ID> QueryParameter<T, ID> dataToMap(QueryParameter<T, ID> queryParameter) {
 
 		BaseParameter obj = queryParameter.getBaseParameter();
 
@@ -146,60 +144,141 @@ public class ReflectionCommons {
 								LikeString likeString = method.isAnnotationPresent(LikeString.class) ? method.getAnnotation(LikeString.class) : field.getAnnotation(LikeString.class);
 								if (dateFilter != null) {
 									if (value instanceof Calendar)
-										value = DateUtils.sumDate((Calendar) value, dateFilter.addYear(), dateFilter.addMonth(),dateFilter.addWeek(), dateFilter.addDay(), dateFilter.addHour(), dateFilter.addMinute(), dateFilter.addSecond());
+										value = DateUtils.sumDate((Calendar) value, dateFilter.addYear(), dateFilter.addMonth(), dateFilter.addWeek(), dateFilter.addDay(), dateFilter.addHour(), dateFilter.addMinute(), dateFilter.addSecond());
 									else if (value instanceof Date)
-										value = DateUtils.sumDate((Date) value, dateFilter.addYear(), dateFilter.addMonth(),dateFilter.addWeek(), dateFilter.addDay(), dateFilter.addHour(), dateFilter.addMinute(), dateFilter.addSecond());
+										value = DateUtils.sumDate((Date) value, dateFilter.addYear(), dateFilter.addMonth(), dateFilter.addWeek(), dateFilter.addDay(), dateFilter.addHour(), dateFilter.addMinute(), dateFilter.addSecond());
 									else if (value instanceof Timestamp)
-										value = DateUtils.sumDate((Timestamp) value, dateFilter.addYear(), dateFilter.addMonth(),dateFilter.addWeek(), dateFilter.addDay(), dateFilter.addHour(), dateFilter.addMinute(), dateFilter.addSecond());
+										value = DateUtils.sumDate((Timestamp) value, dateFilter.addYear(), dateFilter.addMonth(), dateFilter.addWeek(), dateFilter.addDay(), dateFilter.addHour(), dateFilter.addMinute(), dateFilter.addSecond());
 
-								}else if(likeString != null && value instanceof String) {
-										switch (likeString.likeType()) {
-										case LEFT:
-											value = "%" + value;
-											break;
-										case LEFT_RIGHT:
-											value = "%" + value + "%";
-											break;
-										case RIGHT:
-											value = value + "%";
-											break;
-										case NONE:
-											break;
-										default:
-											value = "%" + value + "%";
-											break;
-										}
-										switch(likeString.upperLowerType()) {
-										case LOWER:
-											value = ((String) value).toLowerCase();
-											break;
-										case UPPER:
-											value = ((String) value).toUpperCase();
-											break;
-										case NONE:
-										default:
-											break;
-										
-										}
-								} 
-									
-								if (value instanceof Boolean && (Boolean)value && field.isAnnotationPresent(ListFilter.class))
-									checkNullable.add(field.getName());
+								} else if (likeString != null && value instanceof String) {
+									switch (likeString.likeType()) {
+									case LEFT:
+										value = "%" + value;
+										break;
+									case LEFT_RIGHT:
+										value = "%" + value + "%";
+										break;
+									case RIGHT:
+										value = value + "%";
+										break;
+									case NONE:
+										break;
+									default:
+										value = "%" + value + "%";
+										break;
+									}
+									switch (likeString.upperLowerType()) {
+									case LOWER:
+										value = ((String) value).toLowerCase();
+										break;
+									case UPPER:
+										value = ((String) value).toUpperCase();
+										break;
+									case NONE:
+									default:
+										break;
+
+									}
+								}
+
+								if (value instanceof Boolean && (Boolean) value && field.isAnnotationPresent(ListFilter.class))
+									queryParameter.addNUllable(field.getName());
 								else if (value.getClass().isArray()) {
 									Object[] array = (Object[]) value;
-									mapParameters.put(field.getName(), Arrays.asList(array));
+									queryParameter.addParameter(field.getName(), Arrays.asList(array));
 								} else
-									mapParameters.put(field.getName(), value);
+									queryParameter.addParameter(field.getName(), value);
 							} else if (field.isAnnotationPresent(FilterNullValue.class) && field.getAnnotation(FilterNullValue.class).value() || method.isAnnotationPresent(FilterNullValue.class) && method.getAnnotation(FilterNullValue.class).value())
-								mapParameters.put(field.getName(), null);
+								queryParameter.addParameter(field.getName(), value);
 						} catch (Exception e) {
 							logger.warn("Errore durante la conversione dei dati in mappa");
 						}
 					}
 				}
 			}
-			queryParameter.getMapParameters().putAll(mapParameters);
-			queryParameter.getNullables().addAll(checkNullable);
+
+		}
+		return queryParameter;
+	}
+
+	public <T, ID> NativeQueryParameter<T, ID> dataToMap(NativeQueryParameter<T, ID> queryParameter) {
+
+		BaseParameter obj = queryParameter.getBaseParameter();
+
+		if (obj != null) {
+			Set<Field> fields = ReflectionCommons.getListField(obj.getClass());
+			Map<String, LinkedHashSet<Method>> mapMethod = ReflectionCommons.getMapMethod(obj.getClass());
+			for (Field field : fields) {
+				Method method = ReflectionCommons.getMethod(mapMethod, field, GetSetType.get);
+				if (method != null) {
+					IgnoreMapping ignoreMapping = method.isAnnotationPresent(IgnoreMapping.class) ? method.getAnnotation(IgnoreMapping.class) : field.getAnnotation(IgnoreMapping.class);
+					if (ignoreMapping == null || !ignoreMapping.value()) {
+						try {
+							Object value = PropertyUtils.getProperty(obj, field.getName());
+							ConditionsZones conditionsZones = method.isAnnotationPresent(ConditionsZones.class) ? method.getAnnotation(ConditionsZones.class) : field.getAnnotation(ConditionsZones.class);
+							if (value instanceof Collection && CollectionUtils.isEmpty((Collection<?>) value))
+								value = null;
+							if (value != null && value instanceof String && StringUtils.isBlank((String) value))
+								value = null;
+							if (value != null) {
+								DateFilter dateFilter = method.isAnnotationPresent(DateFilter.class) ? method.getAnnotation(DateFilter.class) : field.getAnnotation(DateFilter.class);
+								LikeString likeString = method.isAnnotationPresent(LikeString.class) ? method.getAnnotation(LikeString.class) : field.getAnnotation(LikeString.class);
+								if (dateFilter != null) {
+									if (value instanceof Calendar)
+										value = DateUtils.sumDate((Calendar) value, dateFilter.addYear(), dateFilter.addMonth(), dateFilter.addWeek(), dateFilter.addDay(), dateFilter.addHour(), dateFilter.addMinute(), dateFilter.addSecond());
+									else if (value instanceof Date)
+										value = DateUtils.sumDate((Date) value, dateFilter.addYear(), dateFilter.addMonth(), dateFilter.addWeek(), dateFilter.addDay(), dateFilter.addHour(), dateFilter.addMinute(), dateFilter.addSecond());
+									else if (value instanceof Timestamp)
+										value = DateUtils.sumDate((Timestamp) value, dateFilter.addYear(), dateFilter.addMonth(), dateFilter.addWeek(), dateFilter.addDay(), dateFilter.addHour(), dateFilter.addMinute(), dateFilter.addSecond());
+
+								} else if (likeString != null && value instanceof String) {
+									switch (likeString.likeType()) {
+									case LEFT:
+										value = "%" + value;
+										break;
+									case LEFT_RIGHT:
+										value = "%" + value + "%";
+										break;
+									case RIGHT:
+										value = value + "%";
+										break;
+									case NONE:
+										break;
+									default:
+										value = "%" + value + "%";
+										break;
+									}
+									switch (likeString.upperLowerType()) {
+									case LOWER:
+										value = ((String) value).toLowerCase();
+										break;
+									case UPPER:
+										value = ((String) value).toUpperCase();
+										break;
+									case NONE:
+									default:
+										break;
+
+									}
+								}
+
+								if (value instanceof Boolean && (Boolean) value && field.isAnnotationPresent(ListFilter.class))
+									queryParameter.addNullable(field.getName(), conditionsZones);
+								else if (value.getClass().isArray()) {
+									Object[] array = (Object[]) value;
+									queryParameter.addParameter(field.getName(), Arrays.asList(array), conditionsZones);
+								} else
+									queryParameter.addParameter(field.getName(), value, conditionsZones);
+							} else if (field.isAnnotationPresent(FilterNullValue.class) && field.getAnnotation(FilterNullValue.class).value() || method.isAnnotationPresent(FilterNullValue.class) && method.getAnnotation(FilterNullValue.class).value())
+								queryParameter.addParameter(field.getName(), value, conditionsZones);
+							else if (conditionsZones != null)
+								queryParameter.addEmptyZones(conditionsZones);
+						} catch (Exception e) {
+							logger.warn("Errore durante la conversione dei dati in mappa");
+						}
+					}
+				}
+			}
 
 		}
 		return queryParameter;
@@ -231,8 +310,6 @@ public class ReflectionCommons {
 
 	}
 
-	
-	
 	/**
 	 * Gets the bean name.
 	 *
@@ -395,8 +472,8 @@ public class ReflectionCommons {
 	/**
 	 * Gets the method.
 	 *
-	 * @param mapMethod the map method
-	 * @param methodName the method name
+	 * @param mapMethod      the map method
+	 * @param methodName     the method name
 	 * @param classParameter the class parameter
 	 * @return the method
 	 */
@@ -426,9 +503,9 @@ public class ReflectionCommons {
 	/**
 	 * Gets the method.
 	 *
-	 * @param mapMethod the map method
-	 * @param field the field
-	 * @param getSetType the get set type
+	 * @param mapMethod      the map method
+	 * @param field          the field
+	 * @param getSetType     the get set type
 	 * @param classParameter the class parameter
 	 * @return the method
 	 */

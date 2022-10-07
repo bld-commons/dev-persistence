@@ -95,6 +95,7 @@ public class ClassBuilding {
 
 	/** The Constant STRING. */
 	private static final String STRING = "String";
+	
 
 	/** The Constant COMPONENT. */
 	private static final String COMPONENT = "Component";
@@ -186,7 +187,8 @@ public class ClassBuilding {
 		aliases.add(fieldEntity);
 		String selectByFilter = "\"select distinct " + fieldEntity + "\"";
 
-		String deleteByFilter = "\"delete from " + classEntity + " " + fieldEntity + " where 1=1 \"";
+		String deleteByFilter = "\"delete from " + classEntity + " " + fieldEntity+ " \""; 
+				//+ " where 1=1 \"";
 
 		String countByFilter = "\"select distinct count(" + fieldEntity + ")\"";
 		String fromByFilter = " From " + classEntity + " " + fieldEntity + " \"";
@@ -368,10 +370,11 @@ public class ClassBuilding {
 		TypeMirror superClassTypeMirror = typeElement.getSuperclass();
 		typeElement = (TypeElement) processingEnv.getTypeUtils().asElement(superClassTypeMirror);
 
-		fromByFilter += "\n" + SPACE + "+\" \"+BaseJpaService.ONE_TO_MANY+\" where 1=1 ";
+		//fromByFilter += "\n" + SPACE + "+\" \"+BaseJpaService.ONE_TO_MANY+\" where 1=1 ";
+		fromByFilter = fromByFilter.substring(0,fromByFilter.length()-1);
 		ModelField fromByFilterField = finalStaticField(FROM_BY_FILTER, STRING, fromByFilter, true);
-		ModelField countByFilterField = finalStaticField(COUNT_BY_FILTER, STRING, countByFilter + "+" + FROM_BY_FILTER, false);
-		ModelField selectByFilterField = finalStaticField(SELECT_BY_FILTER, STRING, selectByFilter + "+" + FROM_BY_FILTER, false);
+		ModelField countByFilterField = finalStaticField(COUNT_BY_FILTER, STRING,    countByFilter + "+" + FROM_BY_FILTER, false);
+		ModelField selectByFilterField = finalStaticField(SELECT_BY_FILTER, STRING,  selectByFilter + "+" + FROM_BY_FILTER, false);
 		ModelField deletetByFilterField = finalStaticField(DELETE_BY_FILTER, STRING, deleteByFilter, false);
 
 		for (String keyCondition : keyConditions)

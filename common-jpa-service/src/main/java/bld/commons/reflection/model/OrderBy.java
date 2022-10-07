@@ -17,7 +17,7 @@ import bld.commons.reflection.type.OrderType;
  * The Class OrderBy.
  */
 @SuppressWarnings("serial")
-public class OrderBy implements Serializable{
+public class OrderBy implements Serializable {
 
 	/** The sort key. */
 	@NotNull
@@ -32,19 +32,21 @@ public class OrderBy implements Serializable{
 	 */
 	public OrderBy() {
 		super();
-		orderType=OrderType.asc;
+		orderType = OrderType.asc;
 	}
 
 	/**
 	 * Instantiates a new order by.
 	 *
-	 * @param sortKey the sort key
+	 * @param sortKey   the sort key
 	 * @param orderType the order type
 	 */
 	public OrderBy(String sortKey, OrderType orderType) {
 		super();
 		this.sortKey = sortKey;
-		this.orderType = orderType;
+		this.orderType = OrderType.asc;
+		if (orderType != null)
+			this.orderType = orderType;
 	}
 
 	/**
