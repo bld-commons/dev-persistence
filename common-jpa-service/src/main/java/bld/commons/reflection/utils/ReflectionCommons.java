@@ -140,46 +140,7 @@ public class ReflectionCommons {
 							if (value != null && value instanceof String && StringUtils.isBlank((String) value))
 								value = null;
 							if (value != null) {
-								DateFilter dateFilter = method.isAnnotationPresent(DateFilter.class) ? method.getAnnotation(DateFilter.class) : field.getAnnotation(DateFilter.class);
-								LikeString likeString = method.isAnnotationPresent(LikeString.class) ? method.getAnnotation(LikeString.class) : field.getAnnotation(LikeString.class);
-								if (dateFilter != null) {
-									if (value instanceof Calendar)
-										value = DateUtils.sumDate((Calendar) value, dateFilter.addYear(), dateFilter.addMonth(), dateFilter.addWeek(), dateFilter.addDay(), dateFilter.addHour(), dateFilter.addMinute(), dateFilter.addSecond());
-									else if (value instanceof Date)
-										value = DateUtils.sumDate((Date) value, dateFilter.addYear(), dateFilter.addMonth(), dateFilter.addWeek(), dateFilter.addDay(), dateFilter.addHour(), dateFilter.addMinute(), dateFilter.addSecond());
-									else if (value instanceof Timestamp)
-										value = DateUtils.sumDate((Timestamp) value, dateFilter.addYear(), dateFilter.addMonth(), dateFilter.addWeek(), dateFilter.addDay(), dateFilter.addHour(), dateFilter.addMinute(), dateFilter.addSecond());
-
-								} else if (likeString != null && value instanceof String) {
-									switch (likeString.likeType()) {
-									case LEFT:
-										value = "%" + value;
-										break;
-									case LEFT_RIGHT:
-										value = "%" + value + "%";
-										break;
-									case RIGHT:
-										value = value + "%";
-										break;
-									case NONE:
-										break;
-									default:
-										value = "%" + value + "%";
-										break;
-									}
-									switch (likeString.upperLowerType()) {
-									case LOWER:
-										value = ((String) value).toLowerCase();
-										break;
-									case UPPER:
-										value = ((String) value).toUpperCase();
-										break;
-									case NONE:
-									default:
-										break;
-
-									}
-								}
+								value = getValue(field, method, value);
 
 								if (value instanceof Boolean && (Boolean) value && field.isAnnotationPresent(ListFilter.class))
 									queryParameter.addNUllable(field.getName());
@@ -199,6 +160,50 @@ public class ReflectionCommons {
 
 		}
 		return queryParameter;
+	}
+
+	private Object getValue(Field field, Method method, Object value) {
+		DateFilter dateFilter = method.isAnnotationPresent(DateFilter.class) ? method.getAnnotation(DateFilter.class) : field.getAnnotation(DateFilter.class);
+		LikeString likeString = method.isAnnotationPresent(LikeString.class) ? method.getAnnotation(LikeString.class) : field.getAnnotation(LikeString.class);
+		if (dateFilter != null) {
+			if (value instanceof Calendar)
+				value = DateUtils.sumDate((Calendar) value, dateFilter.addYear(), dateFilter.addMonth(), dateFilter.addWeek(), dateFilter.addDay(), dateFilter.addHour(), dateFilter.addMinute(), dateFilter.addSecond());
+			else if (value instanceof Date)
+				value = DateUtils.sumDate((Date) value, dateFilter.addYear(), dateFilter.addMonth(), dateFilter.addWeek(), dateFilter.addDay(), dateFilter.addHour(), dateFilter.addMinute(), dateFilter.addSecond());
+			else if (value instanceof Timestamp)
+				value = DateUtils.sumDate((Timestamp) value, dateFilter.addYear(), dateFilter.addMonth(), dateFilter.addWeek(), dateFilter.addDay(), dateFilter.addHour(), dateFilter.addMinute(), dateFilter.addSecond());
+
+		} else if (likeString != null && value instanceof String) {
+			switch (likeString.likeType()) {
+			case LEFT_RIGHT:
+				value = "%" + value + "%";
+				break;
+			case NONE:
+				break;
+			case LEFT:
+				value = "%" + value;
+				break;
+			case RIGHT:
+				value = value + "%";
+				break;
+			default:
+				value = "%" + value + "%";
+				break;
+			}
+			switch (likeString.upperLowerType()) {
+			case LOWER:
+				value = ((String) value).toLowerCase();
+				break;
+			case UPPER:
+				value = ((String) value).toUpperCase();
+				break;
+			case NONE:
+			default:
+				break;
+
+			}
+		}
+		return value;
 	}
 
 	public <T, ID> NativeQueryParameter<T, ID> dataToMap(NativeQueryParameter<T, ID> queryParameter) {
@@ -221,46 +226,7 @@ public class ReflectionCommons {
 							if (value != null && value instanceof String && StringUtils.isBlank((String) value))
 								value = null;
 							if (value != null) {
-								DateFilter dateFilter = method.isAnnotationPresent(DateFilter.class) ? method.getAnnotation(DateFilter.class) : field.getAnnotation(DateFilter.class);
-								LikeString likeString = method.isAnnotationPresent(LikeString.class) ? method.getAnnotation(LikeString.class) : field.getAnnotation(LikeString.class);
-								if (dateFilter != null) {
-									if (value instanceof Calendar)
-										value = DateUtils.sumDate((Calendar) value, dateFilter.addYear(), dateFilter.addMonth(), dateFilter.addWeek(), dateFilter.addDay(), dateFilter.addHour(), dateFilter.addMinute(), dateFilter.addSecond());
-									else if (value instanceof Date)
-										value = DateUtils.sumDate((Date) value, dateFilter.addYear(), dateFilter.addMonth(), dateFilter.addWeek(), dateFilter.addDay(), dateFilter.addHour(), dateFilter.addMinute(), dateFilter.addSecond());
-									else if (value instanceof Timestamp)
-										value = DateUtils.sumDate((Timestamp) value, dateFilter.addYear(), dateFilter.addMonth(), dateFilter.addWeek(), dateFilter.addDay(), dateFilter.addHour(), dateFilter.addMinute(), dateFilter.addSecond());
-
-								} else if (likeString != null && value instanceof String) {
-									switch (likeString.likeType()) {
-									case LEFT:
-										value = "%" + value;
-										break;
-									case LEFT_RIGHT:
-										value = "%" + value + "%";
-										break;
-									case RIGHT:
-										value = value + "%";
-										break;
-									case NONE:
-										break;
-									default:
-										value = "%" + value + "%";
-										break;
-									}
-									switch (likeString.upperLowerType()) {
-									case LOWER:
-										value = ((String) value).toLowerCase();
-										break;
-									case UPPER:
-										value = ((String) value).toUpperCase();
-										break;
-									case NONE:
-									default:
-										break;
-
-									}
-								}
+								value = getValue(field, method, value);
 
 								if (value instanceof Boolean && (Boolean) value && field.isAnnotationPresent(ListFilter.class))
 									queryParameter.addNullable(field.getName(), conditionsZones);

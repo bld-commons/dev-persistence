@@ -174,7 +174,7 @@ public class ClassBuilding {
 		List<String> mapDeleteConditions = new ArrayList<>();
 		LinkedHashSet<String> mapOneToMany = new LinkedHashSet<>();
 		classQueryJpql.getImports().add("java.util.HashMap");
-		classQueryJpql.getImports().add("bld.commons.service.BaseJpaService");
+		//classQueryJpql.getImports().add("bld.commons.service.BaseJpaService");
 		classQueryJpql.getImports().add(type.getQualifiedName().toString());
 		mapBaseConditions.add(SPACE + "Map<String,String> map=new HashMap<>();");
 		mapDeleteConditions.add(SPACE + "Map<String,String> map=getMapBaseConditions();");
@@ -471,7 +471,7 @@ public class ClassBuilding {
 	 * @param keyConditions the key conditions
 	 */
 	private static void writeCustomCondition(List<String> conditions, List<String> deleteConditions, CustomConditionBuilder customCondition, Set<String> keyConditions) {
-		String condition = SPACE + "map.put(" + customCondition.parameter() + ", \" " + customCondition.condition() + "\");";
+		String condition = SPACE + "map.put(" + customCondition.parameter() + ", \" " + customCondition.condition().trim() + " \");";
 		keyConditions.add(customCondition.parameter());
 		if (ConditionType.SELECT.equals(customCondition.type()))
 			conditions.add(condition);
