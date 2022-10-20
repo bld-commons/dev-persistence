@@ -107,7 +107,7 @@ public class NativeQueryParameter<T, ID> extends BaseQueryParameter<T, ID> {
 	 * @param zone the zone
 	 */
 	private void addParameters(String key, Object value, ConditionsZone zone) {
-		if (key != null && value != null) {
+		if (key != null ) {
 			if(zone!=null) {
 				if (!this.mapConditionsZone.containsKey(zone.key()))
 					this.mapConditionsZone.put(zone.key(), new ConditionsZoneModel(zone));

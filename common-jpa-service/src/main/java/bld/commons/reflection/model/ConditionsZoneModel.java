@@ -57,7 +57,7 @@ public class ConditionsZoneModel {
 	}
 
 	public void addParameter(String key, Object value) {
-		if (StringUtils.isNotBlank(key) && value != null)
+		if (StringUtils.isNotBlank(key))
 			this.parameters.put(key, value);
 	}
 
