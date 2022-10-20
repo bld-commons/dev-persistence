@@ -46,6 +46,7 @@ import bld.commons.reflection.model.NativeQueryParameter;
 import bld.commons.reflection.model.QueryParameter;
 import bld.commons.reflection.type.GetSetType;
 
+// TODO: Auto-generated Javadoc
 /**
  * The Class ReflectionCommons.
  */
@@ -112,14 +113,14 @@ public class ReflectionCommons {
 		return map;
 	}
 
+
 	/**
 	 * Data to map.
 	 *
-	 * @param <T>            the generic type
-	 * @param <ID>           the generic type
-	 * @param <QP>           the generic type
+	 * @param <T> the generic type
+	 * @param <ID> the generic type
 	 * @param queryParameter the query parameter
-	 * @return the qp
+	 * @return the query parameter
 	 */
 	public <T, ID> QueryParameter<T, ID> dataToMap(QueryParameter<T, ID> queryParameter) {
 
@@ -162,6 +163,14 @@ public class ReflectionCommons {
 		return queryParameter;
 	}
 
+	/**
+	 * Gets the value.
+	 *
+	 * @param field the field
+	 * @param method the method
+	 * @param value the value
+	 * @return the value
+	 */
 	private Object getValue(Field field, Method method, Object value) {
 		DateFilter dateFilter = method.isAnnotationPresent(DateFilter.class) ? method.getAnnotation(DateFilter.class) : field.getAnnotation(DateFilter.class);
 		LikeString likeString = method.isAnnotationPresent(LikeString.class) ? method.getAnnotation(LikeString.class) : field.getAnnotation(LikeString.class);
@@ -206,6 +215,14 @@ public class ReflectionCommons {
 		return value;
 	}
 
+	/**
+	 * Data to map.
+	 *
+	 * @param <T> the generic type
+	 * @param <ID> the generic type
+	 * @param queryParameter the query parameter
+	 * @return the native query parameter
+	 */
 	public <T, ID> NativeQueryParameter<T, ID> dataToMap(NativeQueryParameter<T, ID> queryParameter) {
 
 		BaseParameter obj = queryParameter.getBaseParameter();

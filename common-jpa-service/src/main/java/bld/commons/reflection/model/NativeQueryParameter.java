@@ -26,8 +26,10 @@ public class NativeQueryParameter<T, ID> extends BaseQueryParameter<T, ID> {
 	/** The result class. */
 	private Class<T> resultClass;
 
+	/** The empty zones. */
 	private Map<String,StringBuilder> emptyZones;
 	
+	/** The map conditions zone. */
 	private Map<String,ConditionsZoneModel> mapConditionsZone;
 
 	/**
@@ -65,11 +67,12 @@ public class NativeQueryParameter<T, ID> extends BaseQueryParameter<T, ID> {
 		this.resultClass = resultClass;
 	}
 
+
 	/**
 	 * Instantiates a new native query parameter.
 	 *
-	 * @param resultClass   the result class
-	 * @param mapParameters the map parameters
+	 * @param resultClass the result class
+	 * @param mapConditionsZone the map conditions zone
 	 */
 	public NativeQueryParameter(Class<T> resultClass, Map<String,ConditionsZoneModel> mapConditionsZone) {
 		super();
@@ -87,6 +90,9 @@ public class NativeQueryParameter<T, ID> extends BaseQueryParameter<T, ID> {
 		return resultClass;
 	}
 
+	/**
+	 * Inits the.
+	 */
 	protected void init() {
 		super.init();
 		this.mapConditionsZone=new HashMap<>();
@@ -98,6 +104,7 @@ public class NativeQueryParameter<T, ID> extends BaseQueryParameter<T, ID> {
 	 *
 	 * @param key   the key
 	 * @param value the value
+	 * @param zone the zone
 	 */
 	private void addParameters(String key, Object value, ConditionsZone zone) {
 		if (key != null && value != null) {
@@ -116,12 +123,24 @@ public class NativeQueryParameter<T, ID> extends BaseQueryParameter<T, ID> {
 		}
 	}
 	
+	/**
+	 * Adds the empty zones.
+	 *
+	 * @param conditionsZones the conditions zones
+	 */
 	public void addEmptyZones(ConditionsZones conditionsZones) {
 		for(ConditionsZone zone:conditionsZones.value())
 			this.emptyZones.put(zone.key(),new StringBuilder(""));
 			
 	}
 
+	/**
+	 * Adds the parameter.
+	 *
+	 * @param key the key
+	 * @param value the value
+	 * @param conditionsZones the conditions zones
+	 */
 	public void addParameter(String key, Object value, ConditionsZones conditionsZones) {
 		if(conditionsZones==null)
 			this.addParameter(key, value);
@@ -133,10 +152,22 @@ public class NativeQueryParameter<T, ID> extends BaseQueryParameter<T, ID> {
 	}
 
 
+	/**
+	 * Adds the parameter.
+	 *
+	 * @param key the key
+	 * @param value the value
+	 */
 	public void addParameter(String key, Object value) {
 		this.addParameters(key, value, null);
 	}
 
+	/**
+	 * Adds the nullable.
+	 *
+	 * @param nullable the nullable
+	 * @param zones the zones
+	 */
 	public void addNullable(String nullable,  ConditionsZones zones ) {
 		if(zones==null)
 			this.addNullable(nullable);
@@ -146,10 +177,21 @@ public class NativeQueryParameter<T, ID> extends BaseQueryParameter<T, ID> {
 	}
 
 
+	/**
+	 * Adds the nullable.
+	 *
+	 * @param nullable the nullable
+	 */
 	public void addNullable(String nullable) {
 		this.addNullables(nullable, null);
 	}
 
+	/**
+	 * Adds the nullables.
+	 *
+	 * @param nullable the nullable
+	 * @param zone the zone
+	 */
 	public void addNullables(String nullable,  ConditionsZone zone) {
 		if (StringUtils.isNotBlank(nullable)) {
 			if(zone!=null) {
@@ -168,10 +210,20 @@ public class NativeQueryParameter<T, ID> extends BaseQueryParameter<T, ID> {
 		
 	}
 
+	/**
+	 * Gets the map conditions zone.
+	 *
+	 * @return the map conditions zone
+	 */
 	public Map<String, ConditionsZoneModel> getMapConditionsZone() {
 		return mapConditionsZone;
 	}
 
+	/**
+	 * Gets the empty zones.
+	 *
+	 * @return the empty zones
+	 */
 	public Map<String,StringBuilder> getEmptyZones() {
 		emptyZones.remove(BaseJpaService.JOIN_ZONE);
 		for(String key:this.mapConditionsZone.keySet())

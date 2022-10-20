@@ -140,13 +140,14 @@ public abstract class BaseJpaService<T, ID> {
 	 * @return the q
 	 */
 	private <Q extends Query> void setQueryParameters(Map<String, Object> mapParameters, Q query) {
-		for (String key : mapParameters.keySet()) {
-			Object value = mapParameters.get(key);
+		for (Entry<String, Object> entry: mapParameters.entrySet()) {
+			Object value = entry.getValue();
 			logger.debug("----------------------------------------------------------");
-			logger.debug("Key: " + key);
+			logger.debug("Key: " + entry.getKey());
 			logger.debug("Value: " + value);
-			logger.debug("Class: " + value.getClass().getName());
-			query.setParameter(key, mapParameters.get(key));
+			if(value!=null)
+				logger.debug("Class: " + value.getClass().getName());
+			query.setParameter(entry.getKey(), entry.getValue());
 		}
 
 	}
