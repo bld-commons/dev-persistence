@@ -3,7 +3,6 @@ package com.bld.persistence.core.service;
 import com.bld.persistence.core.repository.SpeedyRepository;
 import bld.commons.service.JpaServiceImpl;
 import org.springframework.stereotype.Service;
-import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import com.bld.persistence.core.domain.Speedy;
 import javax.persistence.EntityManager;
@@ -22,17 +21,9 @@ public  class SpeedyServiceImpl extends JpaServiceImpl<Speedy,Long> implements S
 	@PersistenceContext
     private EntityManager entityManager;
     
-	@Autowired
-    private NamedParameterJdbcTemplate jdbcTemplate;
-    
 	@Override
     protected  JpaRepository<Speedy,Long> getJpaRepository() {
         return this.speedyRepository;
-    }
-    
-	@Override
-    protected  NamedParameterJdbcTemplate getJdbcTemplate() {
-        return this.jdbcTemplate;
     }
     
 	@Override

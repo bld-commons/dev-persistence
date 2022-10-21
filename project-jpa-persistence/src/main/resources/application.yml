@@ -2,7 +2,7 @@ spring:
   datasource:
     url: jdbc:postgresql://localhost:5432/risto_db
     username: postgres
-    password: Pa$$word87!
+    password: Pa$$wd87!
   jpa:
     show-sql: true
     properties:
@@ -11,6 +11,6 @@ spring:
           lob:
             non_contextual_creation: true 
         format_sql: true    
-        ddl-auto: none
+        ddl-auto: update
     database-platform: org.hibernate.dialect.PostgreSQLDialect
-    generate-ddl: false
+    generate-ddl: true

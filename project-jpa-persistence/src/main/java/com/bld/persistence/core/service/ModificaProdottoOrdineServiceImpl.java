@@ -3,7 +3,6 @@ package com.bld.persistence.core.service;
 import bld.commons.service.JpaServiceImpl;
 import org.springframework.stereotype.Service;
 import com.bld.persistence.core.repository.ModificaProdottoOrdineRepository;
-import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import com.bld.persistence.core.domain.ModificaProdottoOrdine;
 import javax.persistence.EntityManager;
@@ -21,14 +20,6 @@ public  class ModificaProdottoOrdineServiceImpl extends JpaServiceImpl<ModificaP
     
 	@PersistenceContext
     private EntityManager entityManager;
-    
-	@Autowired
-    private NamedParameterJdbcTemplate jdbcTemplate;
-    
-	@Override
-    protected  NamedParameterJdbcTemplate getJdbcTemplate() {
-        return this.jdbcTemplate;
-    }
     
 	@Override
     protected  JpaRepository<ModificaProdottoOrdine,Long> getJpaRepository() {

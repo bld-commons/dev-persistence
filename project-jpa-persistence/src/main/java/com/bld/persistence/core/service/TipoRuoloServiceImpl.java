@@ -3,7 +3,6 @@ package com.bld.persistence.core.service;
 import com.bld.persistence.core.domain.TipoRuolo;
 import bld.commons.service.JpaServiceImpl;
 import org.springframework.stereotype.Service;
-import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import com.bld.persistence.core.repository.TipoRuoloRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import javax.persistence.EntityManager;
@@ -21,14 +20,6 @@ public  class TipoRuoloServiceImpl extends JpaServiceImpl<TipoRuolo,Long> implem
     
 	@PersistenceContext
     private EntityManager entityManager;
-    
-	@Autowired
-    private NamedParameterJdbcTemplate jdbcTemplate;
-    
-	@Override
-    protected  NamedParameterJdbcTemplate getJdbcTemplate() {
-        return this.jdbcTemplate;
-    }
     
 	@Override
     protected  JpaRepository<TipoRuolo,Long> getJpaRepository() {

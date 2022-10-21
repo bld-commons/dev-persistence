@@ -4,7 +4,6 @@ import com.bld.persistence.core.domain.TipoStatoOrdine;
 import com.bld.persistence.core.repository.TipoStatoOrdineRepository;
 import bld.commons.service.JpaServiceImpl;
 import org.springframework.stereotype.Service;
-import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
@@ -21,14 +20,6 @@ public  class TipoStatoOrdineServiceImpl extends JpaServiceImpl<TipoStatoOrdine,
     
 	@PersistenceContext
     private EntityManager entityManager;
-    
-	@Autowired
-    private NamedParameterJdbcTemplate jdbcTemplate;
-    
-	@Override
-    protected  NamedParameterJdbcTemplate getJdbcTemplate() {
-        return this.jdbcTemplate;
-    }
     
 	@Override
     protected  JpaRepository<TipoStatoOrdine,Long> getJpaRepository() {

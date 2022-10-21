@@ -4,7 +4,6 @@ import com.bld.persistence.core.repository.TipoContattoRepository;
 import bld.commons.service.JpaServiceImpl;
 import org.springframework.stereotype.Service;
 import com.bld.persistence.core.domain.TipoContatto;
-import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
@@ -22,17 +21,9 @@ public  class TipoContattoServiceImpl extends JpaServiceImpl<TipoContatto,Long> 
 	@PersistenceContext
     private EntityManager entityManager;
     
-	@Autowired
-    private NamedParameterJdbcTemplate jdbcTemplate;
-    
 	@Override
     protected  JpaRepository<TipoContatto,Long> getJpaRepository() {
         return this.tipoContattoRepository;
-    }
-    
-	@Override
-    protected  NamedParameterJdbcTemplate getJdbcTemplate() {
-        return this.jdbcTemplate;
     }
     
 	@Override

@@ -9,6 +9,10 @@ import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
+import java.math.BigDecimal;
+import java.math.BigInteger;
+import java.sql.Blob;
+import java.sql.Clob;
 import java.sql.Timestamp;
 import java.util.Arrays;
 import java.util.Calendar;
@@ -17,8 +21,10 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
+import java.util.TimeZone;
 
 import org.apache.commons.beanutils.BeanUtilsBean;
 import org.apache.commons.beanutils.Converter;
@@ -31,6 +37,9 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.hibernate.jpa.TypedParameterValue;
+import org.hibernate.type.StandardBasicTypes;
+import org.hibernate.type.Type;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;
@@ -75,6 +84,10 @@ public class ReflectionCommons {
 
 	/** The Constant mapPrimitiveToObject. */
 	public final static Map<Class<?>, Class<?>> mapPrimitiveToObject = mapFromPrimitiveToObject();
+	
+
+	private final static Map<Class<?>,Type> mapType=getMapType();
+	
 
 	/**
 	 * Save generic.
@@ -92,6 +105,28 @@ public class ReflectionCommons {
 		Method metodo = oggettoServiceImpl.getClass().getMethod(SAVE, valore.getClass());
 		metodo.invoke(oggettoServiceImpl, valore);
 
+	}
+	
+		
+
+	private static Map<Class<?>,Type> getMapType() {
+		Map<Class<?>, Type> map=new HashMap<>();
+		map.put(Boolean.class, StandardBasicTypes.BOOLEAN);
+		map.put(String.class, StandardBasicTypes.STRING);
+		map.put(Long.class, StandardBasicTypes.LONG);
+		map.put(BigInteger.class, StandardBasicTypes.BIG_INTEGER);
+		map.put(BigDecimal.class, StandardBasicTypes.BIG_DECIMAL);
+		map.put(Double.class, StandardBasicTypes.DOUBLE);
+		map.put(Float.class, StandardBasicTypes.FLOAT);
+		map.put(Byte.class, StandardBasicTypes.BYTE);
+		map.put(Character.class, StandardBasicTypes.CHARACTER);
+		map.put(Date.class, StandardBasicTypes.DATE);
+		map.put(Calendar.class, StandardBasicTypes.CALENDAR);
+		map.put(Locale.class, StandardBasicTypes.LOCALE);
+		map.put(TimeZone.class, StandardBasicTypes.TIMEZONE);
+		map.put(Clob.class, StandardBasicTypes.CLOB);
+		map.put(Blob.class, StandardBasicTypes.BLOB);
+		return map;
 	}
 
 	/**
@@ -151,7 +186,7 @@ public class ReflectionCommons {
 								} else
 									queryParameter.addParameter(field.getName(), value);
 							} else if (field.isAnnotationPresent(FilterNullValue.class) && field.getAnnotation(FilterNullValue.class).value() || method.isAnnotationPresent(FilterNullValue.class) && method.getAnnotation(FilterNullValue.class).value())
-								queryParameter.addParameter(field.getName(), value);
+								queryParameter.addParameter(field.getName(), new TypedParameterValue(mapType.get(field.getType()), value));
 						} catch (Exception e) {
 							logger.warn("Errore durante la conversione dei dati in mappa");
 						}
@@ -253,7 +288,7 @@ public class ReflectionCommons {
 								} else
 									queryParameter.addParameter(field.getName(), value, conditionsZones);
 							} else if (field.isAnnotationPresent(FilterNullValue.class) && field.getAnnotation(FilterNullValue.class).value() || method.isAnnotationPresent(FilterNullValue.class) && method.getAnnotation(FilterNullValue.class).value())
-								queryParameter.addParameter(field.getName(), value, conditionsZones);
+								queryParameter.addParameter(field.getName(), new TypedParameterValue(mapType.get(field.getType()), value),conditionsZones);
 							else if (conditionsZones != null)
 								queryParameter.addEmptyZones(conditionsZones);
 						} catch (Exception e) {

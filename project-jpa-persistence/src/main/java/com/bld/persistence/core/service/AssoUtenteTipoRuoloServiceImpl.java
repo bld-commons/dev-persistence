@@ -4,7 +4,6 @@ import bld.commons.service.JpaServiceImpl;
 import org.springframework.stereotype.Service;
 import com.bld.persistence.core.domain.AssoUtenteTipoRuolo;
 import com.bld.persistence.core.repository.AssoUtenteTipoRuoloRepository;
-import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import com.bld.persistence.core.domain.AssoUtenteTipoRuoloPK;
 import javax.persistence.EntityManager;
@@ -22,14 +21,6 @@ public  class AssoUtenteTipoRuoloServiceImpl extends JpaServiceImpl<AssoUtenteTi
     
 	@PersistenceContext
     private EntityManager entityManager;
-    
-	@Autowired
-    private NamedParameterJdbcTemplate jdbcTemplate;
-    
-	@Override
-    protected  NamedParameterJdbcTemplate getJdbcTemplate() {
-        return this.jdbcTemplate;
-    }
     
 	@Override
     protected  JpaRepository<AssoUtenteTipoRuolo,AssoUtenteTipoRuoloPK> getJpaRepository() {
