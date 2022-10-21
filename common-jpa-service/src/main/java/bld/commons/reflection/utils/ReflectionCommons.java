@@ -116,6 +116,7 @@ public class ReflectionCommons {
 		map.put(Long.class, StandardBasicTypes.LONG);
 		map.put(BigInteger.class, StandardBasicTypes.BIG_INTEGER);
 		map.put(Integer.class, StandardBasicTypes.INTEGER);
+		map.put(Short.class, StandardBasicTypes.SHORT);
 		map.put(BigDecimal.class, StandardBasicTypes.BIG_DECIMAL);
 		map.put(Double.class, StandardBasicTypes.DOUBLE);
 		map.put(Float.class, StandardBasicTypes.FLOAT);
