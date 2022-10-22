@@ -31,6 +31,7 @@ import bld.commons.classes.generator.ClassesGenerator;
 import bld.commons.classes.generator.config.ConfigurationClassGenerator;
 import bld.commons.classes.generator.impl.ClassesGeneratorImpl;
 import bld.commons.classes.generator.utils.ClassGeneratorUtils;
+import bld.commons.classes.model.EntityModel;
 import bld.commons.classes.model.ModelClasses;
 import bld.commons.classes.type.OutputDirectoryType;
 import bld.plugin.jpa.service.generator.classes.ClassBuilding;
@@ -85,59 +86,62 @@ public class ServiceJpaGeneratorPlugin extends AbstractMojo {
 	public void execute() throws MojoExecutionException, MojoFailureException {
 		try {
 			String slash = "/";
-			String shell = "bash";
-			if (System.getProperty("os.name").toLowerCase().contains("win")) {
-				slash = "\\";
-				shell = "cmd.exe";
-			}
+//			String shell = "bash";
+//			if (System.getProperty("os.name").toLowerCase().contains("win")) {
+//				slash = "\\";
+//				shell = "cmd.exe";
+//			}
 			
 			
 			String outputDirectory = this.project.getBasedir() + this.outputDirectory.getValue();
 			String classesDirectory = this.project.getBuild().getOutputDirectory();
 
 			project.addCompileSourceRoot(new File(this.project.getBasedir() + TARGET_GENERATED_SOURCES_CLASSES).getAbsolutePath());
-			Set<String> entities=new HashSet<>();
-			Set<String>buildPackages=ClassGeneratorUtils.buildPackage(outputDirectory,persistencePackage.replace(".", slash), "^import "+basePackage+".*;$", slash,null,entities);
-
-
-			if (!persistencePackage.endsWith("."))
-				persistencePackage = persistencePackage + ".";
+			Set<EntityModel>entitiesModel=ClassGeneratorUtils.entitiesModel(outputDirectory,persistencePackage,slash);
+			
 			ModelClasses modelClasses = new ModelClasses();
-
-			File dir = new File(classesDirectory);
-			if (!dir.exists())
-				dir.mkdirs();
-			String importJar = "";
-			for (Artifact artifact : this.project.getArtifacts())
-				importJar += ":" + artifact.getFile().getPath();
-
-			String compileSoruceRoot = this.project.getCompileSourceRoots().get(0);
-			String persistenceDirectory = compileSoruceRoot + slash + persistencePackage.replace(".", slash);
-
-			String packages = persistenceDirectory + "*.java";
-			//String target = this.project.getBuild().getOutputDirectory() + slash;
-			if (CollectionUtils.isNotEmpty(buildPackages)) {
-				for (String buildPackage : buildPackages) {
-					packages += " " + compileSoruceRoot + slash + buildPackage.replace(".", slash) +slash+ "*.java";
-				}
-			}
-
-			String command = "javac -cp ." + importJar + " -d " + classesDirectory + " " + packages;
-			getLog().debug(command);
-
-			ProcessBuilder processBuilder = new ProcessBuilder(new String[] { shell, "-c", command });
-			processBuilder.redirectOutput(new File(this.project.getBuild().getOutputDirectory() +slash+ "out.log"));
-			File errorFile = new File(this.project.getBuild().getOutputDirectory() +slash+ "out-error.log");
-			processBuilder.redirectError(errorFile);
-			processBuilder.start().waitFor();
-			readLog(errorFile);
-			List<String> runtimeClasspathElements = this.project.getRuntimeClasspathElements();
-
-			URL[] urls = new URL[runtimeClasspathElements.size()];
-			for (int i = 0; i < runtimeClasspathElements.size(); i++)
-				urls[i] = new File(runtimeClasspathElements.get(i)).toURI().toURL();
-
-			URLClassLoader urlClassLoader = new URLClassLoader(urls, Thread.currentThread().getContextClassLoader());
+			
+//			Set<String>buildPackages=ClassGeneratorUtils.buildPackage(outputDirectory,persistencePackage.replace(".", slash), "^import "+basePackage+".*;$", slash,null,entities);
+//
+//
+//			if (!persistencePackage.endsWith("."))
+//				persistencePackage = persistencePackage + ".";
+//			ModelClasses modelClasses = new ModelClasses();
+//
+//			File dir = new File(classesDirectory);
+//			if (!dir.exists())
+//				dir.mkdirs();
+//			String importJar = "";
+//			for (Artifact artifact : this.project.getArtifacts())
+//				importJar += ":" + artifact.getFile().getPath();
+//
+//			String compileSoruceRoot = this.project.getCompileSourceRoots().get(0);
+//			String persistenceDirectory = compileSoruceRoot + slash + persistencePackage.replace(".", slash);
+//
+//			String packages = persistenceDirectory + "*.java";
+//			//String target = this.project.getBuild().getOutputDirectory() + slash;
+//			if (CollectionUtils.isNotEmpty(buildPackages)) {
+//				for (String buildPackage : buildPackages) {
+//					packages += " " + compileSoruceRoot + slash + buildPackage.replace(".", slash) +slash+ "*.java";
+//				}
+//			}
+//
+//			String command = "javac -cp ." + importJar + " -d " + classesDirectory + " " + packages;
+//			getLog().debug(command);
+//
+//			ProcessBuilder processBuilder = new ProcessBuilder(new String[] { shell, "-c", command });
+//			processBuilder.redirectOutput(new File(this.project.getBuild().getOutputDirectory() +slash+ "out.log"));
+//			File errorFile = new File(this.project.getBuild().getOutputDirectory() +slash+ "out-error.log");
+//			processBuilder.redirectError(errorFile);
+//			processBuilder.start().waitFor();
+//			readLog(errorFile);
+//			List<String> runtimeClasspathElements = this.project.getRuntimeClasspathElements();
+//
+//			URL[] urls = new URL[runtimeClasspathElements.size()];
+//			for (int i = 0; i < runtimeClasspathElements.size(); i++)
+//				urls[i] = new File(runtimeClasspathElements.get(i)).toURI().toURL();
+//
+//			URLClassLoader urlClassLoader = new URLClassLoader(urls, Thread.currentThread().getContextClassLoader());
 //			List<File> files = ClassGeneratorUtils.getFiles(classesDirectory + slash + persistencePackage.replace(".", slash), "class");
 //			for (File file : files) {
 //
@@ -153,15 +157,28 @@ public class ServiceJpaGeneratorPlugin extends AbstractMojo {
 //
 //			}
 			
-			for (String entity:entities) {
+//			for (String entity:entities) {
+//
+//				//String nameClass = file.getPath().replace(target, "").replace(slash, ".").replace(".class", "");
+//				Class<?> entityClass = urlClassLoader.loadClass(entity);
+//				try {
+//						ClassBuilding.generateClass(modelClasses, entityClass, classesDirectory, servicePackage, repositoryPackage);
+//				} catch (ArrayStoreException e) {
+//					getLog().error(ExceptionUtils.getStackTrace(e));
+//					getLog().error("TypeNotPresentExceptionProxy to: " + entityClass.getName());
+//				}
+//
+//			}
+//			
+			for (EntityModel entityModel:entitiesModel) {
 
 				//String nameClass = file.getPath().replace(target, "").replace(slash, ".").replace(".class", "");
-				Class<?> entityClass = urlClassLoader.loadClass(entity);
+				
 				try {
-						ClassBuilding.generateClass(modelClasses, entityClass, classesDirectory, servicePackage, repositoryPackage);
+						ClassBuilding.generateClass(modelClasses, entityModel, classesDirectory, servicePackage, repositoryPackage);
 				} catch (ArrayStoreException e) {
 					getLog().error(ExceptionUtils.getStackTrace(e));
-					getLog().error("TypeNotPresentExceptionProxy to: " + entityClass.getName());
+					getLog().error("TypeNotPresentExceptionProxy to: " + entityModel.getClassName());
 				}
 
 			}

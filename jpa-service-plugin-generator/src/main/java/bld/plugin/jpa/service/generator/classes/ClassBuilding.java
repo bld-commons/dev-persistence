@@ -17,6 +17,7 @@ import org.apache.commons.logging.LogFactory;
 
 import bld.commons.classes.attributes.ClassType;
 import bld.commons.classes.attributes.LevelType;
+import bld.commons.classes.model.EntityModel;
 import bld.commons.classes.model.ModelAnnotation;
 import bld.commons.classes.model.ModelClass;
 import bld.commons.classes.model.ModelClasses;
@@ -115,23 +116,23 @@ public class ClassBuilding {
  * @param repositoryPackage the repository package
  * @throws Exception the exception
  */
-	public static void generateClass(ModelClasses modelClasses, Class<?> classEntity, String path,String servicePackage,String repositoryPackage) throws Exception {
+	public static void generateClass(ModelClasses modelClasses, EntityModel entityModel, String path,String servicePackage,String repositoryPackage) throws Exception {
 		ModelClass interfaceRepository = new ModelClass();
 		ModelClass interfaceService = new ModelClass();
 		ModelClass classService = new ModelClass();
-		String className = classEntity.getSimpleName();
+		String className = entityModel.getName();
 		if(StringUtils.isEmpty(repositoryPackage))
-			repositoryPackage = classEntity.getName().replace("." + className, "");
+			repositoryPackage = entityModel.getClassName().replace("." + className, "");
 	
 		//String packageService = packageName.substring(0, packageName.lastIndexOf(".") + 1) + SERVICE.toLowerCase();
 
-		logger.info("Class building: "+classEntity.getName()+REPOSITORY);
+		logger.info("Class building: "+entityModel.getClassName()+REPOSITORY);
 		logger.info("Class building: "+servicePackage+"."+className+SERVICE);
 		logger.info("Class building: "+servicePackage+"."+className+SERVICE_IMPL);
 
-		interfaceRepository.getImports().add(classEntity.getName());
-		interfaceService.getImports().add(classEntity.getName());
-		classService.getImports().add(classEntity.getName());
+		interfaceRepository.getImports().add(entityModel.getClassName());
+		interfaceService.getImports().add(entityModel.getClassName());
+		classService.getImports().add(entityModel.getClassName());
 		//classService.getImports().add("java.util.HashMap");
 		classService.getImports().add(repositoryPackage+"."+className + REPOSITORY);
 
@@ -143,24 +144,29 @@ public class ClassBuilding {
 		ModelGenericType genericTypeEntityClass = new ModelGenericType();
 		genericTypeEntityClass.setName(className);
 
-		Set<Field> listField = ReflectionCommons.getListField(classEntity);
-		ModelGenericType genericTypeId = new ModelGenericType();
 		
-		for (Field field : listField) {
-
-			if (field.isAnnotationPresent(Id.class) || field.isAnnotationPresent(EmbeddedId.class)) {
-				Class<?> classType = field.getType();
-				if (ReflectionCommons.mapPrimitiveToObject.containsKey(classType))
-					classType = ReflectionCommons.mapPrimitiveToObject.get(classType);
-				genericTypeId.setName(classType.getSimpleName());
-				if (!classType.getName().startsWith("java.lang")) {
-					interfaceRepository.getImports().add(classType.getName());
-					interfaceService.getImports().add(classType.getName());
-					classService.getImports().add(classType.getName());
-				}
-			}
-
-		}
+		ModelGenericType genericTypeId = new ModelGenericType();
+		genericTypeId.setName(entityModel.getTypeId());
+		interfaceRepository.addImport(entityModel.getImp());
+		interfaceService.addImport(entityModel.getImp());
+		classService.addImport(entityModel.getImp());
+		
+//		Set<Field> listField = ReflectionCommons.getListField(classEntity);
+//		for (Field field : listField) {
+//
+//			if (field.isAnnotationPresent(Id.class) || field.isAnnotationPresent(EmbeddedId.class)) {
+//				Class<?> classType = field.getType();
+//				if (ReflectionCommons.mapPrimitiveToObject.containsKey(classType))
+//					classType = ReflectionCommons.mapPrimitiveToObject.get(classType);
+//				genericTypeId.setName(classType.getSimpleName());
+//				if (!classType.getName().startsWith("java.lang")) {
+//					interfaceRepository.getImports().add(classType.getName());
+//					interfaceService.getImports().add(classType.getName());
+//					classService.getImports().add(classType.getName());
+//				}
+//			}
+//
+//		}
 
 		ModelSuperClass superClassBaseJpaRepository = getPersistenceGenericType(genericTypeEntityClass, genericTypeId,
 				BASE_JPA_REPOSITORY);
