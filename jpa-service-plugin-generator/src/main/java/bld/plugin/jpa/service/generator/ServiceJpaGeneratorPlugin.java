@@ -1,23 +1,14 @@
-/**
- * @author Francesco Baldi
+/*
+ *@author Francesco Baldi
  * @mail francesco.baldi1987@gmail.com
- * @class bld.plugin.jpa.service.generator.JpaServiceGeneratorPlugin.java
+ * @class bld.plugin.jpa.service.generator.ServiceJpaGeneratorPlugin.java 
  */
 package bld.plugin.jpa.service.generator;
 
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.InputStreamReader;
-import java.net.URL;
-import java.net.URLClassLoader;
-import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
-import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
-import org.apache.maven.artifact.Artifact;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
@@ -195,23 +186,23 @@ public class ServiceJpaGeneratorPlugin extends AbstractMojo {
 
 	}
 
-	/**
-	 * Read log.
-	 *
-	 * @param file the file
-	 */
-	private void readLog(File file) {
-		try {
-			FileInputStream fstream = new FileInputStream(file);
-			BufferedReader br = new BufferedReader(new InputStreamReader(fstream));
-			String strLine;
-			while ((strLine = br.readLine()) != null)
-				System.out.println(strLine);
-		} catch (Exception e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-	}
+//	/**
+//	 * Read log.
+//	 *
+//	 * @param file the file
+//	 */
+//	private void readLog(File file) {
+//		try {
+//			FileInputStream fstream = new FileInputStream(file);
+//			BufferedReader br = new BufferedReader(new InputStreamReader(fstream));
+//			String strLine;
+//			while ((strLine = br.readLine()) != null)
+//				System.out.println(strLine);
+//		} catch (Exception e) {
+//			// TODO Auto-generated catch block
+//			e.printStackTrace();
+//		}
+//	}
 
 
 }

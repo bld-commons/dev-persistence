@@ -5,12 +5,6 @@
  */
 package bld.plugin.jpa.service.generator.classes;
 
-import java.lang.reflect.Field;
-import java.util.Set;
-
-import javax.persistence.EmbeddedId;
-import javax.persistence.Id;
-
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -25,7 +19,6 @@ import bld.commons.classes.model.ModelField;
 import bld.commons.classes.model.ModelGenericType;
 import bld.commons.classes.model.ModelMethod;
 import bld.commons.classes.model.ModelSuperClass;
-import bld.commons.reflection.utils.ReflectionCommons;
 
 /**
  * The Class ClassBuilding.
