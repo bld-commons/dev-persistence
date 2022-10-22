@@ -18,6 +18,7 @@ import javax.persistence.SequenceGenerator;
 import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
+import javax.validation.constraints.NotNull;
 
 
 /**
@@ -41,8 +42,9 @@ public class CalendarioSpeedy implements Serializable {
 	private Date dataLavoro;
 
 	//bi-directional many-to-one association to Speedy
+	@NotNull
 	@ManyToOne(fetch=FetchType.LAZY)
-	@JoinColumn(name="id_speedy", nullable=false)
+	@JoinColumn(name="id_speedy")
 	private Speedy speedy;
 
 	//bi-directional many-to-one association to Ordine

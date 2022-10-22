@@ -3,7 +3,6 @@ package com.bld.persistence.core.service;
 import bld.commons.service.JpaServiceImpl;
 import org.springframework.stereotype.Service;
 import com.bld.persistence.core.repository.AssoMdfProdottoOrdineIngredienteRepository;
-import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import com.bld.persistence.core.domain.AssoMdfProdottoOrdineIngredientePK;
 import org.springframework.beans.factory.annotation.Autowired;
 import javax.persistence.EntityManager;
@@ -22,14 +21,6 @@ public  class AssoMdfProdottoOrdineIngredienteServiceImpl extends JpaServiceImpl
     
 	@PersistenceContext
     private EntityManager entityManager;
-    
-	@Autowired
-    private NamedParameterJdbcTemplate jdbcTemplate;
-    
-	@Override
-    protected  NamedParameterJdbcTemplate getJdbcTemplate() {
-        return this.jdbcTemplate;
-    }
     
 	@Override
     protected  JpaRepository<AssoMdfProdottoOrdineIngrediente,AssoMdfProdottoOrdineIngredientePK> getJpaRepository() {

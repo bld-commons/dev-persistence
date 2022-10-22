@@ -1,9 +1,10 @@
 package com.bld.persistence.filter;
 
 import bld.commons.reflection.annotations.LikeString;
-import bld.commons.reflection.model.FilterParameter;
+import bld.commons.reflection.model.BaseParameter;
 
-public class ConfiguraMenuFilter extends FilterParameter {
+@SuppressWarnings("serial")
+public class ConfiguraMenuFilter extends BaseParameter {
 
 	
 	private Integer quantita;

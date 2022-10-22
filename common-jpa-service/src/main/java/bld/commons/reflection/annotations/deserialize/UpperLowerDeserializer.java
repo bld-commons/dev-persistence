@@ -13,8 +13,9 @@ import com.fasterxml.jackson.databind.BeanProperty;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonDeserializer;
 import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.annotation.JacksonStdImpl;
 import com.fasterxml.jackson.databind.deser.ContextualDeserializer;
-import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
+import com.fasterxml.jackson.databind.deser.std.StdScalarDeserializer;
 
 import bld.commons.json.annotations.JsonUpperLowerCase;
 import bld.commons.reflection.type.UpperLowerType;
@@ -23,7 +24,8 @@ import bld.commons.reflection.type.UpperLowerType;
  * The Class UpperLowerDeserializer.
  */
 @SuppressWarnings("serial")
-public class UpperLowerDeserializer extends StdDeserializer<String> implements ContextualDeserializer {
+@JacksonStdImpl
+public class UpperLowerDeserializer extends StdScalarDeserializer<String> implements ContextualDeserializer {
 
 	/** The upper lower. */
 	private UpperLowerType upperLower;

@@ -24,7 +24,9 @@ public class MaxConsecutiveSpaceProps {
 	/** The remove all space type. */
 	private boolean removeAllSpaceType;
 	
+	/** The upper lower type. */
 	private UpperLowerType upperLowerType;
+
 
 
 	/**
@@ -34,6 +36,7 @@ public class MaxConsecutiveSpaceProps {
 	 * @param trim the trim
 	 * @param removeEndline the remove endline
 	 * @param removeAllSpaceType the remove all space type
+	 * @param upperLowerType the upper lower type
 	 */
 	public MaxConsecutiveSpaceProps(int consecutive, boolean trim, boolean removeEndline, boolean removeAllSpaceType,UpperLowerType upperLowerType) {
 		super();
@@ -80,6 +83,11 @@ public class MaxConsecutiveSpaceProps {
 		return removeAllSpaceType;
 	}
 
+	/**
+	 * Gets the upper lower type.
+	 *
+	 * @return the upper lower type
+	 */
 	public UpperLowerType getUpperLowerType() {
 		return upperLowerType;
 	}

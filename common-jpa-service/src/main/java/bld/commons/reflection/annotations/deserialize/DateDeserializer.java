@@ -24,8 +24,9 @@ import com.fasterxml.jackson.databind.BeanProperty;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonDeserializer;
 import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.annotation.JacksonStdImpl;
 import com.fasterxml.jackson.databind.deser.ContextualDeserializer;
-import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
+import com.fasterxml.jackson.databind.deser.std.StdScalarDeserializer;
 
 import bld.commons.exception.JpaServiceException;
 import bld.commons.json.annotations.JsonDateFilter;
@@ -40,7 +41,8 @@ import bld.commons.reflection.utils.StaticApplicationContext;
  * @param <T> the generic type
  */
 @SuppressWarnings({ "serial", "unchecked" })
-public class DateDeserializer<T> extends StdDeserializer<T> implements ContextualDeserializer {
+@JacksonStdImpl
+public class DateDeserializer<T> extends StdScalarDeserializer<T> implements ContextualDeserializer {
 
 	/** The env. */
 	private Environment env = null;

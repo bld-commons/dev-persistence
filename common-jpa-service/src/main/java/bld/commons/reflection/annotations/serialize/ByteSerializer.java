@@ -14,7 +14,7 @@ import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonSerializer;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.ser.ContextualSerializer;
-import com.fasterxml.jackson.databind.ser.std.StdSerializer;
+import com.fasterxml.jackson.databind.ser.std.StdScalarSerializer;
 
 import bld.commons.json.annotations.JsonFile;
 import bld.commons.reflection.type.MimeType;
@@ -23,7 +23,7 @@ import bld.commons.reflection.type.MimeType;
  * The Class ByteSerializer.
  */
 @SuppressWarnings("serial")
-public class ByteSerializer extends StdSerializer<byte[]> implements ContextualSerializer {
+public class ByteSerializer extends StdScalarSerializer<byte[]> implements ContextualSerializer {
 
 	/** The mime type. */
 	private MimeType mimeType;

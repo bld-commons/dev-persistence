@@ -6,7 +6,7 @@
 	<parent>
 		<groupId>com.github.bld-commons</groupId>
 		<artifactId>dev-persistence</artifactId>
-		<version>2.0.1</version>
+		<version>2.0.2</version>
 	</parent>
 	<artifactId>processor-jpa-servcie</artifactId>
 	<name>processor-jpa-servcie</name>
@@ -114,6 +114,7 @@
 									<include>com.github.bld-commons:common-jpa-service</include>
 									<include>javax.persistence:javax.persistence-api</include>
 									<include>org.hibernate:hibernate-validator</include>
+									<include>org.hibernate:hibernate-core</include>
 									<include>commons-beanutils:commons-beanutils</include>
 									<include>commons-logging:commons-logging</include>
 									<include>org.apache.commons:commons-collections4</include>

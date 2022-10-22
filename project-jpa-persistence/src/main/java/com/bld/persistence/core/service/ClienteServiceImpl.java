@@ -3,7 +3,6 @@ package com.bld.persistence.core.service;
 import com.bld.persistence.core.domain.Cliente;
 import bld.commons.service.JpaServiceImpl;
 import org.springframework.stereotype.Service;
-import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
@@ -21,14 +20,6 @@ public  class ClienteServiceImpl extends JpaServiceImpl<Cliente,Long> implements
     
 	@PersistenceContext
     private EntityManager entityManager;
-    
-	@Autowired
-    private NamedParameterJdbcTemplate jdbcTemplate;
-    
-	@Override
-    protected  NamedParameterJdbcTemplate getJdbcTemplate() {
-        return this.jdbcTemplate;
-    }
     
 	@Override
     protected  JpaRepository<Cliente,Long> getJpaRepository() {

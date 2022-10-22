@@ -14,8 +14,6 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 
 import com.fasterxml.jackson.annotation.JacksonAnnotationsInside;
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
@@ -30,7 +28,7 @@ import bld.commons.reflection.annotations.serialize.DateSerializer;
 @JacksonAnnotationsInside
 @JsonDeserialize(using = DateDeserializer.class)
 @JsonSerialize(using=DateSerializer.class)
-@JsonInclude(Include.NON_NULL)
+//@JsonInclude(Include.NON_NULL)
 public @interface JsonDateTimeZone {
 
 	/**
