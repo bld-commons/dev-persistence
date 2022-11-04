@@ -1,4 +1,4 @@
-package com.bld.persistence.core.domain;
+package com.bld.persistence.core.domain.base;
 
 import java.sql.Timestamp;
 

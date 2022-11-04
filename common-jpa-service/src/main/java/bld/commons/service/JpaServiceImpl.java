@@ -94,13 +94,13 @@ public abstract class JpaServiceImpl<T, ID> extends BaseJpaService<T, ID> implem
 	 * @param query         the query
 	 * @return the builds the query filter
 	 */
-	private BuildJpqlQueryParameter<T, ID> configureQueryParameter(Map<String, String> mapConditions, QueryParameter<T, ID> queryParameter, String query) {
+	private BuildJpqlQueryParameter<T, ID> configureQueryParameter(Map<String, String> mapConditions,Map<String,String>mapOrders, QueryParameter<T, ID> queryParameter, String query) {
 		if (MapUtils.isEmpty(this.getMapOneToMany())) {
 			this.setMapOneToMany();
 		}
 		if (queryParameter.getBaseParameter() != null)
 			queryParameter = reflectionCommons.dataToMap(queryParameter);
-		return new BuildJpqlQueryParameter<>(mapConditions, queryParameter, query);
+		return new BuildJpqlQueryParameter<>(mapConditions,mapOrders, queryParameter, query);
 	}
 
 	/**
@@ -308,7 +308,7 @@ public abstract class JpaServiceImpl<T, ID> extends BaseJpaService<T, ID> implem
 	 */
 	@Override
 	public T findSingleResultByFilter(QueryParameter<T, ID> queryParameter, String select) {
-		BuildJpqlQueryParameter<T, ID> buildQueryFilter = configureQueryParameter(this.queryJpl.mapConditions(), queryParameter, select);
+		BuildJpqlQueryParameter<T, ID> buildQueryFilter = configureQueryParameter(this.queryJpl.mapConditions(),new HashMap<>(), queryParameter, select);
 		return super.findSingleResultByFilter(buildQueryFilter);
 	}
 
@@ -332,7 +332,7 @@ public abstract class JpaServiceImpl<T, ID> extends BaseJpaService<T, ID> implem
 	 */
 	@Override
 	public List<T> findByFilter(QueryParameter<T, ID> queryParameter, String select) {
-		BuildJpqlQueryParameter<T, ID> buildQueryFilter = configureQueryParameter(this.queryJpl.mapConditions(), queryParameter, select);
+		BuildJpqlQueryParameter<T, ID> buildQueryFilter = configureQueryParameter(this.queryJpl.mapConditions(),this.queryJpl.mapJpaOrders(), queryParameter, select);
 		return super.findByFilter(buildQueryFilter);
 	}
 
@@ -345,7 +345,7 @@ public abstract class JpaServiceImpl<T, ID> extends BaseJpaService<T, ID> implem
 	 */
 	@Override
 	public Long countByFilter(QueryParameter<T, ID> queryParameter, String count) {
-		BuildJpqlQueryParameter<T, ID> buildQueryFilter = configureQueryParameter(this.queryJpl.mapConditions(), queryParameter, count);
+		BuildJpqlQueryParameter<T, ID> buildQueryFilter = configureQueryParameter(this.queryJpl.mapConditions(),new HashMap<>(), queryParameter, count);
 		return super.countByFilter(buildQueryFilter);
 	}
 
@@ -356,7 +356,7 @@ public abstract class JpaServiceImpl<T, ID> extends BaseJpaService<T, ID> implem
 	 */
 	@Override
 	public void deleteByFilter(QueryParameter<T, ID> queryParameter) {
-		BuildJpqlQueryParameter<T, ID> buildQueryFilter = configureQueryParameter(this.queryJpl.mapDeleteConditions(), queryParameter, deleteByFilter());
+		BuildJpqlQueryParameter<T, ID> buildQueryFilter = configureQueryParameter(this.queryJpl.mapDeleteConditions(),new HashMap<>(), queryParameter, deleteByFilter());
 		super.deleteByFilter(buildQueryFilter);
 	}
 
@@ -565,7 +565,7 @@ public abstract class JpaServiceImpl<T, ID> extends BaseJpaService<T, ID> implem
 	private <K> BuildNativeQueryParameter<K, ID> getBuildNativeQueryFilter(NativeQueryParameter<K, ID> queryParameter, String sql) {
 		if (queryParameter.getBaseParameter() != null)
 			queryParameter = reflectionCommons.dataToMap(queryParameter);
-		BuildNativeQueryParameter<K, ID> buildQueryFilter = new BuildNativeQueryParameter<>(this.queryJpl.mapNativeConditions(), queryParameter, sql);
+		BuildNativeQueryParameter<K, ID> buildQueryFilter = new BuildNativeQueryParameter<>(this.queryJpl.mapNativeConditions(),this.queryJpl.mapNativeOrders(), queryParameter, sql);
 		return buildQueryFilter;
 	}
 

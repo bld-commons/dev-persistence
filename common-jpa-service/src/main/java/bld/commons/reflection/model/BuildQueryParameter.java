@@ -8,46 +8,52 @@ package bld.commons.reflection.model;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.apache.commons.collections4.MapUtils;
+
 /**
  * The Class BuildQueryFilter.
  *
- * @param <T> the generic type
+ * @param <T>  the generic type
  * @param <ID> the generic type
  * @param <QP> the generic type
  */
-public abstract class BuildQueryParameter<T, ID,QP extends BaseQueryParameter<T,ID>> {
+public abstract class BuildQueryParameter<T, ID, QP extends BaseQueryParameter<T, ID>> {
 
 	/** The map conditions. */
 	private Map<String, String> mapConditions;
 
+	/** The map orders. */
+	private Map<String, String> mapOrders;
+
 	/** The query parameter. */
 	private QP queryParameter;
-	
+
 	/** The sql. */
 	private StringBuilder sql;
 
-
 	/**
-	 * Instantiates a new builds the query filter.
+	 * Instantiates a new builds the query parameter.
 	 *
 	 * @param mapConditions the map conditions
-	 * @param queryParameter the query filter
+	 * @param mapOrders the map orders
+	 * @param queryParameter the query parameter
 	 * @param sql the sql
 	 */
-	public BuildQueryParameter(Map<String, String> mapConditions,QP queryParameter, String sql) {
+	public BuildQueryParameter(Map<String, String> mapConditions, Map<String, String> mapOrders, QP queryParameter, String sql) {
 		super();
 		this.mapConditions = mapConditions;
 		this.queryParameter = queryParameter;
 		this.sql = new StringBuilder(sql);
+		this.mapOrders = mapOrders;
 	}
-	
-	
+
 	/**
 	 * Instantiates a new builds the query filter.
 	 */
 	public BuildQueryParameter() {
 		super();
-		this.mapConditions=new HashMap<>();
+		this.mapConditions = new HashMap<>();
+		this.mapOrders = new HashMap<>();
 	}
 
 	/**
@@ -68,7 +74,6 @@ public abstract class BuildQueryParameter<T, ID,QP extends BaseQueryParameter<T,
 		return queryParameter;
 	}
 
-
 	/**
 	 * Gets the sql.
 	 *
@@ -86,10 +91,14 @@ public abstract class BuildQueryParameter<T, ID,QP extends BaseQueryParameter<T,
 	public void setSql(StringBuilder sql) {
 		this.sql = sql;
 	}
-	
-	
 
-	
-	
-	
+	/**
+	 * Gets the map orders.
+	 *
+	 * @return the map orders
+	 */
+	public Map<String, String> getMapOrders() {
+		return mapOrders;
+	}
+
 }

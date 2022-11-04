@@ -41,7 +41,9 @@ import javax.tools.Diagnostic.Kind;
 import javax.validation.constraints.NotNull;
 
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.text.StringSubstitutor;
 
 import com.bld.processor.data.ClassField;
 import com.bld.processor.data.QueryDetail;
@@ -60,6 +62,9 @@ import bld.commons.classes.model.ModelSuperClass;
 import bld.commons.processor.ConditionType;
 import bld.commons.processor.annotations.ConditionBuilder;
 import bld.commons.processor.annotations.CustomConditionBuilder;
+import bld.commons.processor.annotations.JpqlOrderBuilder;
+import bld.commons.processor.annotations.NativeOrderBuilder;
+import bld.commons.processor.annotations.OrderAlias;
 import bld.commons.processor.annotations.QueryBuilder;
 import bld.commons.reflection.utils.ReflectionCommons;
 import bld.commons.service.BaseJpaService;
@@ -68,6 +73,8 @@ import bld.commons.service.BaseJpaService;
  * The Class ClassBuilding.
  */
 public class ClassBuilding {
+
+	private static final String ORD = "ord_";
 
 	/** The Constant JOINS. */
 	private static final String JOINS = "joins";
@@ -125,6 +132,8 @@ public class ClassBuilding {
 
 	/** The Constant MAP_NATIVE_CONDITIONS_FIELD. */
 	private static final ModelField MAP_NATIVE_CONDITIONS_FIELD = getFieldMapConditions("MAP_NATIVE_CONDITIONS", "getMapNativeConditions()");
+	private static final ModelField MAP_NATIVE_ORDERS_FIELD = getFieldMapConditions("MAP_NATIVE_ORDERS", "getMapNativeOrders()");
+	private static final ModelField MAP_JPA_ORDERS_FIELD = getFieldMapConditions("MAP_JPA_ORDERS", "getMapJpaOrders()");
 
 	/** The Constant MAP_CONDITIONS_METHOD. */
 	private static final ModelMethod MAP_CONDITIONS_METHOD = getConditions("mapConditions", "return MAP_CONDITIONS;");
@@ -134,6 +143,8 @@ public class ClassBuilding {
 
 	/** The Constant MAP_NATIVE_CONDITIONS_METHOD. */
 	private static final ModelMethod MAP_NATIVE_CONDITIONS_METHOD = getConditions("mapNativeConditions", "return MAP_NATIVE_CONDITIONS;");
+	private static final ModelMethod MAP_NATIVE_ORDERS_METHOD = getConditions("mapNativeOrders", "return MAP_NATIVE_ORDERS;");
+	private static final ModelMethod MAP_JPA_ORDERS_METHOD = getConditions("mapJpaOrders", "return MAP_JPA_ORDERS;");
 
 	/** The Constant MAP_DELETE_CONDITIONS_FIELD. */
 	private static final ModelField MAP_DELETE_CONDITIONS_FIELD = getFieldMapConditions("MAP_DELETE_CONDITIONS", "getMapDeleteConditions()");
@@ -171,6 +182,8 @@ public class ClassBuilding {
 		List<String> mapNativeConditions = new ArrayList<>();
 		List<String> mapConditions = new ArrayList<>();
 		List<String> mapDeleteConditions = new ArrayList<>();
+		List<String> mapJpaOrders = new ArrayList<>();
+		List<String> mapNativeOrders = new ArrayList<>();
 		LinkedHashSet<String> mapOneToMany = new LinkedHashSet<>();
 		classQueryJpql.getImports().add("java.util.HashMap");
 		// classQueryJpql.getImports().add("bld.commons.service.BaseJpaService");
@@ -179,17 +192,22 @@ public class ClassBuilding {
 		mapDeleteConditions.add(SPACE + "Map<String,String> map=getMapBaseConditions();");
 		mapConditions.add(SPACE + "Map<String,String> map=getMapBaseConditions();");
 		mapNativeConditions.add(SPACE + "Map<String,String> map=new HashMap<>();");
+		mapJpaOrders.add(SPACE + "Map<String,String> map=new HashMap<>();");
+		mapNativeOrders.add(SPACE + "Map<String,String> map=new HashMap<>();");
 
 		Map<String, QueryDetail> mapAlias = new HashMap<>();
 		mapAlias.put(fieldEntity, new QueryDetail(fieldEntity, fieldEntity, mapClassField.get(type.asType().toString())));
 		Set<String> aliases = new HashSet<>();
 		aliases.add(fieldEntity);
-		String selectByFilter = "\"select distinct " + fieldEntity + "\"";
+		String distinct=" distinct";
+		if(!queryBuilder.distinct())
+			distinct="";
+		String selectByFilter = "\"select"+distinct+" " + fieldEntity + "\"";
 
 		String deleteByFilter = "\"delete from " + classEntity + " " + fieldEntity + " \"";
 		// + " where 1=1 \"";
 
-		String countByFilter = "\"select distinct count(" + fieldEntity + ")\"";
+		String countByFilter = "\"select"+distinct+" count(" + fieldEntity + ")\"";
 		String fromByFilter = " From " + classEntity + " " + fieldEntity + " \"";
 		Set<Element> elements = mapClassField.get(type.getQualifiedName().toString()).getElements();
 		Set<String> manyProps = new HashSet<>();
@@ -366,6 +384,53 @@ public class ClassBuilding {
 			mapNativeConditions.add(SPACE + "map.put(" + customCondition.parameter() + ", \" " + customCondition.condition().trim() + " \");");
 			keyConditions.add(customCondition.parameter());
 		}
+		
+		for(JpqlOrderBuilder orderBuilder:queryBuilder.jpaOrder()) {
+			if(ArrayUtils.isNotEmpty(orderBuilder.alias())) {
+				Map<String,String> mapping=new HashMap<>();
+				for(OrderAlias alias:orderBuilder.alias()) {
+					String joinPath = alias.field().substring(0,  alias.field().lastIndexOf("."));
+					String field = alias.field().substring(alias.field().lastIndexOf(".") + 1);
+					LinkedHashSet<String> manies = new LinkedHashSet<>();
+					fromByFilter = buildJoin(type, processingEnv, mapConditions, mapOneToMany, mapAlias, aliases, fromByFilter, manyProps, joinPath, orderBuilder.key(), typeService, annotationMirror, CONDITIONS, manies, keyConditions);
+					QueryDetail queryDetail = mapAlias.get(joinPath);
+					if (queryDetail == null) {
+						String errorMessage = "The field path \"" + orderBuilder.order() + "\" is not valid";
+						AnnotationValue annotationValue = getAnnotationValue(annotationMirror, CONDITIONS);
+						processingEnv.getMessager().printMessage(Kind.ERROR, errorMessage, typeService, annotationMirror, annotationValue);
+						throw new ProcessorJpaServiceException(errorMessage);
+					}
+					mapping.put(alias.alias(), queryDetail.getAlias() + "." + field);
+					
+				}
+				StringSubstitutor stringSubstitutor=new StringSubstitutor(mapping);
+				String order=stringSubstitutor.replace(orderBuilder.order()).trim();
+				mapJpaOrders.add(SPACE + "map.put(" + ORD+orderBuilder.key() + ", \" " +order  + " \");");
+				
+			}else {
+				String joinPath = orderBuilder.order().substring(0, orderBuilder.order().lastIndexOf("."));
+				String field = orderBuilder.order().substring(orderBuilder.order().lastIndexOf(".") + 1);
+				LinkedHashSet<String> manies = new LinkedHashSet<>();
+				fromByFilter = buildJoin(type, processingEnv, mapConditions, mapOneToMany, mapAlias, aliases, fromByFilter, manyProps, joinPath, orderBuilder.key(), typeService, annotationMirror, CONDITIONS, manies, keyConditions);
+				QueryDetail queryDetail = mapAlias.get(joinPath);
+				if (queryDetail == null) {
+					String errorMessage = "The field path \"" + orderBuilder.order() + "\" is not valid";
+					AnnotationValue annotationValue = getAnnotationValue(annotationMirror, CONDITIONS);
+					processingEnv.getMessager().printMessage(Kind.ERROR, errorMessage, typeService, annotationMirror, annotationValue);
+					throw new ProcessorJpaServiceException(errorMessage);
+				}
+
+				mapJpaOrders.add(SPACE + "map.put(" + ORD+orderBuilder.key() + ", \" " + queryDetail.getAlias() + "." + field  + " \");");
+				
+			}
+			keyConditions.add(ORD+orderBuilder.key());
+
+		}
+		for(NativeOrderBuilder orderBuilder:queryBuilder.nativeOrder()) {
+			mapNativeOrders.add(SPACE + "map.put(" + ORD+orderBuilder.key() + ", \" " + orderBuilder.order().trim()  + " \");");
+			keyConditions.add(ORD+orderBuilder.key());
+		} 
+			
 
 		TypeMirror superClassTypeMirror = typeElement.getSuperclass();
 		typeElement = (TypeElement) processingEnv.getTypeUtils().asElement(superClassTypeMirror);
@@ -379,7 +444,7 @@ public class ClassBuilding {
 		ModelField deletetByFilterField = finalStaticField(DELETE_BY_FILTER, STRING, deleteByFilter, false);
 
 		for (String keyCondition : keyConditions)
-			interfaceQueryJpql.addFields(finalStaticField(keyCondition, STRING, keyCondition, true, LevelType.PUBLIC));
+			interfaceQueryJpql.addFields(finalStaticField(keyCondition, STRING, keyCondition.replace(ORD, ""), true, LevelType.PUBLIC));
 
 		classQueryJpql.addExtendsClass(getSuperClassQueryJpql(classEntity));
 		classQueryJpql.addInterface(getInterfaceQueryJpql(classEntity));
@@ -387,6 +452,8 @@ public class ClassBuilding {
 		classQueryJpql.getFields().add(MAP_CONDITIONS_FIELD);
 		classQueryJpql.getFields().add(MAP_DELETE_CONDITIONS_FIELD);
 		classQueryJpql.getFields().add(MAP_NATIVE_CONDITIONS_FIELD);
+		classQueryJpql.getFields().add(MAP_NATIVE_ORDERS_FIELD);
+		classQueryJpql.getFields().add(MAP_JPA_ORDERS_FIELD);
 		classQueryJpql.getFields().add(fromByFilterField);
 		classQueryJpql.getFields().add(countByFilterField);
 		classQueryJpql.getFields().add(selectByFilterField);
@@ -400,22 +467,33 @@ public class ClassBuilding {
 		mapBaseConditions.add(SPACE + "return map;");
 		mapDeleteConditions.add(SPACE + "return map;");
 		mapNativeConditions.add(SPACE + "return map;");
+		mapJpaOrders.add(SPACE + "return map;");
+		mapNativeOrders.add(SPACE + "return map;");
 		ModelMethod staticMapConditions = getMapConditions("getMapConditions", mapConditions);
 		ModelMethod staticMapBaseConditions = getMapConditions("getMapBaseConditions", mapBaseConditions);
 		ModelMethod staticMapDeleteConditions = getMapConditions("getMapDeleteConditions", mapDeleteConditions);
 		ModelMethod staticMapNativeConditions = getMapConditions("getMapNativeConditions", mapNativeConditions);
+		ModelMethod staticMapNativeOrders = getMapConditions("getMapNativeOrders", mapNativeOrders);
+		ModelMethod staticMapJpaOrders = getMapConditions("getMapJpaOrders", mapJpaOrders);
 
 		classQueryJpql.getMethods().add(staticMapConditions);
 		classQueryJpql.getMethods().add(staticMapBaseConditions);
 		classQueryJpql.getMethods().add(staticMapDeleteConditions);
 		classQueryJpql.getMethods().add(staticMapNativeConditions);
+		classQueryJpql.getMethods().add(staticMapNativeOrders);
+		classQueryJpql.getMethods().add(staticMapJpaOrders);
 
 		ModelMethod mapConditionsMethod = MAP_CONDITIONS_METHOD;
 		ModelMethod mapDeleteConditionsMethod = MAP_DELETE_CONDITIONS_METHOD;
 		ModelMethod mapNativeConditionsMethod = MAP_NATIVE_CONDITIONS_METHOD;
+		ModelMethod mapNativeOrdersMethod = MAP_NATIVE_ORDERS_METHOD;
+		ModelMethod mapJpaOrdersMethod = MAP_JPA_ORDERS_METHOD;
 		classQueryJpql.getMethods().add(mapConditionsMethod);
 		classQueryJpql.getMethods().add(mapDeleteConditionsMethod);
 		classQueryJpql.getMethods().add(mapNativeConditionsMethod);
+		classQueryJpql.getMethods().add(mapNativeOrdersMethod);
+		classQueryJpql.getMethods().add(mapJpaOrdersMethod);
+
 
 		ModelMethod mapOneToManyMethod = new ModelMethod("mapOneToMany", "void");
 		mapOneToManyMethod.setLevelType(LevelType.PUBLIC);

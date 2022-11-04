@@ -6,7 +6,7 @@
 	<parent>
 		<groupId>com.github.bld-commons</groupId>
 		<artifactId>dev-persistence</artifactId>
-		<version>2.0.2</version>
+		<version>2.0.3-SNAPSHOT</version>
 	</parent>
 	<artifactId>processor-jpa-servcie</artifactId>
 	<name>processor-jpa-servcie</name>
@@ -67,6 +67,10 @@
 			<groupId>org.apache.commons</groupId>
 			<artifactId>commons-lang3</artifactId>
 		</dependency>
+		<dependency>
+			<groupId>org.apache.commons</groupId>
+			<artifactId>commons-text</artifactId>
+		</dependency>
 	</dependencies>
 
 	<build>
@@ -122,6 +126,7 @@
 									<include>javax.annotation:javax.annotation-api</include>
 									<include>javax.validation:validation-api</include>
 									<include>org.apache.commons:commons-lang3</include>
+									<include>org.apache.commons:commons-text</include>
 								</includes>
 							</artifactSet>
 							<transformers>

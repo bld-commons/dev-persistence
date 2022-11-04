@@ -140,12 +140,12 @@ public abstract class BaseJpaService<T, ID> {
 	 * @return the q
 	 */
 	private <Q extends Query> void setQueryParameters(Map<String, Object> mapParameters, Q query) {
-		for (Entry<String, Object> entry: mapParameters.entrySet()) {
+		for (Entry<String, Object> entry : mapParameters.entrySet()) {
 			Object value = entry.getValue();
 			logger.debug("----------------------------------------------------------");
 			logger.debug("Key: " + entry.getKey());
 			logger.debug("Value: " + value);
-			if(value!=null)
+			if (value != null)
 				logger.debug("Class: " + value.getClass().getName());
 			query.setParameter(entry.getKey(), entry.getValue());
 		}
@@ -208,7 +208,7 @@ public abstract class BaseJpaService<T, ID> {
 		ManageOneToMany manageOneToMany = addRelationshipsOneToMany(mapParameters, buildQueryFilter.getSql(), queryFilter.getNullables());
 		StringBuilder sql = manageOneToMany.getSelect();
 		buildWhere(buildQueryFilter, sql);
-		addOrderBy(queryFilter.getListOrderBy(), sql);
+		addOrderBy(queryFilter.getListOrderBy(), sql, buildQueryFilter.getMapOrders());
 		final String select = sql.toString();
 		logger.debug("\nQuery: \n" + select);
 		TypedQuery<T> query = this.getEntityManager().createQuery(select, this.clazz);
@@ -251,20 +251,14 @@ public abstract class BaseJpaService<T, ID> {
 
 	}
 
-	/**
-	 * Adds the order by.
-	 *
-	 * @param listOrderBy the list order by
-	 * @param sql         the select
-	 * @return the string
-	 */
-	private void addOrderBy(List<OrderBy> listOrderBy, StringBuilder sql) {
+	
+	private void addOrderBy(List<OrderBy> listOrderBy, StringBuilder sql, Map<String, String> mapOrders) {
 		if (!sql.toString().toLowerCase().contains(ORDER_BY.trim()) && CollectionUtils.isNotEmpty(listOrderBy)) {
 			StringBuilder writeOrderBy = new StringBuilder("");
 			int substring = 0;
 			if (CollectionUtils.isNotEmpty(listOrderBy)) {
 				for (OrderBy orderBy : listOrderBy)
-					writeOrderBy.append(",").append(orderBy.getSortKey()).append(" ").append(orderBy.getOrderType().name());
+					writeOrderBy.append(",").append(mapOrders.containsKey(orderBy.getSortKey()) ? mapOrders.get(orderBy.getSortKey()) : orderBy.getSortKey()).append(" ").append(orderBy.getOrderType().name());
 				substring = 1;
 			}
 			sql.append(END_LINE).append(ORDER_BY).append(writeOrderBy.substring(substring));
@@ -359,7 +353,7 @@ public abstract class BaseJpaService<T, ID> {
 	 */
 	public <K> List<K> nativeQuerySelectByFilter(BuildNativeQueryParameter<K, ID> buildQueryFilter) {
 		StringBuilder sql = buildNativeQuery(buildQueryFilter);
-		addOrderBy(buildQueryFilter.getQueryParameter().getListOrderBy(), sql);
+		addOrderBy(buildQueryFilter.getQueryParameter().getListOrderBy(), sql, buildQueryFilter.getMapOrders());
 		final String select = sql.toString();
 		logger.debug(select);
 		Query query = this.getEntityManager().createNativeQuery(select, Tuple.class);
