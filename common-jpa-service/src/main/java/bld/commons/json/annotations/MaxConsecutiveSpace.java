@@ -67,4 +67,13 @@ public @interface MaxConsecutiveSpace {
 	 */
 	public UpperLowerType upperLowerType() default UpperLowerType.NONE;
 	
+	
+	
+	/**
+	 * Removes the tab.
+	 *
+	 * @return true, if successful
+	 */
+	public boolean removeTab() default false;
+	
 }

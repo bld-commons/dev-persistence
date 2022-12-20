@@ -1,3 +1,8 @@
+/*
+ * @author Francesco Baldi
+ * @mail francesco.baldi1987@gmail.com
+ * @class bld.commons.json.annotations.JsonClob.java 
+ */
 package bld.commons.json.annotations;
 
 import static java.lang.annotation.ElementType.FIELD;
@@ -15,6 +20,9 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import bld.commons.reflection.annotations.deserialize.ClobDeserializer;
 import bld.commons.reflection.annotations.serialize.ClobSerializer;
 
+/**
+ * The Interface JsonClob.
+ */
 @Retention(RUNTIME)
 @Target({ FIELD, METHOD,PARAMETER })
 @JacksonAnnotationsInside
