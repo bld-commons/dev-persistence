@@ -52,7 +52,7 @@ import bld.commons.reflection.annotations.FilterNullValue;
 import bld.commons.reflection.annotations.IgnoreMapping;
 import bld.commons.reflection.annotations.LikeString;
 import bld.commons.reflection.annotations.ListFilter;
-import bld.commons.reflection.annotations.ResultMap;
+import bld.commons.reflection.annotations.ResultMapping;
 import bld.commons.reflection.model.BaseParameter;
 import bld.commons.reflection.model.NativeQueryParameter;
 import bld.commons.reflection.model.QueryParameter;
@@ -328,9 +328,9 @@ public class ReflectionCommons {
 		beanUtilsBean.getConvertUtils().register(converter, Calendar.class);
 		try {
 			beanUtilsBean.copyProperties(t, mapResultApp);
-			Set<Field> fields=getListField(t.getClass(), ResultMap.class);
+			Set<Field> fields=getListField(t.getClass(), ResultMapping.class);
 			for(Field field:fields) {
-				ResultMapper<?> resultMapper = this.applicationContext.getBean(field.getAnnotation(ResultMap.class).value());
+				ResultMapper<?> resultMapper = this.applicationContext.getBean(field.getAnnotation(ResultMapping.class).value());
 				beanUtilsBean.setProperty(t, field.getName(), resultMapper.mapToData(mapResultApp));
 			}
 		} catch (IllegalAccessException | InvocationTargetException e) {

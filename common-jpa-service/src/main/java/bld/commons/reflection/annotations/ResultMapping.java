@@ -10,7 +10,7 @@ import bld.commons.controller.mapper.ResultMapper;
 
 @Retention(RUNTIME)
 @Target({FIELD})
-public @interface ResultMap {
+public @interface ResultMapping {
 
 	public Class<? extends ResultMapper<?>> value();
 }
