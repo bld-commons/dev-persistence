@@ -8,8 +8,6 @@ package bld.commons.reflection.model;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.apache.commons.collections4.MapUtils;
-
 /**
  * The Class BuildQueryFilter.
  *

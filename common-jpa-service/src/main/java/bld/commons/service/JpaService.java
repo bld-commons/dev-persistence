@@ -263,6 +263,14 @@ public interface JpaService<T, ID> {
 	 */
 	public <K> Long nativeQueryCountByFilter(NativeQueryParameter<K, ID> queryParameter, String count);
 	
+	/**
+	 * Native query single result by filter.
+	 *
+	 * @param <K> the key type
+	 * @param queryParameter the query parameter
+	 * @param sql the sql
+	 * @return the k
+	 */
 	public <K> K nativeQuerySingleResultByFilter(NativeQueryParameter<K, ID> queryParameter, String sql);
 
 //	public T findSingleResultByFilter(QueryParameter<T, ID> queryParameter, StringBuilder select);

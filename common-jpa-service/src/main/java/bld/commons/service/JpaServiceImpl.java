@@ -90,6 +90,7 @@ public abstract class JpaServiceImpl<T, ID> extends BaseJpaService<T, ID> implem
 	 * Configure query filter.
 	 *
 	 * @param mapConditions the map conditions
+	 * @param mapOrders the map orders
 	 * @param queryParameter   the query filter
 	 * @param query         the query
 	 * @return the builds the query filter

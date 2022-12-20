@@ -43,8 +43,10 @@ import bld.commons.reflection.utils.ReflectionCommons;
 @SuppressWarnings("unchecked")
 public abstract class BaseJpaService<T, ID> {
 
+	/** The Constant JOIN_ZONE. */
 	public final static String JOIN_ZONE = "joinZone";
 
+	/** The Constant END_LINE. */
 	private static final String END_LINE = "\n";
 
 	/** The classe. */
@@ -236,11 +238,12 @@ public abstract class BaseJpaService<T, ID> {
 //	}
 
 	/**
-	 * Builds the sql.
-	 *
-	 * @param buildQueryFilter the build query filter
-	 * @return the string
-	 */
+ * Builds the sql.
+ *
+ * @param buildQueryFilter the build query filter
+ * @param sql the sql
+ * @return the string
+ */
 	private void buildWhere(BuildJpqlQueryParameter<T, ID> buildQueryFilter, StringBuilder sql) {
 		QueryParameter<T, ID> queryFilter = buildQueryFilter.getQueryParameter();
 		StringBuilder where = new StringBuilder("");
@@ -252,6 +255,13 @@ public abstract class BaseJpaService<T, ID> {
 	}
 
 	
+	/**
+	 * Adds the order by.
+	 *
+	 * @param listOrderBy the list order by
+	 * @param sql the sql
+	 * @param mapOrders the map orders
+	 */
 	private void addOrderBy(List<OrderBy> listOrderBy, StringBuilder sql, Map<String, String> mapOrders) {
 		if (!sql.toString().toLowerCase().contains(ORDER_BY.trim()) && CollectionUtils.isNotEmpty(listOrderBy)) {
 			StringBuilder writeOrderBy = new StringBuilder("");
@@ -385,6 +395,13 @@ public abstract class BaseJpaService<T, ID> {
 		return listK;
 	}
 
+	/**
+	 * Sets the native query parameters.
+	 *
+	 * @param <Q> the generic type
+	 * @param mapZone the map zone
+	 * @param query the query
+	 */
 	private <Q extends Query> void setNativeQueryParameters(Map<String, ConditionsZoneModel> mapZone, Q query) {
 
 		for (ConditionsZoneModel zone : mapZone.values()) {

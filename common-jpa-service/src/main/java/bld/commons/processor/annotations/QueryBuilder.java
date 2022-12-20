@@ -18,6 +18,11 @@ import java.lang.annotation.Target;
 @Target(TYPE)
 public @interface QueryBuilder {
 	
+	/**
+	 * Distinct.
+	 *
+	 * @return true, if successful
+	 */
 	public boolean distinct() default true;
 
 	/**
@@ -48,8 +53,18 @@ public @interface QueryBuilder {
 	 */
 	public CustomConditionBuilder[] customNativeConditions() default {};
 
+	/**
+	 * Jpa order.
+	 *
+	 * @return the jpql order builder[]
+	 */
 	public JpqlOrderBuilder[] jpaOrder() default {};
 	
+	/**
+	 * Native order.
+	 *
+	 * @return the native order builder[]
+	 */
 	public NativeOrderBuilder[] nativeOrder() default {};
 
 }

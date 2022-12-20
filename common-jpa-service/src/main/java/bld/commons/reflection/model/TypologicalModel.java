@@ -28,6 +28,11 @@ public class TypologicalModel<ID> extends BaseModel<ID> {
 	}
 
 	
+	/**
+	 * Instantiates a new typological model.
+	 *
+	 * @param name the name
+	 */
 	public TypologicalModel(@NotBlank String name) {
 		super();
 		this.name = name;

@@ -83,8 +83,18 @@ public abstract class QueryJpql<T> {
 	 */
 	public abstract Map<String, String> mapNativeConditions();
 	
+	/**
+	 * Map native orders.
+	 *
+	 * @return the map
+	 */
 	public abstract Map<String, String> mapNativeOrders();
 	
+	/**
+	 * Map jpa orders.
+	 *
+	 * @return the map
+	 */
 	public abstract Map<String, String> mapJpaOrders();
 	
 	

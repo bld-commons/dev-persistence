@@ -5,6 +5,7 @@
  */
 package bld.commons.reflection.utils;
 
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -44,12 +45,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;
 
+import bld.commons.controller.mapper.ResultMapper;
 import bld.commons.reflection.annotations.ConditionsZones;
 import bld.commons.reflection.annotations.DateFilter;
 import bld.commons.reflection.annotations.FilterNullValue;
 import bld.commons.reflection.annotations.IgnoreMapping;
 import bld.commons.reflection.annotations.LikeString;
 import bld.commons.reflection.annotations.ListFilter;
+import bld.commons.reflection.annotations.ResultMap;
 import bld.commons.reflection.model.BaseParameter;
 import bld.commons.reflection.model.NativeQueryParameter;
 import bld.commons.reflection.model.QueryParameter;
@@ -84,10 +87,9 @@ public class ReflectionCommons {
 
 	/** The Constant mapPrimitiveToObject. */
 	public final static Map<Class<?>, Class<?>> mapPrimitiveToObject = mapFromPrimitiveToObject();
-	
 
-	private final static Map<Class<?>,Type> mapType=getMapType();
-	
+	/** The Constant mapType. */
+	private final static Map<Class<?>, Type> mapType = getMapType();
 
 	/**
 	 * Save generic.
@@ -106,11 +108,14 @@ public class ReflectionCommons {
 		metodo.invoke(oggettoServiceImpl, valore);
 
 	}
-	
-		
 
-	private static Map<Class<?>,Type> getMapType() {
-		Map<Class<?>, Type> map=new HashMap<>();
+	/**
+	 * Gets the map type.
+	 *
+	 * @return the map type
+	 */
+	private static Map<Class<?>, Type> getMapType() {
+		Map<Class<?>, Type> map = new HashMap<>();
 		map.put(Boolean.class, StandardBasicTypes.BOOLEAN);
 		map.put(String.class, StandardBasicTypes.STRING);
 		map.put(Long.class, StandardBasicTypes.LONG);
@@ -150,12 +155,11 @@ public class ReflectionCommons {
 		return map;
 	}
 
-
 	/**
 	 * Data to map.
 	 *
-	 * @param <T> the generic type
-	 * @param <ID> the generic type
+	 * @param <T>            the generic type
+	 * @param <ID>           the generic type
 	 * @param queryParameter the query parameter
 	 * @return the query parameter
 	 */
@@ -181,7 +185,7 @@ public class ReflectionCommons {
 								value = getValue(field, method, value);
 
 								if (value instanceof Boolean && (Boolean) value && field.isAnnotationPresent(ListFilter.class))
-									queryParameter.addNUllable(field.getName());
+									queryParameter.addNullable(field.getName());
 								else if (value.getClass().isArray()) {
 									Object[] array = (Object[]) value;
 									queryParameter.addParameter(field.getName(), Arrays.asList(array));
@@ -203,9 +207,9 @@ public class ReflectionCommons {
 	/**
 	 * Gets the value.
 	 *
-	 * @param field the field
+	 * @param field  the field
 	 * @param method the method
-	 * @param value the value
+	 * @param value  the value
 	 * @return the value
 	 */
 	private Object getValue(Field field, Method method, Object value) {
@@ -255,8 +259,8 @@ public class ReflectionCommons {
 	/**
 	 * Data to map.
 	 *
-	 * @param <T> the generic type
-	 * @param <ID> the generic type
+	 * @param <T>            the generic type
+	 * @param <ID>           the generic type
 	 * @param queryParameter the query parameter
 	 * @return the native query parameter
 	 */
@@ -290,7 +294,7 @@ public class ReflectionCommons {
 								} else
 									queryParameter.addParameter(field.getName(), value, conditionsZones);
 							} else if (field.isAnnotationPresent(FilterNullValue.class) && field.getAnnotation(FilterNullValue.class).value() || method.isAnnotationPresent(FilterNullValue.class) && method.getAnnotation(FilterNullValue.class).value())
-								queryParameter.addParameter(field.getName(), new TypedParameterValue(mapType.get(field.getType()), value),conditionsZones);
+								queryParameter.addParameter(field.getName(), new TypedParameterValue(mapType.get(field.getType()), value), conditionsZones);
 							else if (conditionsZones != null)
 								queryParameter.addEmptyZones(conditionsZones);
 						} catch (Exception e) {
@@ -324,10 +328,16 @@ public class ReflectionCommons {
 		beanUtilsBean.getConvertUtils().register(converter, Calendar.class);
 		try {
 			beanUtilsBean.copyProperties(t, mapResultApp);
+			Set<Field> fields=getListField(t.getClass(), ResultMap.class);
+			for(Field field:fields) {
+				ResultMapper<?> resultMapper = this.applicationContext.getBean(field.getAnnotation(ResultMap.class).value());
+				beanUtilsBean.setProperty(t, field.getName(), resultMapper.mapToData(mapResultApp));
+			}
 		} catch (IllegalAccessException | InvocationTargetException e) {
 			throw new RuntimeException(e);
 		}
-
+		
+		
 	}
 
 	/**
@@ -448,6 +458,20 @@ public class ReflectionCommons {
 			for (Field field : classApp.getDeclaredFields())
 				if (!listField.contains(field))
 					listField.add(field);
+			classApp = classApp.getSuperclass();
+		} while (classApp != null && !classApp.getName().equals(Object.class.getName()));
+		return listField;
+	}
+
+	public static Set<Field> getListField(Class<?> classApp, Class<? extends Annotation> annotation) {
+		Set<Field> listField = new HashSet<>();
+		Set<Field> skipField = new HashSet<>();
+		do {
+			for (Field field : classApp.getDeclaredFields()) {
+				if (field.isAnnotationPresent(annotation) && !skipField.contains(field))
+					listField.add(field);
+				skipField.add(field);
+			}
 			classApp = classApp.getSuperclass();
 		} while (classApp != null && !classApp.getName().equals(Object.class.getName()));
 		return listField;
