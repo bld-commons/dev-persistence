@@ -27,11 +27,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TimeZone;
 
-import org.apache.commons.beanutils.BeanUtilsBean;
-import org.apache.commons.beanutils.Converter;
 import org.apache.commons.beanutils.PropertyUtils;
-import org.apache.commons.beanutils.converters.CalendarConverter;
-import org.apache.commons.beanutils.converters.DateConverter;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -45,9 +41,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;
 
-import bld.commons.controller.mapper.ResultMapper;
 import bld.commons.reflection.annotations.ConditionsZones;
 import bld.commons.reflection.annotations.DateFilter;
+import bld.commons.reflection.annotations.FieldMapping;
 import bld.commons.reflection.annotations.FilterNullValue;
 import bld.commons.reflection.annotations.IgnoreMapping;
 import bld.commons.reflection.annotations.LikeString;
@@ -58,7 +54,6 @@ import bld.commons.reflection.model.NativeQueryParameter;
 import bld.commons.reflection.model.QueryParameter;
 import bld.commons.reflection.type.GetSetType;
 
-// TODO: Auto-generated Javadoc
 /**
  * The Class ReflectionCommons.
  */
@@ -311,33 +306,68 @@ public class ReflectionCommons {
 	/**
 	 * Reflection.
 	 *
-	 * @param <T>       the generic type
-	 * @param t         the t
+	 * @param <T> the generic type
+	 * @param classT the class T
 	 * @param mapResult the map result
+	 * @return the t
 	 */
-	public <T> void reflection(T t, Map<String, Object> mapResult) {
-		Map<String, Object> mapResultApp = new HashMap<>();
+	public <T> T reflection(Class<T> classT, Map<String, Object> mapResult) {
+		Map<String, Object> mapRow = new HashMap<>();
 		for (String keyResult : mapResult.keySet()) {
 			String nameField = CamelCaseUtils.camelCase(keyResult, true);
-			mapResultApp.put(nameField, mapResult.get(keyResult));
+			mapRow.put(nameField, mapResult.get(keyResult));
 		}
-		BeanUtilsBean beanUtilsBean = BeanUtilsBean.getInstance();
-		Converter converter = new DateConverter();
-		beanUtilsBean.getConvertUtils().register(converter, Date.class);
-		converter = new CalendarConverter(null);
-		beanUtilsBean.getConvertUtils().register(converter, Calendar.class);
+		T t = null;
 		try {
-			beanUtilsBean.copyProperties(t, mapResultApp);
-			Set<Field> fields=getListField(t.getClass(), ResultMapping.class);
-			for(Field field:fields) {
-				ResultMapper<?> resultMapper = this.applicationContext.getBean(field.getAnnotation(ResultMapping.class).value());
-				beanUtilsBean.setProperty(t, field.getName(), resultMapper.mapToData(mapResultApp));
-			}
-		} catch (IllegalAccessException | InvocationTargetException e) {
+			t = mapResultSet(classT, mapRow);
+		} catch (Exception e) {
 			throw new RuntimeException(e);
 		}
-		
-		
+		return t;
+	}
+
+	/**
+	 * Map result set.
+	 *
+	 * @param <T> the generic type
+	 * @param classT the class T
+	 * @param mapRow the map row
+	 * @return the t
+	 * @throws InstantiationException the instantiation exception
+	 * @throws IllegalAccessException the illegal access exception
+	 * @throws IllegalArgumentException the illegal argument exception
+	 * @throws InvocationTargetException the invocation target exception
+	 * @throws NoSuchMethodException the no such method exception
+	 * @throws SecurityException the security exception
+	 */
+	private <T> T mapResultSet(Class<T> classT, Map<String, Object> mapRow) throws InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException {
+		T t = classT.getConstructor().newInstance();
+		Set<Field> fields = getListField(classT);
+		boolean isEmpty = true;
+		for (Field field : fields) {
+			Object value = null;
+			if (field.isAnnotationPresent(ResultMapping.class)) {
+				value = mapResultSet(field.getType(), mapRow);
+				if (value != null) {
+					isEmpty = false;
+					PropertyUtils.setProperty(t, field.getName(), value);
+				}
+			} else {
+				String key = field.getName();
+				if (field.isAnnotationPresent(FieldMapping.class))
+					key = field.getAnnotation(FieldMapping.class).value();
+				if (mapRow.containsKey(key)) {
+					value = mapRow.get(key);
+					isEmpty = false;
+					PropertyUtils.setProperty(t, field.getName(), value);
+				}
+
+			}
+
+		}
+		if (isEmpty)
+			return null;
+		return t;
 	}
 
 	/**
@@ -463,6 +493,13 @@ public class ReflectionCommons {
 		return listField;
 	}
 
+	/**
+	 * Gets the list field.
+	 *
+	 * @param classApp the class app
+	 * @param annotation the annotation
+	 * @return the list field
+	 */
 	public static Set<Field> getListField(Class<?> classApp, Class<? extends Annotation> annotation) {
 		Set<Field> listField = new HashSet<>();
 		Set<Field> skipField = new HashSet<>();

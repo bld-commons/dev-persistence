@@ -377,19 +377,14 @@ public abstract class BaseJpaService<T, ID> {
 		List<K> listK = new ArrayList<>();
 		for (Tuple row : results) {
 			List<TupleElement<?>> elements = row.getElements();
-			K k = null;
-			try {
-				k = buildQueryFilter.getQueryParameter().getResultClass().getConstructor().newInstance();
-			} catch (Exception e) {
-				throw new RuntimeException(e);
-			}
 			Map<String, Object> mapRow = new HashMap<>();
 			for (TupleElement<?> element : elements) {
 				Object value = row.get(element.getAlias());
 				if (value != null)
 					mapRow.put(element.getAlias(), value);
 			}
-			this.reflectionCommons.reflection(k, mapRow);
+			
+			K k=this.reflectionCommons.reflection(buildQueryFilter.getQueryParameter().getResultClass(), mapRow);
 			listK.add(k);
 		}
 		return listK;
