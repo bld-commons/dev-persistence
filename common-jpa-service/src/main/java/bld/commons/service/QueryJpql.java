@@ -44,6 +44,8 @@ public abstract class QueryJpql<T> {
 	 * @return the string
 	 */
 	public abstract String selectByFilter();
+	
+	public abstract String selectIdByFilter();
 
 	/**
 	 * Count by filter.

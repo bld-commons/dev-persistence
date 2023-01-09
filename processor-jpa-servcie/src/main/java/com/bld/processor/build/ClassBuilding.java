@@ -74,6 +74,8 @@ import bld.commons.service.BaseJpaService;
  */
 public class ClassBuilding {
 
+	private static final String ID = "<id>";
+
 	private static final String ORD = "ord_";
 
 	/** The Constant JOINS. */
@@ -96,6 +98,8 @@ public class ClassBuilding {
 
 	/** The Constant SELECT_BY_FILTER. */
 	private static final String SELECT_BY_FILTER = "SELECT_BY_FILTER";
+
+	private static final String SELECT_ID_BY_FILTER = "SELECT_ID_BY_FILTER";
 
 	/** The Constant DELETE_BY_FILTER. */
 	private static final String DELETE_BY_FILTER = "DELETE_BY_FILTER";
@@ -120,6 +124,8 @@ public class ClassBuilding {
 
 	/** The Constant SELECT_BY_FILTER_METHOD. */
 	private static final ModelMethod SELECT_BY_FILTER_METHOD = returnMethodService("selectByFilter", STRING, SPACE + "return " + SELECT_BY_FILTER + ";", LevelType.PUBLIC);
+
+	private static final ModelMethod SELECT_ID_BY_FILTER_METHOD = returnMethodService("selectIdByFilter", STRING, SPACE + "return " + SELECT_ID_BY_FILTER + ";", LevelType.PUBLIC);
 
 	/** The Constant COUNT_BY_FILTER_METHOD. */
 	private static final ModelMethod COUNT_BY_FILTER_METHOD = returnMethodService("countByFilter", STRING, SPACE + "return " + COUNT_BY_FILTER + ";", LevelType.PUBLIC);
@@ -199,15 +205,17 @@ public class ClassBuilding {
 		mapAlias.put(fieldEntity, new QueryDetail(fieldEntity, fieldEntity, mapClassField.get(type.asType().toString())));
 		Set<String> aliases = new HashSet<>();
 		aliases.add(fieldEntity);
-		String distinct=" distinct";
-		if(!queryBuilder.distinct())
-			distinct="";
-		String selectByFilter = "\"select"+distinct+" " + fieldEntity + "\"";
+		String distinct = " distinct";
+		if (!queryBuilder.distinct())
+			distinct = "";
+		String selectByFilter = "\"select" + distinct + " " + fieldEntity + "\"";
+
+		String selectIdByFilter = "\"select" + distinct + " " + ID + " \"";
 
 		String deleteByFilter = "\"delete from " + classEntity + " " + fieldEntity + " \"";
 		// + " where 1=1 \"";
 
-		String countByFilter = "\"select"+distinct+" count(" + fieldEntity + ")\"";
+		String countByFilter = "\"select" + distinct + " count(" + fieldEntity + ")\"";
 		String fromByFilter = " From " + classEntity + " " + fieldEntity + " \"";
 		Set<Element> elements = mapClassField.get(type.getQualifiedName().toString()).getElements();
 		Set<String> manyProps = new HashSet<>();
@@ -220,6 +228,7 @@ public class ClassBuilding {
 
 			String fieldName = element.getSimpleName().toString();
 			if (element.getAnnotation(EmbeddedId.class) != null || element.getAnnotation(Id.class) != null) {
+				
 				if (element.getAnnotation(EmbeddedId.class) != null) {
 					TypeElement typeElementId = (TypeElement) processingEnv.getTypeUtils().asElement(element.asType());
 					Set<Element> fieldElementsId = new HashSet<>();
@@ -237,10 +246,11 @@ public class ClassBuilding {
 
 				} else {
 					mapBaseConditions.add(SPACE + "map.put(" + element.getSimpleName().toString() + ", \" and " + fieldEntity + "." + element.getSimpleName().toString() + " in (:" + element.getSimpleName().toString() + ") \");");
-					mapBaseConditions.add(SPACE + "map.put(id, \" and " + fieldEntity + "." + element.getSimpleName().toString() + " in (:id) \");");
 					keyConditions.add(element.getSimpleName().toString());
-					keyConditions.add("id");
 				}
+				mapBaseConditions.add(SPACE + "map.put(id, \" and " + fieldEntity + "." + element.getSimpleName().toString() + " in (:id) \");");
+				keyConditions.add("id");
+				selectIdByFilter = selectIdByFilter.replace(ID, fieldEntity + "." + element.getSimpleName().toString());
 
 			} else if (element.getAnnotation(Column.class) != null) {
 
@@ -384,12 +394,12 @@ public class ClassBuilding {
 			mapNativeConditions.add(SPACE + "map.put(" + customCondition.parameter() + ", \" " + customCondition.condition().trim() + " \");");
 			keyConditions.add(customCondition.parameter());
 		}
-		
-		for(JpqlOrderBuilder orderBuilder:queryBuilder.jpaOrder()) {
-			if(ArrayUtils.isNotEmpty(orderBuilder.alias())) {
-				Map<String,String> mapping=new HashMap<>();
-				for(OrderAlias alias:orderBuilder.alias()) {
-					String joinPath = alias.field().substring(0,  alias.field().lastIndexOf("."));
+
+		for (JpqlOrderBuilder orderBuilder : queryBuilder.jpaOrder()) {
+			if (ArrayUtils.isNotEmpty(orderBuilder.alias())) {
+				Map<String, String> mapping = new HashMap<>();
+				for (OrderAlias alias : orderBuilder.alias()) {
+					String joinPath = alias.field().substring(0, alias.field().lastIndexOf("."));
 					String field = alias.field().substring(alias.field().lastIndexOf(".") + 1);
 					LinkedHashSet<String> manies = new LinkedHashSet<>();
 					fromByFilter = buildJoin(type, processingEnv, mapConditions, mapOneToMany, mapAlias, aliases, fromByFilter, manyProps, joinPath, orderBuilder.key(), typeService, annotationMirror, CONDITIONS, manies, keyConditions);
@@ -401,13 +411,13 @@ public class ClassBuilding {
 						throw new ProcessorJpaServiceException(errorMessage);
 					}
 					mapping.put(alias.alias(), queryDetail.getAlias() + "." + field);
-					
+
 				}
-				StringSubstitutor stringSubstitutor=new StringSubstitutor(mapping);
-				String order=stringSubstitutor.replace(orderBuilder.order()).trim();
-				mapJpaOrders.add(SPACE + "map.put(" + ORD+orderBuilder.key() + ", \" " +order  + " \");");
-				
-			}else {
+				StringSubstitutor stringSubstitutor = new StringSubstitutor(mapping);
+				String order = stringSubstitutor.replace(orderBuilder.order()).trim();
+				mapJpaOrders.add(SPACE + "map.put(" + ORD + orderBuilder.key() + ", \" " + order + " \");");
+
+			} else {
 				String joinPath = orderBuilder.order().substring(0, orderBuilder.order().lastIndexOf("."));
 				String field = orderBuilder.order().substring(orderBuilder.order().lastIndexOf(".") + 1);
 				LinkedHashSet<String> manies = new LinkedHashSet<>();
@@ -420,17 +430,16 @@ public class ClassBuilding {
 					throw new ProcessorJpaServiceException(errorMessage);
 				}
 
-				mapJpaOrders.add(SPACE + "map.put(" + ORD+orderBuilder.key() + ", \" " + queryDetail.getAlias() + "." + field  + " \");");
-				
+				mapJpaOrders.add(SPACE + "map.put(" + ORD + orderBuilder.key() + ", \" " + queryDetail.getAlias() + "." + field + " \");");
+
 			}
-			keyConditions.add(ORD+orderBuilder.key());
+			keyConditions.add(ORD + orderBuilder.key());
 
 		}
-		for(NativeOrderBuilder orderBuilder:queryBuilder.nativeOrder()) {
-			mapNativeOrders.add(SPACE + "map.put(" + ORD+orderBuilder.key() + ", \" " + orderBuilder.order().trim()  + " \");");
-			keyConditions.add(ORD+orderBuilder.key());
-		} 
-			
+		for (NativeOrderBuilder orderBuilder : queryBuilder.nativeOrder()) {
+			mapNativeOrders.add(SPACE + "map.put(" + ORD + orderBuilder.key() + ", \" " + orderBuilder.order().trim() + " \");");
+			keyConditions.add(ORD + orderBuilder.key());
+		}
 
 		TypeMirror superClassTypeMirror = typeElement.getSuperclass();
 		typeElement = (TypeElement) processingEnv.getTypeUtils().asElement(superClassTypeMirror);
@@ -441,6 +450,7 @@ public class ClassBuilding {
 		ModelField fromByFilterField = finalStaticField(FROM_BY_FILTER, STRING, fromByFilter, true);
 		ModelField countByFilterField = finalStaticField(COUNT_BY_FILTER, STRING, countByFilter + "+" + FROM_BY_FILTER, false);
 		ModelField selectByFilterField = finalStaticField(SELECT_BY_FILTER, STRING, selectByFilter + "+" + FROM_BY_FILTER, false);
+		ModelField selectIdByFilterField = finalStaticField(SELECT_ID_BY_FILTER, STRING, selectIdByFilter + "+" + FROM_BY_FILTER, false);
 		ModelField deletetByFilterField = finalStaticField(DELETE_BY_FILTER, STRING, deleteByFilter, false);
 
 		for (String keyCondition : keyConditions)
@@ -457,9 +467,11 @@ public class ClassBuilding {
 		classQueryJpql.getFields().add(fromByFilterField);
 		classQueryJpql.getFields().add(countByFilterField);
 		classQueryJpql.getFields().add(selectByFilterField);
+		classQueryJpql.getFields().add(selectIdByFilterField);
 		classQueryJpql.getFields().add(deletetByFilterField);
 
 		classQueryJpql.getMethods().add(SELECT_BY_FILTER_METHOD);
+		classQueryJpql.getMethods().add(SELECT_ID_BY_FILTER_METHOD);
 		classQueryJpql.getMethods().add(COUNT_BY_FILTER_METHOD);
 		classQueryJpql.getMethods().add(DELETE_BY_FILTER_METHOD);
 
@@ -493,7 +505,6 @@ public class ClassBuilding {
 		classQueryJpql.getMethods().add(mapNativeConditionsMethod);
 		classQueryJpql.getMethods().add(mapNativeOrdersMethod);
 		classQueryJpql.getMethods().add(mapJpaOrdersMethod);
-
 
 		ModelMethod mapOneToManyMethod = new ModelMethod("mapOneToMany", "void");
 		mapOneToManyMethod.setLevelType(LevelType.PUBLIC);

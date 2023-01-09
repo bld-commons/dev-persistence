@@ -27,6 +27,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TimeZone;
 
+import org.apache.commons.beanutils.BeanUtils;
 import org.apache.commons.beanutils.PropertyUtils;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.ArrayUtils;
@@ -350,7 +351,7 @@ public class ReflectionCommons {
 				value = mapResultSet(field.getType(), mapRow);
 				if (value != null) {
 					isEmpty = false;
-					PropertyUtils.setProperty(t, field.getName(), value);
+					BeanUtils.setProperty(t, field.getName(), value);
 				}
 			} else {
 				String key = field.getName();
@@ -359,7 +360,7 @@ public class ReflectionCommons {
 				if (mapRow.containsKey(key)) {
 					value = mapRow.get(key);
 					isEmpty = false;
-					PropertyUtils.setProperty(t, field.getName(), value);
+					BeanUtils.setProperty(t, field.getName(), value);
 				}
 
 			}

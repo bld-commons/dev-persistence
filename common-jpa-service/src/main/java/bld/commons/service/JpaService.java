@@ -35,6 +35,8 @@ public interface JpaService<T, ID> {
 	 * @param entity the entity
 	 */
 	public abstract void delete(T entity);
+	
+	public abstract void deleteAll(Collection<T> entities);
 
 	/**
 	 * Find by id.
