@@ -28,6 +28,7 @@ import java.util.Set;
 import java.util.TimeZone;
 
 import org.apache.commons.beanutils.BeanUtils;
+import org.apache.commons.beanutils.BeanUtilsBean;
 import org.apache.commons.beanutils.PropertyUtils;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.ArrayUtils;
@@ -307,8 +308,8 @@ public class ReflectionCommons {
 	/**
 	 * Reflection.
 	 *
-	 * @param <T> the generic type
-	 * @param classT the class T
+	 * @param <T>       the generic type
+	 * @param classT    the class T
 	 * @param mapResult the map result
 	 * @return the t
 	 */
@@ -330,41 +331,46 @@ public class ReflectionCommons {
 	/**
 	 * Map result set.
 	 *
-	 * @param <T> the generic type
+	 * @param <T>    the generic type
 	 * @param classT the class T
 	 * @param mapRow the map row
 	 * @return the t
-	 * @throws InstantiationException the instantiation exception
-	 * @throws IllegalAccessException the illegal access exception
-	 * @throws IllegalArgumentException the illegal argument exception
+	 * @throws InstantiationException    the instantiation exception
+	 * @throws IllegalAccessException    the illegal access exception
+	 * @throws IllegalArgumentException  the illegal argument exception
 	 * @throws InvocationTargetException the invocation target exception
-	 * @throws NoSuchMethodException the no such method exception
-	 * @throws SecurityException the security exception
+	 * @throws NoSuchMethodException     the no such method exception
+	 * @throws SecurityException         the security exception
 	 */
 	private <T> T mapResultSet(Class<T> classT, Map<String, Object> mapRow) throws InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException {
 		T t = classT.getConstructor().newInstance();
 		Set<Field> fields = getListField(classT);
 		boolean isEmpty = true;
+		BeanUtilsBean.getInstance().getConvertUtils().register(false, false, 0);
 		for (Field field : fields) {
-			Object value = null;
-			if (field.isAnnotationPresent(ResultMapping.class)) {
-				value = mapResultSet(field.getType(), mapRow);
-				if (value != null) {
-					isEmpty = false;
-					BeanUtils.setProperty(t, field.getName(), value);
-				}
-			} else {
-				String key = field.getName();
-				if (field.isAnnotationPresent(FieldMapping.class))
-					key = field.getAnnotation(FieldMapping.class).value();
-				if (mapRow.containsKey(key)) {
-					value = mapRow.get(key);
-					isEmpty = false;
-					BeanUtils.setProperty(t, field.getName(), value);
-				}
+			if (!field.isAnnotationPresent(IgnoreMapping.class)) {
+				Object value = null;
+				if (field.isAnnotationPresent(ResultMapping.class)) {
+					value = mapResultSet(field.getType(), mapRow);
+					if (value != null) {
+						isEmpty = false;
+						BeanUtils.setProperty(t, field.getName(), value);
+					}
+				} else {
+					String key = field.getName();
+					if (field.isAnnotationPresent(FieldMapping.class))
+						key = field.getAnnotation(FieldMapping.class).value();
+					if (mapRow.containsKey(key)) {
+						value = mapRow.get(key);
+						if (value != null) {
+							isEmpty = false;
+							BeanUtils.setProperty(t, field.getName(), value);
+						}
 
+					}
+
+				}
 			}
-
 		}
 		if (isEmpty)
 			return null;
@@ -497,7 +503,7 @@ public class ReflectionCommons {
 	/**
 	 * Gets the list field.
 	 *
-	 * @param classApp the class app
+	 * @param classApp   the class app
 	 * @param annotation the annotation
 	 * @return the list field
 	 */
