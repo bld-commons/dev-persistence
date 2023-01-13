@@ -41,6 +41,7 @@ public abstract class SearchController<E,ID,M extends BaseModel<ID>, P extends B
 	@Autowired
 	private JpaService<E, ID> jpaService;
 	
+/** The model mapper. */
 //	/** The model mapper. */
 	@Autowired
 	private ModelMapper<E,M> modelMapper;

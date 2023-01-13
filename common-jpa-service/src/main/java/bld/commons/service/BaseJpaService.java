@@ -43,12 +43,16 @@ import bld.commons.reflection.utils.ReflectionCommons;
 @SuppressWarnings("unchecked")
 public abstract class BaseJpaService<T, ID> {
 
+	/** The Constant JOIN_ZONE. */
 	public final static String JOIN_ZONE = "joinZone";
 
+	/** The Constant END_LINE. */
 	private static final String END_LINE = "\n";
 
 	/** The classe. */
-	private Class<T> clazz = null;
+	private Class<T> classEntity = null;
+	
+	private Class<ID> classId=null;
 
 	/** The Constant FETCH. */
 	private static final String fetch = "(?i)fetch";
@@ -103,7 +107,8 @@ public abstract class BaseJpaService<T, ID> {
 	 */
 	public BaseJpaService() {
 		super();
-		this.clazz = ReflectionCommons.getGenericTypeClass(this);
+		this.classEntity = ReflectionCommons.getGenericTypeClass(this);
+		this.classId= ReflectionCommons.getGenericTypeClass(this,1);
 	}
 
 	/**
@@ -111,8 +116,8 @@ public abstract class BaseJpaService<T, ID> {
 	 *
 	 * @return the clazz
 	 */
-	protected Class<T> getClazz() {
-		return clazz;
+	protected Class<T> getClassEntity() {
+		return classEntity;
 	}
 
 	/**
@@ -140,12 +145,12 @@ public abstract class BaseJpaService<T, ID> {
 	 * @return the q
 	 */
 	private <Q extends Query> void setQueryParameters(Map<String, Object> mapParameters, Q query) {
-		for (Entry<String, Object> entry: mapParameters.entrySet()) {
+		for (Entry<String, Object> entry : mapParameters.entrySet()) {
 			Object value = entry.getValue();
 			logger.debug("----------------------------------------------------------");
 			logger.debug("Key: " + entry.getKey());
 			logger.debug("Value: " + value);
-			if(value!=null)
+			if (value != null)
 				logger.debug("Class: " + value.getClass().getName());
 			query.setParameter(entry.getKey(), entry.getValue());
 		}
@@ -185,6 +190,12 @@ public abstract class BaseJpaService<T, ID> {
 		query.executeUpdate();
 	}
 
+
+	public List<ID> findIdByFilter(BuildJpqlQueryParameter<T, ID> buildQueryFilter) {
+		TypedQuery<ID> query = buildQuery(buildQueryFilter,this.classId,true);
+		return query.getResultList();
+	}
+	
 	/**
 	 * Find by filter.
 	 *
@@ -192,7 +203,7 @@ public abstract class BaseJpaService<T, ID> {
 	 * @return the list
 	 */
 	public List<T> findByFilter(BuildJpqlQueryParameter<T, ID> buildQueryFilter) {
-		TypedQuery<T> query = buildQuery(buildQueryFilter);
+		TypedQuery<T> query = buildQuery(buildQueryFilter,this.classEntity,false);
 		return query.getResultList();
 	}
 
@@ -202,16 +213,19 @@ public abstract class BaseJpaService<T, ID> {
 	 * @param buildQueryFilter the build query filter
 	 * @return the typed query
 	 */
-	private TypedQuery<T> buildQuery(BuildJpqlQueryParameter<T, ID> buildQueryFilter) {
+	private <J>TypedQuery<J> buildQuery(BuildJpqlQueryParameter<T, ID> buildQueryFilter,Class<J>clazz,boolean removeFetch) {
 		QueryParameter<T, ID> queryFilter = buildQueryFilter.getQueryParameter();
 		Map<String, Object> mapParameters = queryFilter.getParameters();
 		ManageOneToMany manageOneToMany = addRelationshipsOneToMany(mapParameters, buildQueryFilter.getSql(), queryFilter.getNullables());
 		StringBuilder sql = manageOneToMany.getSelect();
 		buildWhere(buildQueryFilter, sql);
-		addOrderBy(queryFilter.getListOrderBy(), sql);
-		final String select = sql.toString();
+		addOrderBy(queryFilter.getListOrderBy(), sql, buildQueryFilter.getMapOrders());
+		String select = sql.toString();
+		if(removeFetch)
+			select = select.replaceAll(fetch, "");
 		logger.debug("\nQuery: \n" + select);
-		TypedQuery<T> query = this.getEntityManager().createQuery(select, this.clazz);
+		
+		TypedQuery<J> query = this.getEntityManager().createQuery(select, clazz);
 		setQueryParameters(mapParameters, query);
 		if (manageOneToMany.isOneToMany())
 			query.setHint(QueryHints.HINT_PASS_DISTINCT_THROUGH, false);
@@ -236,11 +250,12 @@ public abstract class BaseJpaService<T, ID> {
 //	}
 
 	/**
-	 * Builds the sql.
-	 *
-	 * @param buildQueryFilter the build query filter
-	 * @return the string
-	 */
+ * Builds the sql.
+ *
+ * @param buildQueryFilter the build query filter
+ * @param sql the sql
+ * @return the string
+ */
 	private void buildWhere(BuildJpqlQueryParameter<T, ID> buildQueryFilter, StringBuilder sql) {
 		QueryParameter<T, ID> queryFilter = buildQueryFilter.getQueryParameter();
 		StringBuilder where = new StringBuilder("");
@@ -251,20 +266,21 @@ public abstract class BaseJpaService<T, ID> {
 
 	}
 
+	
 	/**
 	 * Adds the order by.
 	 *
 	 * @param listOrderBy the list order by
-	 * @param sql         the select
-	 * @return the string
+	 * @param sql the sql
+	 * @param mapOrders the map orders
 	 */
-	private void addOrderBy(List<OrderBy> listOrderBy, StringBuilder sql) {
+	private void addOrderBy(List<OrderBy> listOrderBy, StringBuilder sql, Map<String, String> mapOrders) {
 		if (!sql.toString().toLowerCase().contains(ORDER_BY.trim()) && CollectionUtils.isNotEmpty(listOrderBy)) {
 			StringBuilder writeOrderBy = new StringBuilder("");
 			int substring = 0;
 			if (CollectionUtils.isNotEmpty(listOrderBy)) {
 				for (OrderBy orderBy : listOrderBy)
-					writeOrderBy.append(",").append(orderBy.getSortKey()).append(" ").append(orderBy.getOrderType().name());
+					writeOrderBy.append(",").append(mapOrders.containsKey(orderBy.getSortKey()) ? mapOrders.get(orderBy.getSortKey()) : orderBy.getSortKey()).append(" ").append(orderBy.getOrderType().name());
 				substring = 1;
 			}
 			sql.append(END_LINE).append(ORDER_BY).append(writeOrderBy.substring(substring));
@@ -327,7 +343,7 @@ public abstract class BaseJpaService<T, ID> {
 	 * @return the t
 	 */
 	public T findSingleResultByFilter(BuildJpqlQueryParameter<T, ID> buildQueryFilter) {
-		TypedQuery<T> query = buildQuery(buildQueryFilter);
+		TypedQuery<T> query = buildQuery(buildQueryFilter,this.classEntity,false);
 		T t = null;
 		try {
 
@@ -359,7 +375,7 @@ public abstract class BaseJpaService<T, ID> {
 	 */
 	public <K> List<K> nativeQuerySelectByFilter(BuildNativeQueryParameter<K, ID> buildQueryFilter) {
 		StringBuilder sql = buildNativeQuery(buildQueryFilter);
-		addOrderBy(buildQueryFilter.getQueryParameter().getListOrderBy(), sql);
+		addOrderBy(buildQueryFilter.getQueryParameter().getListOrderBy(), sql, buildQueryFilter.getMapOrders());
 		final String select = sql.toString();
 		logger.debug(select);
 		Query query = this.getEntityManager().createNativeQuery(select, Tuple.class);
@@ -373,24 +389,26 @@ public abstract class BaseJpaService<T, ID> {
 		List<K> listK = new ArrayList<>();
 		for (Tuple row : results) {
 			List<TupleElement<?>> elements = row.getElements();
-			K k = null;
-			try {
-				k = buildQueryFilter.getQueryParameter().getResultClass().getConstructor().newInstance();
-			} catch (Exception e) {
-				throw new RuntimeException(e);
-			}
 			Map<String, Object> mapRow = new HashMap<>();
 			for (TupleElement<?> element : elements) {
 				Object value = row.get(element.getAlias());
 				if (value != null)
 					mapRow.put(element.getAlias(), value);
 			}
-			this.reflectionCommons.reflection(k, mapRow);
+			
+			K k=this.reflectionCommons.reflection(buildQueryFilter.getQueryParameter().getResultClass(), mapRow);
 			listK.add(k);
 		}
 		return listK;
 	}
 
+	/**
+	 * Sets the native query parameters.
+	 *
+	 * @param <Q> the generic type
+	 * @param mapZone the map zone
+	 * @param query the query
+	 */
 	private <Q extends Query> void setNativeQueryParameters(Map<String, ConditionsZoneModel> mapZone, Q query) {
 
 		for (ConditionsZoneModel zone : mapZone.values()) {

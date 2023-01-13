@@ -13,6 +13,8 @@ import javax.persistence.OneToMany;
 import javax.persistence.SequenceGenerator;
 import javax.persistence.Table;
 
+import com.bld.persistence.core.domain.base.BaseCliente;
+
 
 /**
  * The persistent class for the tipo_toponimo database table.
@@ -79,14 +81,14 @@ public class TipoToponimo implements Serializable {
 		this.clientes = clientes;
 	}
 
-	public Cliente addCliente(Cliente cliente) {
+	public BaseCliente addCliente(Cliente cliente) {
 		getClientes().add(cliente);
 		cliente.setTipoToponimo(this);
 
 		return cliente;
 	}
 
-	public Cliente removeCliente(Cliente cliente) {
+	public BaseCliente removeCliente(Cliente cliente) {
 		getClientes().remove(cliente);
 		cliente.setTipoToponimo(null);
 

@@ -26,8 +26,13 @@ public class MaxConsecutiveSpaceProps {
 	
 	/** The upper lower type. */
 	private UpperLowerType upperLowerType;
+	
+	/** The remove tab. */
+	public boolean removeTab;
 
 
+
+	
 
 	/**
 	 * Instantiates a new max consecutive space props.
@@ -37,14 +42,16 @@ public class MaxConsecutiveSpaceProps {
 	 * @param removeEndline the remove endline
 	 * @param removeAllSpaceType the remove all space type
 	 * @param upperLowerType the upper lower type
+	 * @param removeTab the remove tab
 	 */
-	public MaxConsecutiveSpaceProps(int consecutive, boolean trim, boolean removeEndline, boolean removeAllSpaceType,UpperLowerType upperLowerType) {
+	public MaxConsecutiveSpaceProps(int consecutive, boolean trim, boolean removeEndline, boolean removeAllSpaceType, UpperLowerType upperLowerType, boolean removeTab) {
 		super();
 		this.consecutive = consecutive;
 		this.trim = trim;
 		this.removeEndline = removeEndline;
 		this.removeAllSpaceType = removeAllSpaceType;
-		this.upperLowerType=upperLowerType;
+		this.upperLowerType = upperLowerType;
+		this.removeTab = removeTab;
 	}
 
 	/**
@@ -90,6 +97,15 @@ public class MaxConsecutiveSpaceProps {
 	 */
 	public UpperLowerType getUpperLowerType() {
 		return upperLowerType;
+	}
+
+	/**
+	 * Checks if is removes the tab.
+	 *
+	 * @return true, if is removes the tab
+	 */
+	public boolean isRemoveTab() {
+		return removeTab;
 	}
 
 	

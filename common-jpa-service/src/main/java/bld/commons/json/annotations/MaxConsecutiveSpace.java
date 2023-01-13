@@ -60,6 +60,20 @@ public @interface MaxConsecutiveSpace {
 	public boolean removeEndline() default false;
 	
 	
+	/**
+	 * Upper lower type.
+	 *
+	 * @return the upper lower type
+	 */
 	public UpperLowerType upperLowerType() default UpperLowerType.NONE;
+	
+	
+	
+	/**
+	 * Removes the tab.
+	 *
+	 * @return true, if successful
+	 */
+	public boolean removeTab() default false;
 	
 }

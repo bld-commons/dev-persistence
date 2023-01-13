@@ -62,7 +62,7 @@ public class MaxConsecutiveSpaceDeserializer extends StdScalarDeserializer<Strin
 	@Override
 	public JsonDeserializer<?> createContextual(DeserializationContext ctxt, BeanProperty property) throws JsonMappingException {
 		MaxConsecutiveSpace maxConsecutiveSpace = property.getAnnotation(MaxConsecutiveSpace.class);
-		MaxConsecutiveSpaceProps maxConsecutiveSpaceProps = new MaxConsecutiveSpaceProps(maxConsecutiveSpace.consecutive(), maxConsecutiveSpace.trim(),maxConsecutiveSpace.removeEndline(),maxConsecutiveSpace.removeAllSpaceType(),maxConsecutiveSpace.upperLowerType());
+		MaxConsecutiveSpaceProps maxConsecutiveSpaceProps = new MaxConsecutiveSpaceProps(maxConsecutiveSpace.consecutive(), maxConsecutiveSpace.trim(),maxConsecutiveSpace.removeEndline(),maxConsecutiveSpace.removeAllSpaceType(),maxConsecutiveSpace.upperLowerType(),maxConsecutiveSpace.removeTab());
 		return new MaxConsecutiveSpaceDeserializer(String.class, maxConsecutiveSpaceProps);
 	}
 
@@ -84,6 +84,8 @@ public class MaxConsecutiveSpaceDeserializer extends StdScalarDeserializer<Strin
 			else {
 				if(maxConsecutiveSpaceProps.isRemoveEndline())
 					text=text.replace("\n", "");
+				if(maxConsecutiveSpaceProps.isRemoveTab())
+					text=text.replace("\t", "");
 				if(maxConsecutiveSpaceProps.isTrim())
 					text=text.trim();
 				String space="";

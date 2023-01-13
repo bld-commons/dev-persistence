@@ -24,26 +24,43 @@ public class QueryParameter<T, ID> extends BaseQueryParameter<T, ID> {
 	/** The map parameters. */
 	private Map<String, Object> parameters;
 
+	/** The nullables. */
 	private Set<String> nullables;
 
 	
 	
+	/**
+	 * Instantiates a new query parameter.
+	 */
 	public QueryParameter() {
 		super();
 		init();
 	}
 
+	/**
+	 * Instantiates a new query parameter.
+	 *
+	 * @param baseParameter the base parameter
+	 */
 	public QueryParameter(BaseParameter baseParameter) {
 		super(baseParameter);
 		init();
 	}
 
+	/**
+	 * Inits the.
+	 */
 	protected void init() {
 		super.init();
 		this.nullables = new HashSet<>();
 		this.parameters = new HashMap<>();
 	}
 
+	/**
+	 * Instantiates a new query parameter.
+	 *
+	 * @param id the id
+	 */
 	public QueryParameter(ID id) {
 		super(id);
 		init();
@@ -70,11 +87,21 @@ public class QueryParameter<T, ID> extends BaseQueryParameter<T, ID> {
 			this.parameters.put(key, value);
 	}
 
-	public void addNUllable(String nullable) {
+	/**
+	 * Adds the nullable.
+	 *
+	 * @param nullable the nullable
+	 */
+	public void addNullable(String nullable) {
 		if (StringUtils.isNotBlank(nullable))
 			this.nullables.add(nullable);
 	}
 
+	/**
+	 * Gets the parameters.
+	 *
+	 * @return the parameters
+	 */
 	public Map<String, Object> getParameters() {
 		return parameters;
 	}

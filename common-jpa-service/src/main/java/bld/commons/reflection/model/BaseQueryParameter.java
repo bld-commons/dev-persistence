@@ -1,3 +1,8 @@
+/*
+ * @author Francesco Baldi
+ * @mail francesco.baldi1987@gmail.com
+ * @class bld.commons.reflection.model.BaseQueryParameter.java 
+ */
 package bld.commons.reflection.model;
 
 import java.io.Serializable;
@@ -11,6 +16,12 @@ import org.springframework.data.domain.Pageable;
 
 import bld.commons.reflection.type.OrderType;
 
+/**
+ * The Class BaseQueryParameter.
+ *
+ * @param <T> the generic type
+ * @param <ID> the generic type
+ */
 @SuppressWarnings("serial")
 public abstract class BaseQueryParameter<T, ID> implements Serializable {
 
@@ -29,10 +40,18 @@ public abstract class BaseQueryParameter<T, ID> implements Serializable {
 	/** The parameter filter. */
 	private BaseParameter baseParameter;
 
+	/**
+	 * Instantiates a new base query parameter.
+	 */
 	protected BaseQueryParameter() {
 		super();
 	}
 
+	/**
+	 * Instantiates a new base query parameter.
+	 *
+	 * @param id the id
+	 */
 	protected BaseQueryParameter(ID id) {
 		super();
 		this.id = id;
@@ -56,10 +75,20 @@ public abstract class BaseQueryParameter<T, ID> implements Serializable {
 
 	}
 
+	/**
+	 * Gets the id.
+	 *
+	 * @return the id
+	 */
 	public ID getId() {
 		return id;
 	}
 
+	/**
+	 * Sets the id.
+	 *
+	 * @param id the new id
+	 */
 	public void setId(ID id) {
 		this.id = id;
 	}
@@ -72,26 +101,56 @@ public abstract class BaseQueryParameter<T, ID> implements Serializable {
 			this.listOrderBy = new ArrayList<>();
 	}
 
+	/**
+	 * Gets the list order by.
+	 *
+	 * @return the list order by
+	 */
 	public List<OrderBy> getListOrderBy() {
 		return listOrderBy;
 	}
 
+	/**
+	 * Sets the list order by.
+	 *
+	 * @param listOrderBy the new list order by
+	 */
 	public void setListOrderBy(List<OrderBy> listOrderBy) {
 		this.listOrderBy = listOrderBy;
 	}
 
+	/**
+	 * Gets the pageable.
+	 *
+	 * @return the pageable
+	 */
 	public Pageable getPageable() {
 		return pageable;
 	}
 
+	/**
+	 * Sets the pageable.
+	 *
+	 * @param pageable the new pageable
+	 */
 	public void setPageable(Pageable pageable) {
 		this.pageable = pageable;
 	}
 
+	/**
+	 * Gets the base parameter.
+	 *
+	 * @return the base parameter
+	 */
 	public BaseParameter getBaseParameter() {
 		return baseParameter;
 	}
 
+	/**
+	 * Sets the base parameter.
+	 *
+	 * @param baseParameter the new base parameter
+	 */
 	public void setBaseParameter(BaseParameter baseParameter) {
 		this.baseParameter = baseParameter;
 	}
@@ -107,11 +166,22 @@ public abstract class BaseQueryParameter<T, ID> implements Serializable {
 			this.pageable = PageRequest.of(page, size);
 	}
 
+	/**
+	 * Adds the order by.
+	 *
+	 * @param orderBy the order by
+	 */
 	public void addOrderBy(OrderBy orderBy) {
 		if (orderBy != null)
 			this.listOrderBy.add(orderBy);
 	}
 	
+	/**
+	 * Adds the order by.
+	 *
+	 * @param field the field
+	 * @param ordertType the ordert type
+	 */
 	public void addOrderBy(String field,OrderType ordertType) {
 		if (StringUtils.isNotBlank(field))
 			this.listOrderBy.add(new OrderBy(field, ordertType));

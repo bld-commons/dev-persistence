@@ -17,6 +17,13 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.SOURCE)
 @Target(TYPE)
 public @interface QueryBuilder {
+	
+	/**
+	 * Distinct.
+	 *
+	 * @return true, if successful
+	 */
+	public boolean distinct() default true;
 
 	/**
 	 * Joins.
@@ -38,12 +45,26 @@ public @interface QueryBuilder {
 	 * @return the custom condition builder[]
 	 */
 	public CustomConditionBuilder[] customConditions() default {};
-	
+
 	/**
 	 * Custom native conditions.
 	 *
 	 * @return the custom condition builder[]
 	 */
 	public CustomConditionBuilder[] customNativeConditions() default {};
+
+	/**
+	 * Jpa order.
+	 *
+	 * @return the jpql order builder[]
+	 */
+	public JpqlOrderBuilder[] jpaOrder() default {};
+	
+	/**
+	 * Native order.
+	 *
+	 * @return the native order builder[]
+	 */
+	public NativeOrderBuilder[] nativeOrder() default {};
 
 }

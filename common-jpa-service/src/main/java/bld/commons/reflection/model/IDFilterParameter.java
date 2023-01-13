@@ -45,6 +45,11 @@ public class IDFilterParameter<ID> extends BaseParameter {
 	}
 	
 	
+	/**
+	 * Adds the id.
+	 *
+	 * @param id the id
+	 */
 	public void addId(ID id) {
 		if(this.id==null)
 			this.id=new ArrayList<>();

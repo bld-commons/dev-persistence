@@ -6,15 +6,13 @@ import java.util.Set;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.NamedQuery;
 import javax.persistence.OneToMany;
-import javax.persistence.SequenceGenerator;
 import javax.persistence.Table;
+
+import com.bld.persistence.core.domain.base.BaseCliente;
 
 
 /**
@@ -24,13 +22,7 @@ import javax.persistence.Table;
 @Entity
 @Table(name="cliente")
 @NamedQuery(name="Cliente.findAll", query="SELECT c FROM Cliente c")
-public class Cliente extends BaseEntity {
-
-	@Id
-	@SequenceGenerator(name="CLIENTE_IDCLIENTE_GENERATOR" )
-	@GeneratedValue(strategy=GenerationType.SEQUENCE, generator="CLIENTE_IDCLIENTE_GENERATOR")
-	@Column(name="id_cliente", unique=true, nullable=false)
-	private Long idCliente;
+public class Cliente extends BaseCliente {
 
 	@Column(length=5)
 	private String cap;
@@ -80,14 +72,7 @@ public class Cliente extends BaseEntity {
 	private Set<Utente> utentes;
 
 	public Cliente() {
-	}
-
-	public Long getIdCliente() {
-		return this.idCliente;
-	}
-
-	public void setIdCliente(Long idCliente) {
-		this.idCliente = idCliente;
+		super();
 	}
 
 	public String getCap() {
