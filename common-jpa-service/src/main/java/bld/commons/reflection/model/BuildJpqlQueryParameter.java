@@ -13,7 +13,7 @@ import java.util.Map;
  * @param <T> the generic type
  * @param <ID> the generic type
  */
-public class BuildJpqlQueryParameter<T, ID> extends BuildQueryParameter<T, ID, QueryParameter<T, ID>> {
+public class BuildJpqlQueryParameter<T, ID> extends BuildQueryParameter<T, ID, QueryParameter<T, ID>,String> {
 
 	/**
 	 * Instantiates a new builds the jpql query parameter.

@@ -9,7 +9,8 @@ import java.io.Serializable;
 
 import javax.validation.constraints.NotNull;
 
-import bld.commons.json.annotations.MaxConsecutiveSpace;
+import com.bld.commons.utils.json.annotations.MaxConsecutiveSpace;
+
 import bld.commons.reflection.type.OrderType;
 
 // TODO: Auto-generated Javadoc

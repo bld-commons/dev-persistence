@@ -83,7 +83,7 @@ public abstract class QueryJpql<T> {
 	 *
 	 * @return the map
 	 */
-	public abstract Map<String, String> mapNativeConditions();
+	public abstract Map<String, Map<String,String>> mapNativeConditions();
 	
 	/**
 	 * Map native orders.

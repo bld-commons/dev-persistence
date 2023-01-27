@@ -11,6 +11,10 @@
 
 	<dependencies>
 		<dependency>
+			<groupId>com.github.bld-commons</groupId>
+			<artifactId>bld-common-utils</artifactId>
+		</dependency>
+		<dependency>
 			<groupId>com.zaxxer</groupId>
 			<artifactId>HikariCP</artifactId>
 		</dependency>

@@ -43,11 +43,15 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;
 
+import com.bld.commons.utils.CamelCaseUtils;
+import com.bld.commons.utils.DateUtils;
+
 import bld.commons.reflection.annotations.ConditionsZones;
 import bld.commons.reflection.annotations.DateFilter;
 import bld.commons.reflection.annotations.FieldMapping;
 import bld.commons.reflection.annotations.FilterNullValue;
 import bld.commons.reflection.annotations.IgnoreMapping;
+import bld.commons.reflection.annotations.IgnoreResultSet;
 import bld.commons.reflection.annotations.LikeString;
 import bld.commons.reflection.annotations.ListFilter;
 import bld.commons.reflection.annotations.ResultMapping;
@@ -348,7 +352,7 @@ public class ReflectionCommons {
 		boolean isEmpty = true;
 		BeanUtilsBean.getInstance().getConvertUtils().register(false, false, 0);
 		for (Field field : fields) {
-			if (!field.isAnnotationPresent(IgnoreMapping.class)) {
+			if (!field.isAnnotationPresent(IgnoreResultSet.class)) {
 				Object value = null;
 				if (field.isAnnotationPresent(ResultMapping.class)) {
 					value = mapResultSet(field.getType(), mapRow);

@@ -12,8 +12,9 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 
+import com.bld.commons.utils.types.UpperLowerType;
+
 import bld.commons.reflection.type.LikeType;
-import bld.commons.reflection.type.UpperLowerType;
 
 /**
  * The Interface LikeString.

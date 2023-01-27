@@ -8,8 +8,9 @@ package bld.commons.processor.annotations;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 
+import com.bld.commons.utils.types.UpperLowerType;
+
 import bld.commons.processor.OperationType;
-import bld.commons.reflection.type.UpperLowerType;
 
 /**
  * The Interface ConditionBuilder.

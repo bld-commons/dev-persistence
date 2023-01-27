@@ -27,6 +27,7 @@ import org.apache.commons.text.StringSubstitutor;
 import org.hibernate.jpa.QueryHints;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import bld.commons.exception.OrderByException;
 import bld.commons.reflection.model.BuildJpqlQueryParameter;
 import bld.commons.reflection.model.BuildNativeQueryParameter;
 import bld.commons.reflection.model.ConditionsZoneModel;
@@ -279,8 +280,11 @@ public abstract class BaseJpaService<T, ID> {
 			StringBuilder writeOrderBy = new StringBuilder("");
 			int substring = 0;
 			if (CollectionUtils.isNotEmpty(listOrderBy)) {
-				for (OrderBy orderBy : listOrderBy)
-					writeOrderBy.append(",").append(mapOrders.containsKey(orderBy.getSortKey()) ? mapOrders.get(orderBy.getSortKey()) : orderBy.getSortKey()).append(" ").append(orderBy.getOrderType().name());
+				for (OrderBy orderBy : listOrderBy) {
+					if(!mapOrders.containsKey(orderBy.getSortKey()))
+							throw new OrderByException("The \""+orderBy.getSortKey()+"\" sort key is not found");
+					writeOrderBy.append(",").append(mapOrders.get(orderBy.getSortKey())).append(" ").append(orderBy.getOrderType().name());
+				}
 				substring = 1;
 			}
 			sql.append(END_LINE).append(ORDER_BY).append(writeOrderBy.substring(substring));
@@ -450,14 +454,15 @@ public abstract class BaseJpaService<T, ID> {
 		Map<String, ConditionsZoneModel> map = new HashMap<>(buildQueryFilter.getQueryParameter().getMapConditionsZone());
 		map.remove(JOIN_ZONE);
 		Map<String, StringBuilder> mapConditions = buildQueryFilter.getQueryParameter().getEmptyZones();
+		Map<String,String> conditions=buildQueryFilter.getMapConditions().get(buildQueryFilter.getQueryParameter().getKey());
 		for (String key : map.keySet()) {
 			ConditionsZoneModel conditionsZoneModel = map.get(key);
 			if (!mapConditions.containsKey(key))
 				mapConditions.put(key, new StringBuilder(conditionsZoneModel.getWhere()));
 			for (String parameter : conditionsZoneModel.getParameters().keySet())
-				mapConditions.get(key).append(buildQueryFilter.getMapConditions().get(parameter)).append(END_LINE);
+				mapConditions.get(key).append(conditions.get(parameter)).append(END_LINE);
 			for (String nullable : conditionsZoneModel.getNullables())
-				mapConditions.get(key).append(buildQueryFilter.getMapConditions().get(nullable)).append(END_LINE);
+				mapConditions.get(key).append(conditions.get(nullable)).append(END_LINE);
 		}
 		StringSubstitutor stringSubstitutor = new StringSubstitutor(mapConditions);
 		sql = new StringBuilder(stringSubstitutor.replace(sql));

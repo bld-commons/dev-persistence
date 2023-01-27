@@ -65,12 +65,13 @@
 		<org.apache.maven.shared-version>3.2.1</org.apache.maven.shared-version>
 		<org.codehaus.plexus-version>3.0.5</org.codehaus.plexus-version>
 		<maven-javadoc-plugin.version>3.1.1</maven-javadoc-plugin.version>
-		<class-generator.version>1.0.7-SNAPSHOT</class-generator.version>
+		<class-generator.version>1.0.8</class-generator.version>
 		<maven-compiler-plugin.version>3.8.1</maven-compiler-plugin.version>
 		<maven-site-plugin.version>3.8.2</maven-site-plugin.version>
 		<maven-plugin-plugin.version>3.6.0</maven-plugin-plugin.version>
 		<maven-shade-plugin.version>3.2.4</maven-shade-plugin.version>
 		<commons-io.version>2.11.0</commons-io.version>
+		<bld-common-utils.version>1.0.0-SNAPSHOT</bld-common-utils.version>
 	</properties>
 
 	<scm>
@@ -89,6 +90,11 @@
 
 	<dependencyManagement>
 		<dependencies>
+			<dependency>
+				<groupId>com.github.bld-commons</groupId>
+				<artifactId>bld-common-utils</artifactId>
+				<version>${bld-common-utils.version}</version>
+			</dependency>
 			<dependency>
 				<groupId>org.apache.commons</groupId>
 				<artifactId>commons-text</artifactId>

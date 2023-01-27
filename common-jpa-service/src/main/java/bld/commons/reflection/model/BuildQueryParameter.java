@@ -15,10 +15,10 @@ import java.util.Map;
  * @param <ID> the generic type
  * @param <QP> the generic type
  */
-public abstract class BuildQueryParameter<T, ID, QP extends BaseQueryParameter<T, ID>> {
+public abstract class BuildQueryParameter<T, ID, QP extends BaseQueryParameter<T, ID>,MT> {
 
 	/** The map conditions. */
-	private Map<String, String> mapConditions;
+	private Map<String, MT> mapConditions;
 
 	/** The map orders. */
 	private Map<String, String> mapOrders;
@@ -37,7 +37,7 @@ public abstract class BuildQueryParameter<T, ID, QP extends BaseQueryParameter<T
 	 * @param queryParameter the query parameter
 	 * @param sql the sql
 	 */
-	public BuildQueryParameter(Map<String, String> mapConditions, Map<String, String> mapOrders, QP queryParameter, String sql) {
+	public BuildQueryParameter(Map<String, MT> mapConditions, Map<String, String> mapOrders, QP queryParameter, String sql) {
 		super();
 		this.mapConditions = mapConditions;
 		this.queryParameter = queryParameter;
@@ -59,7 +59,7 @@ public abstract class BuildQueryParameter<T, ID, QP extends BaseQueryParameter<T
 	 *
 	 * @return the map conditions
 	 */
-	public Map<String, String> getMapConditions() {
+	public Map<String, MT> getMapConditions() {
 		return mapConditions;
 	}
 

@@ -37,4 +37,6 @@ public @interface CustomConditionBuilder {
 	 */
 	public ConditionType type() default ConditionType.SELECT;
 	
+	public String[] keys() default "default";
+	
 }

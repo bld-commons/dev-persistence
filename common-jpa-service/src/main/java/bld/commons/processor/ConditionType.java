@@ -11,6 +11,7 @@ package bld.commons.processor;
 public enum ConditionType {
 
 	/** The select. */
-	SELECT,/** The delete. */
-DELETE;
+	SELECT,
+	/** The delete. */
+	DELETE;
 }

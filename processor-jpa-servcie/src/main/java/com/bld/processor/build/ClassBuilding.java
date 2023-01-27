@@ -9,6 +9,7 @@ import java.security.Timestamp;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
+import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -48,6 +49,7 @@ import org.apache.commons.text.StringSubstitutor;
 import com.bld.processor.data.ClassField;
 import com.bld.processor.data.QueryDetail;
 import com.bld.processor.exception.ProcessorJpaServiceException;
+import com.fasterxml.jackson.core.JsonProcessingException;
 
 import bld.commons.classes.attributes.ClassType;
 import bld.commons.classes.attributes.LevelType;
@@ -137,7 +139,7 @@ public class ClassBuilding {
 	private static final ModelField MAP_CONDITIONS_FIELD = getFieldMapConditions("MAP_CONDITIONS", "getMapConditions()");
 
 	/** The Constant MAP_NATIVE_CONDITIONS_FIELD. */
-	private static final ModelField MAP_NATIVE_CONDITIONS_FIELD = getFieldMapConditions("MAP_NATIVE_CONDITIONS", "getMapNativeConditions()");
+	private static final ModelField MAP_NATIVE_CONDITIONS_FIELD = getFieldMapNativeConditions("MAP_NATIVE_CONDITIONS", "getMapNativeConditions()");
 	private static final ModelField MAP_NATIVE_ORDERS_FIELD = getFieldMapConditions("MAP_NATIVE_ORDERS", "getMapNativeOrders()");
 	private static final ModelField MAP_JPA_ORDERS_FIELD = getFieldMapConditions("MAP_JPA_ORDERS", "getMapJpaOrders()");
 
@@ -148,7 +150,7 @@ public class ClassBuilding {
 	private static final ModelMethod MAP_DELETE_CONDITIONS_METHOD = getConditions("mapDeleteConditions", "return MAP_DELETE_CONDITIONS;");
 
 	/** The Constant MAP_NATIVE_CONDITIONS_METHOD. */
-	private static final ModelMethod MAP_NATIVE_CONDITIONS_METHOD = getConditions("mapNativeConditions", "return MAP_NATIVE_CONDITIONS;");
+	private static final ModelMethod MAP_NATIVE_CONDITIONS_METHOD = getNativeConditions("mapNativeConditions", "return MAP_NATIVE_CONDITIONS;");
 	private static final ModelMethod MAP_NATIVE_ORDERS_METHOD = getConditions("mapNativeOrders", "return MAP_NATIVE_ORDERS;");
 	private static final ModelMethod MAP_JPA_ORDERS_METHOD = getConditions("mapJpaOrders", "return MAP_JPA_ORDERS;");
 
@@ -157,6 +159,8 @@ public class ClassBuilding {
 
 	/** The map class field. */
 	private static Map<String, ClassField> mapClassField = new HashMap<>();
+
+	private static Map<String, List<String>> mapListConditions = new HashMap<>();
 
 	/**
 	 * Generate query class.
@@ -172,6 +176,7 @@ public class ClassBuilding {
 	 */
 	public static void generateQueryClass(ModelClasses modelClasses, TypeElement type, String servicePackage, ProcessingEnvironment processingEnv, QueryBuilder queryBuilder, AnnotationMirror annotationMirror, TypeElement typeService)
 			throws Exception {
+		mapListConditions = new HashMap<>();
 		ModelClass classQueryJpql = new ModelClass();
 		ModelClass interfaceQueryJpql = new ModelClass();
 		interfaceQueryJpql.setType(ClassType.INTERFACE);
@@ -188,7 +193,7 @@ public class ClassBuilding {
 		List<String> mapNativeConditions = new ArrayList<>();
 		List<String> mapConditions = new ArrayList<>();
 		List<String> mapDeleteConditions = new ArrayList<>();
-		List<String> mapJpaOrders = new ArrayList<>();
+		Set<String> mapJpaOrders = new LinkedHashSet<>();
 		List<String> mapNativeOrders = new ArrayList<>();
 		LinkedHashSet<String> mapOneToMany = new LinkedHashSet<>();
 		classQueryJpql.getImports().add("java.util.HashMap");
@@ -197,10 +202,10 @@ public class ClassBuilding {
 		mapBaseConditions.add(SPACE + "Map<String,String> map=new HashMap<>();");
 		mapDeleteConditions.add(SPACE + "Map<String,String> map=getMapBaseConditions();");
 		mapConditions.add(SPACE + "Map<String,String> map=getMapBaseConditions();");
-		mapNativeConditions.add(SPACE + "Map<String,String> map=new HashMap<>();");
+		mapNativeConditions.add(SPACE + "Map<String,Map<String,String>> map=new HashMap<>();");
 		mapJpaOrders.add(SPACE + "Map<String,String> map=new HashMap<>();");
 		mapNativeOrders.add(SPACE + "Map<String,String> map=new HashMap<>();");
-
+		Map<String, String> mapOrder = new HashMap<>();
 		Map<String, QueryDetail> mapAlias = new HashMap<>();
 		mapAlias.put(fieldEntity, new QueryDetail(fieldEntity, fieldEntity, mapClassField.get(type.asType().toString())));
 		Set<String> aliases = new HashSet<>();
@@ -228,7 +233,7 @@ public class ClassBuilding {
 
 			String fieldName = element.getSimpleName().toString();
 			if (element.getAnnotation(EmbeddedId.class) != null || element.getAnnotation(Id.class) != null) {
-				
+
 				if (element.getAnnotation(EmbeddedId.class) != null) {
 					TypeElement typeElementId = (TypeElement) processingEnv.getTypeUtils().asElement(element.asType());
 					Set<Element> fieldElementsId = new HashSet<>();
@@ -237,7 +242,11 @@ public class ClassBuilding {
 							if (ElementKind.FIELD.equals(elementId.getKind()) && !fieldElementsId.contains(elementId) && elementId.getAnnotation(Column.class) != null) {
 								fieldElementsId.add(elementId);
 								mapBaseConditions.add(SPACE + "map.put(" + elementId.getSimpleName().toString() + ", \" and " + fieldEntity + ".id." + elementId.getSimpleName().toString() + " in (:" + elementId.getSimpleName().toString() + ") \");");
+								mapBaseConditions.add(
+										SPACE + "map.put(" + elementId.getSimpleName().toString() + "Not, \" and " + fieldEntity + ".id." + elementId.getSimpleName().toString() + " not in (:" + elementId.getSimpleName().toString() + "Not) \");");
+								mapJpaOrders.add(SPACE + "map.put(\"" + fieldEntity + ".id." + elementId.getSimpleName().toString() + "\",\"" + fieldEntity + ".id." + elementId.getSimpleName().toString() + "\");");
 								keyConditions.add(elementId.getSimpleName().toString());
+								keyConditions.add(elementId.getSimpleName().toString() + "Not");
 							}
 						}
 						TypeMirror superClassIdTypeMirror = typeElementId.getSuperclass();
@@ -246,6 +255,7 @@ public class ClassBuilding {
 
 				} else {
 					mapBaseConditions.add(SPACE + "map.put(" + element.getSimpleName().toString() + ", \" and " + fieldEntity + "." + element.getSimpleName().toString() + " in (:" + element.getSimpleName().toString() + ") \");");
+					mapJpaOrders.add(SPACE + "map.put(\"" + fieldEntity + "." + element.getSimpleName().toString() + "\",\"" + fieldEntity + "." + element.getSimpleName().toString() + "\");");
 					keyConditions.add(element.getSimpleName().toString());
 				}
 				mapBaseConditions.add(SPACE + "map.put(id, \" and " + fieldEntity + "." + element.getSimpleName().toString() + " in (:id) \");");
@@ -270,6 +280,7 @@ public class ClassBuilding {
 				} else {
 					mapBaseConditions.add(SPACE + "map.put(" + fieldName + ", \" and " + fieldEntity + "." + fieldName + " in (:" + fieldName + ") \");");
 				}
+				mapJpaOrders.add(SPACE + "map.put(\"" + fieldEntity + "." + fieldName + "\",\"" + fieldEntity + "." + fieldName + "\");");
 				keyConditions.add(fieldName);
 
 			} else if (element.getAnnotation(ManyToOne.class) != null) {
@@ -282,6 +293,7 @@ public class ClassBuilding {
 						mapConditions.add(SPACE + "map.put(" + fieldReference.getSimpleName().toString() + ", \" and " + fieldName + "." + fieldReference.getSimpleName().toString() + " in (:" + fieldReference.getSimpleName().toString() + ") \");");
 						mapDeleteConditions.add(SPACE + "map.put(" + fieldReference.getSimpleName().toString() + ", \" and " + fieldEntity + "." + fieldName + "." + fieldReference.getSimpleName().toString() + " in (:"
 								+ fieldReference.getSimpleName().toString() + ") \");");
+						mapJpaOrders.add(SPACE + "map.put(\"" + fieldName + "." + fieldReference.getSimpleName().toString() + "\",\"" + fieldName + "." + fieldReference.getSimpleName().toString() + "\");");
 						manyProps.add(fieldReference.getSimpleName().toString());
 						keyConditions.add(fieldReference.getSimpleName().toString());
 						break;
@@ -307,6 +319,7 @@ public class ClassBuilding {
 							manyProps.add(keyProps);
 							mapOneToMany.add(SPACE + "addJoinOneToMany(" + keyProps + ", \" left join fetch " + fieldEntity + "." + fieldName + " " + fieldName + " \");");
 							mapConditions.add(SPACE + "map.put(" + keyProps + ", \" and " + fieldName + "." + fieldOneToMany.getSimpleName().toString() + " in (:" + keyProps + ") \");");
+							mapJpaOrders.add(SPACE + "map.put(\"" + fieldName + "." + fieldOneToMany.getSimpleName().toString() + "\",\"" + fieldName + "." + fieldOneToMany.getSimpleName().toString() + "\");");
 							keyConditions.add(keyProps);
 							QueryDetail queryDetail = new QueryDetail(fieldName, fieldName, joinColumn.nullable(), true, classFieldRefernce);
 							mapAlias.put(fieldEntity + "." + fieldName, queryDetail);
@@ -323,6 +336,7 @@ public class ClassBuilding {
 							manyProps.add(keyProps);
 							mapOneToMany.add(SPACE + "addJoinOneToMany(" + keyProps + ", \" left join fetch " + fieldEntity + "." + fieldName + " " + fieldName + " \");");
 							mapConditions.add(SPACE + "map.put(" + keyProps + ", \" and " + fieldName + "." + fieldManyToMany.getSimpleName().toString() + " in (:" + keyProps + ") \");");
+							mapJpaOrders.add(SPACE + "map.put(\"" + fieldName + "." + fieldManyToMany.getSimpleName().toString() + "\",\"" + fieldName + "." + fieldManyToMany.getSimpleName().toString() + "\");");
 							keyConditions.add(keyProps);
 							QueryDetail queryDetail = new QueryDetail(fieldName, fieldName, false, true, classFieldRefernce);
 							mapAlias.put(fieldEntity + "." + fieldName, queryDetail);
@@ -378,6 +392,7 @@ public class ClassBuilding {
 				mapDeleteConditions.add(SPACE + "map.put(" + condition.parameter() + ", \" and (" + condition.field() + " " + condition.operation().getValue().replace(BaseJpaService.KEY_PROPERTY, ":" + condition.parameter())
 						+ (condition.nullable() ? " or " + condition.field() + " is null " : "") + ")\");");
 			}
+			mapJpaOrders.add(SPACE + "map.put(\"" + queryDetail.getAlias() + "." + field + "\",\"" + queryDetail.getAlias() + "." + field + "\");");
 			keyConditions.add(condition.parameter());
 			if (queryDetail.isMany()) {
 				// manies.add("\"" + (queryDetail.isNullable() ? " left" : "") + " join fetch "
@@ -391,8 +406,16 @@ public class ClassBuilding {
 		for (CustomConditionBuilder customCondition : queryBuilder.customConditions())
 			writeCustomCondition(mapConditions, mapDeleteConditions, customCondition, keyConditions);
 		for (CustomConditionBuilder customCondition : queryBuilder.customNativeConditions()) {
-			mapNativeConditions.add(SPACE + "map.put(" + customCondition.parameter() + ", \" " + customCondition.condition().trim() + " \");");
+			nativeCondition(customCondition, classQueryJpql);
+			//mapNativeConditions.add(SPACE + "map.put(" + customCondition.parameter() + ", \" " + customCondition.condition().trim() + " \");");
 			keyConditions.add(customCondition.parameter());
+		}
+
+		for (Entry<String, List<String>> conditions : mapListConditions.entrySet()) {
+			String method="get" + Character.toUpperCase(conditions.getKey().charAt(0)) + conditions.getKey().substring(1);
+			ModelMethod methodConditions = getMapConditions(method, conditions.getValue());
+			classQueryJpql.getMethods().add(methodConditions);
+			mapNativeConditions.add(SPACE + "map.put(\"" + conditions.getKey() + "\"," + method + "());");
 		}
 
 		for (JpqlOrderBuilder orderBuilder : queryBuilder.jpaOrder()) {
@@ -415,7 +438,7 @@ public class ClassBuilding {
 				}
 				StringSubstitutor stringSubstitutor = new StringSubstitutor(mapping);
 				String order = stringSubstitutor.replace(orderBuilder.order()).trim();
-				mapJpaOrders.add(SPACE + "map.put(" + ORD + orderBuilder.key() + ", \" " + order + " \");");
+				mapJpaOrders.add(SPACE + "map.put(" + ORD + orderBuilder.key().replace(".", "_") + ", \" " + order + " \");");
 
 			} else {
 				String joinPath = orderBuilder.order().substring(0, orderBuilder.order().lastIndexOf("."));
@@ -429,16 +452,16 @@ public class ClassBuilding {
 					processingEnv.getMessager().printMessage(Kind.ERROR, errorMessage, typeService, annotationMirror, annotationValue);
 					throw new ProcessorJpaServiceException(errorMessage);
 				}
-
-				mapJpaOrders.add(SPACE + "map.put(" + ORD + orderBuilder.key() + ", \" " + queryDetail.getAlias() + "." + field + " \");");
-
+				mapJpaOrders.add(SPACE + "map.put(" + ORD + orderBuilder.key().replace(".", "_") + ", \" " + queryDetail.getAlias() + "." + field + " \");");
 			}
-			keyConditions.add(ORD + orderBuilder.key());
+			keyConditions.add(ORD + orderBuilder.key().replace(".", "_"));
+			mapOrder.put(ORD + orderBuilder.key().replace(".", "_"), orderBuilder.key());
 
 		}
 		for (NativeOrderBuilder orderBuilder : queryBuilder.nativeOrder()) {
-			mapNativeOrders.add(SPACE + "map.put(" + ORD + orderBuilder.key() + ", \" " + orderBuilder.order().trim() + " \");");
-			keyConditions.add(ORD + orderBuilder.key());
+			mapNativeOrders.add(SPACE + "map.put(" + ORD + orderBuilder.key().replace(".", "_") + ", \" " + orderBuilder.order().trim() + " \");");
+			keyConditions.add(ORD + orderBuilder.key().replace(".", "_"));
+			mapOrder.put(ORD + orderBuilder.key().replace(".", "_"), orderBuilder.key());
 		}
 
 		TypeMirror superClassTypeMirror = typeElement.getSuperclass();
@@ -454,7 +477,7 @@ public class ClassBuilding {
 		ModelField deletetByFilterField = finalStaticField(DELETE_BY_FILTER, STRING, deleteByFilter, false);
 
 		for (String keyCondition : keyConditions)
-			interfaceQueryJpql.addFields(finalStaticField(keyCondition, STRING, keyCondition.replace(ORD, ""), true, LevelType.PUBLIC));
+			interfaceQueryJpql.addFields(finalStaticField(keyCondition, STRING, mapOrder.containsKey(keyCondition) ? mapOrder.get(keyCondition) : keyCondition, true, LevelType.PUBLIC));
 
 		classQueryJpql.addExtendsClass(getSuperClassQueryJpql(classEntity));
 		classQueryJpql.addInterface(getInterfaceQueryJpql(classEntity));
@@ -484,7 +507,7 @@ public class ClassBuilding {
 		ModelMethod staticMapConditions = getMapConditions("getMapConditions", mapConditions);
 		ModelMethod staticMapBaseConditions = getMapConditions("getMapBaseConditions", mapBaseConditions);
 		ModelMethod staticMapDeleteConditions = getMapConditions("getMapDeleteConditions", mapDeleteConditions);
-		ModelMethod staticMapNativeConditions = getMapConditions("getMapNativeConditions", mapNativeConditions);
+		ModelMethod staticMapNativeConditions = getMapNativeConditions("getMapNativeConditions", mapNativeConditions);
 		ModelMethod staticMapNativeOrders = getMapConditions("getMapNativeOrders", mapNativeOrders);
 		ModelMethod staticMapJpaOrders = getMapConditions("getMapJpaOrders", mapJpaOrders);
 
@@ -515,6 +538,21 @@ public class ClassBuilding {
 
 		modelClasses.getClasses().add(interfaceQueryJpql);
 		modelClasses.getClasses().add(classQueryJpql);
+	}
+
+	private static void nativeCondition(CustomConditionBuilder customCondition, ModelClass classQueryJpql) throws JsonProcessingException {
+		for(String key:customCondition.keys()) {
+			List<String> mapNativeConditions = null;
+			if (!mapListConditions.containsKey(key)) {
+				mapNativeConditions = new ArrayList<>();
+				mapNativeConditions.add(SPACE + "Map<String,String> map=new HashMap<>();");
+				mapNativeConditions.add(SPACE + "return map;");
+				mapListConditions.put(key, mapNativeConditions);
+			}
+			mapNativeConditions = mapListConditions.get(key);
+			mapNativeConditions.add(1, SPACE + "map.put(" + customCondition.parameter() + ", \" " + customCondition.condition().trim() + " \");");
+		}
+		
 	}
 
 	/**
@@ -856,6 +894,20 @@ public class ClassBuilding {
 		mapConditionsMethod.getCommands().add(SPACE + command);
 		return mapConditionsMethod;
 	}
+	
+	
+	private static ModelMethod getNativeConditions(String name, String command) {
+		ModelMethod mapConditionsMethod = new ModelMethod();
+		mapConditionsMethod.setName(name);
+		mapConditionsMethod.setType("Map");
+		mapConditionsMethod.getGenericTypes().add(new ModelGenericType("String"));
+		mapConditionsMethod.getGenericTypes().add(new ModelGenericType("Map<String,String>"));
+		mapConditionsMethod.setLevelType(LevelType.PUBLIC);
+		mapConditionsMethod.getAnnotations().add(ANNOTATION_OVERRIDE);
+
+		mapConditionsMethod.getCommands().add(SPACE + command);
+		return mapConditionsMethod;
+	}
 
 	/**
 	 * Gets the model annotation.
@@ -936,6 +988,13 @@ public class ClassBuilding {
 		mapConditions.getGenericTypes().add(new ModelGenericType("String"));
 		return mapConditions;
 	}
+	
+	private static ModelField getFieldMapNativeConditions(String name, String value) {
+		ModelField mapConditions = finalStaticField(name, "Map", value, false);
+		mapConditions.getGenericTypes().add(new ModelGenericType("String"));
+		mapConditions.getGenericTypes().add(new ModelGenericType("Map<String,String>"));
+		return mapConditions;
+	}
 
 	/**
 	 * Gets the map conditions.
@@ -944,7 +1003,7 @@ public class ClassBuilding {
 	 * @param commands the commands
 	 * @return the map conditions
 	 */
-	private static ModelMethod getMapConditions(String name, List<String> commands) {
+	private static ModelMethod getMapConditions(String name, Collection<String> commands) {
 		ModelMethod mapConditions = new ModelMethod(name, "Map");
 		mapConditions.getGenericTypes().add(new ModelGenericType("String"));
 		mapConditions.getGenericTypes().add(new ModelGenericType("String"));
@@ -954,4 +1013,14 @@ public class ClassBuilding {
 		return mapConditions;
 	}
 
+	private static ModelMethod getMapNativeConditions(String name, Collection<String> commands) {
+		ModelMethod mapConditions = new ModelMethod(name, "Map");
+		mapConditions.getGenericTypes().add(new ModelGenericType("String"));
+		mapConditions.getGenericTypes().add(new ModelGenericType("Map<String,String>"));
+		mapConditions.setStaticMethod(true);
+		mapConditions.setLevelType(LevelType.PRIVATE);
+		mapConditions.setCommands(commands);
+		return mapConditions;
+	}
+	
 }

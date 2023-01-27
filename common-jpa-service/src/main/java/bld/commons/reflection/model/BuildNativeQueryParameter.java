@@ -13,7 +13,7 @@ import java.util.Map;
  * @param <T> the generic type
  * @param <ID> the generic type
  */
-public class BuildNativeQueryParameter<T, ID> extends BuildQueryParameter<T, ID, NativeQueryParameter<T, ID>> {
+public class BuildNativeQueryParameter<T, ID> extends BuildQueryParameter<T, ID, NativeQueryParameter<T, ID>,Map<String,String>> {
 
 	/**
 	 * Instantiates a new builds the native query parameter.
@@ -23,7 +23,7 @@ public class BuildNativeQueryParameter<T, ID> extends BuildQueryParameter<T, ID,
 	 * @param queryParameter the query parameter
 	 * @param sql the sql
 	 */
-	public BuildNativeQueryParameter(Map<String, String> mapConditions, Map<String, String> mapOrders, NativeQueryParameter<T, ID> queryParameter, String sql) {
+	public BuildNativeQueryParameter(Map<String, Map<String,String>> mapConditions, Map<String, String> mapOrders, NativeQueryParameter<T, ID> queryParameter, String sql) {
 		super(mapConditions, mapOrders, queryParameter, sql);
 	}
 

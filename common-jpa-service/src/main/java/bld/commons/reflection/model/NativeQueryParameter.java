@@ -23,6 +23,8 @@ import bld.commons.service.BaseJpaService;
 @SuppressWarnings("serial")
 public class NativeQueryParameter<T, ID> extends BaseQueryParameter<T, ID> {
 
+	private static final String DEFAULT = "default";
+
 	/** The result class. */
 	private Class<T> resultClass;
 
@@ -31,6 +33,8 @@ public class NativeQueryParameter<T, ID> extends BaseQueryParameter<T, ID> {
 	
 	/** The map conditions zone. */
 	private Map<String,ConditionsZoneModel> mapConditionsZone;
+	
+	private String key;
 
 	/**
 	 * Instantiates a new native query parameter.
@@ -41,6 +45,7 @@ public class NativeQueryParameter<T, ID> extends BaseQueryParameter<T, ID> {
 		super();
 		this.init();
 		this.resultClass = resultClass;
+		this.key=DEFAULT;
 	}
 
 	/**
@@ -97,6 +102,7 @@ public class NativeQueryParameter<T, ID> extends BaseQueryParameter<T, ID> {
 		super.init();
 		this.mapConditionsZone=new HashMap<>();
 		this.emptyZones=new HashMap<>();
+		this.key=DEFAULT;
 	}
 
 	/**
@@ -229,6 +235,14 @@ public class NativeQueryParameter<T, ID> extends BaseQueryParameter<T, ID> {
 		for(String key:this.mapConditionsZone.keySet())
 			emptyZones.remove(key);
 		return emptyZones;
+	}
+
+	public String getKey() {
+		return key;
+	}
+
+	public void setKey(String key) {
+		this.key = key;
 	}
 
 }
