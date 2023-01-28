@@ -9,7 +9,7 @@ import java.io.Serializable;
 
 import javax.validation.constraints.NotNull;
 
-import com.bld.commons.utils.json.annotations.MaxConsecutiveSpace;
+import com.bld.commons.utils.json.annotations.CleanExcessSpaces;
 
 import bld.commons.reflection.type.OrderType;
 
@@ -22,7 +22,7 @@ public class OrderBy implements Serializable {
 
 	/** The sort key. */
 	@NotNull
-	@MaxConsecutiveSpace(removeAllSpaceType = true)
+	@CleanExcessSpaces(removeAllSpaceType = true)
 	private String sortKey;
 
 	/** The order type. */
