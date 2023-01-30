@@ -5,13 +5,11 @@
  */
 package bld.commons.exception;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-
 /**
  * The Class JpaServiceException.
  */
 @SuppressWarnings("serial")
-public class JpaServiceException extends JsonProcessingException{
+public class JpaServiceException extends RuntimeException{
 
 	/**
 	 * Instantiates a new jpa service exception.

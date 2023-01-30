@@ -21,12 +21,14 @@ import javax.persistence.TupleElement;
 import javax.persistence.TypedQuery;
 
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.commons.text.StringSubstitutor;
 import org.hibernate.jpa.QueryHints;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import bld.commons.exception.JpaServiceException;
 import bld.commons.exception.OrderByException;
 import bld.commons.reflection.model.BuildJpqlQueryParameter;
 import bld.commons.reflection.model.BuildNativeQueryParameter;
@@ -121,21 +123,6 @@ public abstract class BaseJpaService<T, ID> {
 		return classEntity;
 	}
 
-	/**
-	 * Gets the where condition.
-	 *
-	 * @param mapParameters the map parameters
-	 * @param where         the select
-	 * @param mapConditions the map conditions
-	 * @return the where condition
-	 */
-	private void getWhereCondition(Map<String, Object> mapParameters, StringBuilder where, Map<String, String> mapConditions) {
-		for (String key : mapParameters.keySet()) {
-			String val = mapConditions.get(key);
-			logger.debug("Key: " + key + " Parameter: " + val);
-			where.append(val);
-		}
-	}
 
 	/**
 	 * Sets the query parameters.
@@ -161,6 +148,28 @@ public abstract class BaseJpaService<T, ID> {
 	/**
 	 * Gets the where condition.
 	 *
+	 * @param mapParameters the map parameters
+	 * @param where         the select
+	 * @param mapConditions the map conditions
+	 * @return the where condition
+	 */
+	private void getWhereCondition(Map<String, Object> mapParameters, StringBuilder where, Map<String, String> mapConditions) {
+		for (String key : mapParameters.keySet()) {
+			this.setCondition(where, mapConditions, key);
+		}
+	}
+
+	private void setCondition(StringBuilder where, Map<String, String> mapConditions, String key) {
+		String condition = mapConditions.get(key);
+		if(StringUtils.isBlank(condition))
+			throw new JpaServiceException("The \""+key+"\" parameter is not mappend in condition");
+		where.append(condition);
+	}
+
+	
+	/**
+	 * Gets the where condition.
+	 *
 	 * @param nullables     the nullables
 	 * @param where         the select
 	 * @param mapConditions the map conditions
@@ -169,8 +178,7 @@ public abstract class BaseJpaService<T, ID> {
 	private void getWhereCondition(Set<String> nullables, StringBuilder where, Map<String, String> mapConditions) {
 		if (nullables != null) {
 			for (String key : nullables) {
-				logger.debug("String check nullable: " + key);
-				where.append(mapConditions.get(key));
+				this.setCondition(where, mapConditions, key);
 			}
 		}
 	}
