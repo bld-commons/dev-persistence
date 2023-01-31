@@ -5,7 +5,7 @@
  */
 package bld.commons.controller.mapper;
 
-import bld.commons.reflection.model.BaseModel;
+import com.bld.commons.utils.data.BaseModel;
 
 /**
  * The Interface ModelMapper.

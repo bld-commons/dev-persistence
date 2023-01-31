@@ -17,11 +17,12 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.ResponseBody;
 
+import com.bld.commons.utils.data.BaseModel;
+import com.bld.commons.utils.data.CollectionResponse;
+import com.bld.commons.utils.data.ObjectResponse;
+
 import bld.commons.controller.mapper.ModelMapper;
-import bld.commons.reflection.model.BaseModel;
 import bld.commons.reflection.model.BaseParameter;
-import bld.commons.reflection.model.CollectionResponse;
-import bld.commons.reflection.model.ObjectResponse;
 import bld.commons.reflection.model.QueryParameter;
 import bld.commons.service.JpaService;
 
