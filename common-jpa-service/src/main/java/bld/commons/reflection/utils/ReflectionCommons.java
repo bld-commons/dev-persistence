@@ -27,8 +27,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TimeZone;
 
-import org.apache.commons.beanutils.BeanUtils;
 import org.apache.commons.beanutils.BeanUtilsBean;
+import org.apache.commons.beanutils.ConvertUtilsBean;
 import org.apache.commons.beanutils.PropertyUtils;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.ArrayUtils;
@@ -319,13 +319,24 @@ public class ReflectionCommons {
 	 */
 	public <T> T reflection(Class<T> classT, Map<String, Object> mapResult) {
 		Map<String, Object> mapRow = new HashMap<>();
+		BeanUtilsBean beanUtils = new BeanUtilsBean(new ConvertUtilsBean() {
+		    @Override
+		    public Object convert(String value, @SuppressWarnings("rawtypes") Class clazz) {
+		        if (clazz.isEnum()) {
+		            return Enum.valueOf(clazz, value);
+		        } else {
+		            return super.convert(value, clazz);
+		        }
+		    }
+		});
+		beanUtils.getConvertUtils().register(false, false, 0);
 		for (String keyResult : mapResult.keySet()) {
 			String nameField = CamelCaseUtils.camelCase(keyResult, true);
 			mapRow.put(nameField, mapResult.get(keyResult));
 		}
 		T t = null;
 		try {
-			t = mapResultSet(classT, mapRow);
+			t = mapResultSet(classT, mapRow,beanUtils);
 		} catch (Exception e) {
 			throw new RuntimeException(e);
 		}
@@ -346,19 +357,18 @@ public class ReflectionCommons {
 	 * @throws NoSuchMethodException     the no such method exception
 	 * @throws SecurityException         the security exception
 	 */
-	private <T> T mapResultSet(Class<T> classT, Map<String, Object> mapRow) throws InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException {
+	private <T> T mapResultSet(Class<T> classT, Map<String, Object> mapRow,BeanUtilsBean beanUtils) throws InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException {
 		T t = classT.getConstructor().newInstance();
 		Set<Field> fields = getListField(classT);
 		boolean isEmpty = true;
-		BeanUtilsBean.getInstance().getConvertUtils().register(false, false, 0);
 		for (Field field : fields) {
 			if (!field.isAnnotationPresent(IgnoreResultSet.class)) {
 				Object value = null;
 				if (field.isAnnotationPresent(ResultMapping.class)) {
-					value = mapResultSet(field.getType(), mapRow);
+					value = mapResultSet(field.getType(), mapRow,beanUtils);
 					if (value != null) {
 						isEmpty = false;
-						BeanUtils.setProperty(t, field.getName(), value);
+						beanUtils.setProperty(t, field.getName(), value);
 					}
 				} else {
 					String key = field.getName();
@@ -368,7 +378,7 @@ public class ReflectionCommons {
 						value = mapRow.get(key);
 						if (value != null) {
 							isEmpty = false;
-							BeanUtils.setProperty(t, field.getName(), value);
+							beanUtils.setProperty(t, field.getName(), value);
 						}
 
 					}
