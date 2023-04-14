@@ -194,7 +194,7 @@ public abstract class BaseJpaService<T, ID> {
 		buildWhere(buildQueryFilter, sql);
 		final String delete = sql.toString();
 		logger.debug("Query= " + delete);
-		TypedQuery<?> query = (TypedQuery<?>) this.getEntityManager().createQuery(delete);
+		Query query = this.getEntityManager().createQuery(delete);
 		setQueryParameters(queryFilter.getParameters(), query);
 		query.executeUpdate();
 	}
