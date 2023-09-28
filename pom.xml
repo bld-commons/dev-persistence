@@ -73,6 +73,7 @@
 		<commons-io.version>2.11.0</commons-io.version>
 		<bld-common-utils.version>1.0.8</bld-common-utils.version>
 		<proxy-api-controller.version>1.0.0-SNNAPSHOT</proxy-api-controller.version>
+		<common-annotations.version>1.0.0</common-annotations.version>
 	</properties>
 
 	<scm>
@@ -93,6 +94,11 @@
 
 	<dependencyManagement>
 		<dependencies>
+			<dependency>
+				<groupId>com.github.bld-commons</groupId>
+				<artifactId>common-annotations</artifactId>
+				<version>${common-annotations.version}</version>
+			</dependency>
 			<dependency>
 				<groupId>com.github.bld-commons</groupId>
 				<artifactId>proxy-api-controller</artifactId>

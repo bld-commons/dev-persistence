@@ -306,7 +306,8 @@ class FindInterceptor {
 						mapPagination.put(name, value);
 					}
 				}
-
+				queryParameter.addOrderBy((String) mapPagination.get(SORT_KEY), (OrderType) mapPagination.get(ORDER_TYPE));
+				queryParameter.setPageable((Integer) mapPagination.get(PAGE_NUMBER), (Integer) mapPagination.get(PAGE_SIZE));
 			}
 		}
 	}
