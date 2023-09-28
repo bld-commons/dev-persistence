@@ -3,14 +3,8 @@ package bld.commons.controller;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.validation.Valid;
-
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.MediaType;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.bld.commons.utils.data.BaseModel;
 import com.bld.commons.utils.data.CollectionResponse;
@@ -27,18 +21,7 @@ public abstract class BaseSearchController<E, ID, M extends BaseModel<ID>, P ext
 	@Autowired
 	protected JpaService<E, ID> jpaService;
 	
-	/**
-	 * Find by filter.
-	 *
-	 * @param baseParameter the base parameter
-	 * @return the collection response
-	 * @throws Exception the exception
-	 */
-	@PostMapping(path = "/search", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-	@ResponseBody
-	@Valid
-	@Transactional
-	public CollectionResponse<M> findByFilter(@RequestBody P baseParameter) throws Exception {
+	protected CollectionResponse<M> findByFilter(P baseParameter) throws Exception {
 		QueryParameter<E, ID> queryFilter = new QueryParameter<>(baseParameter);
 		CollectionResponse<M> response = new CollectionResponse<>();
 		List<E> list = this.jpaService.findByFilter(queryFilter);
@@ -60,19 +43,11 @@ public abstract class BaseSearchController<E, ID, M extends BaseModel<ID>, P ext
 	}
 	
 	
+	
+	
 
-	/**
-	 * Count by filter.
-	 *
-	 * @param baseParameter the base parameter
-	 * @return the object response
-	 * @throws Exception the exception
-	 */
-	@PostMapping(path = "/count", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-	@ResponseBody
-	@Valid
-	@Transactional
-	public ObjectResponse<Long> countByFilter(@RequestBody P baseParameter) throws Exception {
+
+	protected ObjectResponse<Long> countByFilter(@RequestBody P baseParameter) throws Exception {
 		QueryParameter<E, ID> queryFilter = new QueryParameter<>(baseParameter);
 		Long count = this.jpaService.countByFilter(queryFilter);
 		return new ObjectResponse<>(count);
@@ -80,21 +55,11 @@ public abstract class BaseSearchController<E, ID, M extends BaseModel<ID>, P ext
 	
 	
 
-	/**
-	 * Single result find by filter.
-	 *
-	 * @param baseParameter the base parameter
-	 * @return the object response
-	 * @throws Exception the exception
-	 */
-	@PostMapping(path="/search/single-result", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-	@ResponseBody
-	@Valid
-	@Transactional
-	public ObjectResponse<M> singleResultFindByFilter(@RequestBody P baseParameter) throws Exception{
+
+	protected ObjectResponse<M> singleResultFindByFilter(@RequestBody P baseParameter) throws Exception{
 		QueryParameter<E, ID>query=new QueryParameter<>(baseParameter);
 		ObjectResponse<M> response = new ObjectResponse<>();
-		E entity = this.jpaService.findSingleResultByFilter(query);
+		E entity = this.jpaService.singleResultByFilter(query);
 		response.setData(this.modelMapper().convertToModel(entity));
 		return response;
 	}

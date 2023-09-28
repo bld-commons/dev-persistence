@@ -5,15 +5,8 @@
  */
 package bld.commons.controller.mapper;
 
-import com.bld.commons.utils.data.BaseModel;
 
-/**
- * The Interface ModelMapper.
- *
- * @param <E> the element type
- * @param <M> the generic type
- */
-public interface ModelMapper<E,M extends BaseModel<?>> {
+public interface ModelMapper<E,M> {
 
 
 	/**

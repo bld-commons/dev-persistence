@@ -105,5 +105,7 @@ public class QueryParameter<T, ID> extends BaseQueryParameter<T, ID> {
 	public Map<String, Object> getParameters() {
 		return parameters;
 	}
+	
+	
 
 }

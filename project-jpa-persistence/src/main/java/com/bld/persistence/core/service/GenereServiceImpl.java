@@ -9,11 +9,16 @@ import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.transaction.annotation.Transactional;
+
+import bld.commons.processor.OperationType;
+import bld.commons.processor.annotations.ConditionBuilder;
 import bld.commons.processor.annotations.QueryBuilder;
 
 @Service
 @Transactional
-@QueryBuilder
+@QueryBuilder(
+		conditions = {@ConditionBuilder(field = "genere.postazioneCucina.ristorante.idRistorante", operation = OperationType.IN, parameter = "idRistorante")}
+		)
 public  class GenereServiceImpl extends JpaServiceImpl<Genere,Long> implements GenereService{
 	@Autowired
     private GenereRepository genereRepository;

@@ -26,6 +26,8 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.TimeZone;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.apache.commons.beanutils.BeanUtilsBean;
 import org.apache.commons.beanutils.ConvertUtilsBean;
@@ -90,7 +92,9 @@ public class ReflectionCommons {
 	public final static Map<Class<?>, Class<?>> mapPrimitiveToObject = mapFromPrimitiveToObject();
 
 	/** The Constant mapType. */
-	private final static Map<Class<?>, Type> mapType = getMapType();
+	public final static Map<Class<?>, Type> mapType = getMapType();
+
+	private final static Pattern pattern = Pattern.compile("\\$\\{([^}]+)\\}");
 
 	/**
 	 * Save generic.
@@ -195,7 +199,7 @@ public class ReflectionCommons {
 							} else if (field.isAnnotationPresent(FilterNullValue.class) && field.getAnnotation(FilterNullValue.class).value() || method.isAnnotationPresent(FilterNullValue.class) && method.getAnnotation(FilterNullValue.class).value())
 								queryParameter.addParameter(field.getName(), new TypedParameterValue(mapType.get(field.getType()), value));
 						} catch (Exception e) {
-							logger.warn("Errore durante la conversione dei dati in mappa");
+							logger.warn("Error converting data to map");
 						}
 					}
 				}
@@ -216,6 +220,10 @@ public class ReflectionCommons {
 	private Object getValue(Field field, Method method, Object value) {
 		DateFilter dateFilter = method.isAnnotationPresent(DateFilter.class) ? method.getAnnotation(DateFilter.class) : field.getAnnotation(DateFilter.class);
 		LikeString likeString = method.isAnnotationPresent(LikeString.class) ? method.getAnnotation(LikeString.class) : field.getAnnotation(LikeString.class);
+		return getValue(value, dateFilter, likeString);
+	}
+
+	public Object getValue(Object value, DateFilter dateFilter, LikeString likeString) {
 		if (dateFilter != null) {
 			if (value instanceof Calendar)
 				value = DateUtils.sumDate((Calendar) value, dateFilter.addYear(), dateFilter.addMonth(), dateFilter.addWeek(), dateFilter.addDay(), dateFilter.addHour(), dateFilter.addMinute(), dateFilter.addSecond());
@@ -299,7 +307,7 @@ public class ReflectionCommons {
 							else if (conditionsZones != null)
 								queryParameter.addEmptyZones(conditionsZones);
 						} catch (Exception e) {
-							logger.warn("Errore durante la conversione dei dati in mappa");
+							logger.warn("Error converting data to map");
 						}
 					}
 				}
@@ -320,14 +328,14 @@ public class ReflectionCommons {
 	public <T> T reflection(Class<T> classT, Map<String, Object> mapResult) {
 		Map<String, Object> mapRow = new HashMap<>();
 		BeanUtilsBean beanUtils = new BeanUtilsBean(new ConvertUtilsBean() {
-		    @Override
-		    public Object convert(String value, @SuppressWarnings("rawtypes") Class clazz) {
-		        if (clazz.isEnum()) {
-		            return Enum.valueOf(clazz, value);
-		        } else {
-		            return super.convert(value, clazz);
-		        }
-		    }
+			@Override
+			public Object convert(String value, @SuppressWarnings("rawtypes") Class clazz) {
+				if (clazz.isEnum()) {
+					return Enum.valueOf(clazz, value);
+				} else {
+					return super.convert(value, clazz);
+				}
+			}
 		});
 		beanUtils.getConvertUtils().register(false, false, 0);
 		for (String keyResult : mapResult.keySet()) {
@@ -336,7 +344,7 @@ public class ReflectionCommons {
 		}
 		T t = null;
 		try {
-			t = mapResultSet(classT, mapRow,beanUtils);
+			t = mapResultSet(classT, mapRow, beanUtils);
 		} catch (Exception e) {
 			throw new RuntimeException(e);
 		}
@@ -357,7 +365,8 @@ public class ReflectionCommons {
 	 * @throws NoSuchMethodException     the no such method exception
 	 * @throws SecurityException         the security exception
 	 */
-	private <T> T mapResultSet(Class<T> classT, Map<String, Object> mapRow,BeanUtilsBean beanUtils) throws InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException {
+	private <T> T mapResultSet(Class<T> classT, Map<String, Object> mapRow, BeanUtilsBean beanUtils)
+			throws InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException {
 		T t = classT.getConstructor().newInstance();
 		Set<Field> fields = getListField(classT);
 		boolean isEmpty = true;
@@ -365,7 +374,7 @@ public class ReflectionCommons {
 			if (!field.isAnnotationPresent(IgnoreResultSet.class)) {
 				Object value = null;
 				if (field.isAnnotationPresent(ResultMapping.class)) {
-					value = mapResultSet(field.getType(), mapRow,beanUtils);
+					value = mapResultSet(field.getType(), mapRow, beanUtils);
 					if (value != null) {
 						isEmpty = false;
 						beanUtils.setProperty(t, field.getName(), value);
@@ -436,7 +445,22 @@ public class ReflectionCommons {
 	 * @return the generic type class
 	 */
 	public static <T> Class<T> getGenericTypeClass(Object entity) {
-		return getGenericTypeClass(entity, 0);
+		return getGenericTypeClass(entity.getClass(), 0);
+	}
+
+	public static <T> Class<T> getGenericTypeClass(Class<?> clazz) {
+		return getGenericTypeClass(clazz, 0);
+	}
+
+	public static <T> Class<T> getGenericTypeClass(Class<?> clazz, int i) {
+		ParameterizedType parameterizedType = null;
+		try {
+			parameterizedType = (ParameterizedType) clazz.getGenericSuperclass();
+		} catch (Exception e) {
+			parameterizedType = (ParameterizedType) clazz.getSuperclass().getGenericSuperclass();
+		}
+		Class<T> clazzType = (Class<T>) parameterizedType.getActualTypeArguments()[i];
+		return clazzType;
 	}
 
 	/**
@@ -448,14 +472,7 @@ public class ReflectionCommons {
 	 * @return the generic type class
 	 */
 	public static <T> Class<T> getGenericTypeClass(Object entity, int i) {
-		ParameterizedType parameterizedType = null;
-		try {
-			parameterizedType = (ParameterizedType) entity.getClass().getGenericSuperclass();
-		} catch (Exception e) {
-			parameterizedType = (ParameterizedType) entity.getClass().getSuperclass().getGenericSuperclass();
-		}
-		Class<T> clazz = (Class<T>) parameterizedType.getActualTypeArguments()[i];
-		return clazz;
+		return getGenericTypeClass(entity.getClass(), i);
 	}
 
 	/**
@@ -571,6 +588,17 @@ public class ReflectionCommons {
 		return mapMethod;
 	}
 
+	public static Set<Method> methods(Class<?> classApp) {
+		Set<Method> methods = new HashSet<>();
+		do {
+			for (Method method : classApp.getMethods())
+				if (!methods.contains(method))
+					methods.add(method);
+			classApp = classApp.getSuperclass();
+		} while (classApp != null && !classApp.getName().equals(Object.class.getName()));
+		return methods;
+	}
+
 	/**
 	 * Gets the method.
 	 *
@@ -615,6 +643,14 @@ public class ReflectionCommons {
 		String methodName = getSetType.name() + Character.toUpperCase(field.getName().charAt(0)) + field.getName().substring(1);
 		return ReflectionCommons.getMethod(mapMethod, methodName, classParameter);
 
+	}
+
+	public static Set<String> variablesInText(String input) {
+		Matcher matcher = pattern.matcher(input);
+		Set<String> variables = new HashSet<>();
+		while (matcher.find())
+			variables.add(matcher.group(1));
+		return variables;
 	}
 
 }

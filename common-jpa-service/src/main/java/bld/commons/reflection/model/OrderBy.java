@@ -13,7 +13,7 @@ import com.bld.commons.utils.json.annotations.CleanExcessSpaces;
 
 import bld.commons.reflection.type.OrderType;
 
-// TODO: Auto-generated Javadoc
+
 /**
  * The Class OrderBy.
  */

@@ -26,6 +26,7 @@ import javax.lang.model.element.AnnotationValue;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.ExecutableElement;
+import javax.lang.model.element.Modifier;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.type.DeclaredType;
 import javax.lang.model.type.TypeMirror;
@@ -330,13 +331,12 @@ public class ClassBuilding {
 				} else {
 					for (Element fieldManyToMany : listReferenceField) {
 						if (fieldManyToMany.getAnnotation(Id.class) != null) {
-							String keyProps = fieldManyToMany.getSimpleName().toString();
-							if (manyProps.contains(keyProps))
-								keyProps = fieldName + Character.toUpperCase(fieldManyToMany.getSimpleName().toString().charAt(0)) + fieldManyToMany.getSimpleName().toString().substring(1);
+							String keyProps = fieldName + Character.toUpperCase(fieldManyToMany.getSimpleName().toString().charAt(0)) + fieldManyToMany.getSimpleName().toString().substring(1);	
 							manyProps.add(keyProps);
 							mapOneToMany.add(SPACE + "addJoinOneToMany(" + keyProps + ", \" left join fetch " + fieldEntity + "." + fieldName + " " + fieldName + " \");");
 							mapConditions.add(SPACE + "map.put(" + keyProps + ", \" and " + fieldName + "." + fieldManyToMany.getSimpleName().toString() + " in (:" + keyProps + ") \");");
 							mapJpaOrders.add(SPACE + "map.put(\"" + fieldName + "." + fieldManyToMany.getSimpleName().toString() + "\",\"" + fieldName + "." + fieldManyToMany.getSimpleName().toString() + "\");");
+							
 							keyConditions.add(keyProps);
 							QueryDetail queryDetail = new QueryDetail(fieldName, fieldName, false, true, classFieldRefernce);
 							mapAlias.put(fieldEntity + "." + fieldName, queryDetail);
@@ -398,7 +398,7 @@ public class ClassBuilding {
 				// manies.add("\"" + (queryDetail.isNullable() ? " left" : "") + " join fetch "
 				// + queryDetail.getAlias() + "." + field + " " + getAlias(aliases, field) + "
 				// \"");
-				mapOneToMany.add(SPACE + "addJoinOneToMany(" + condition.parameter() + ", " + printManies(manies) + " );");
+				mapOneToMany.add(SPACE + "addJoinOneToMany(" + condition.parameter() + ", " + printManies(manies) + ");");
 			}
 
 		}
@@ -407,12 +407,13 @@ public class ClassBuilding {
 			writeCustomCondition(mapConditions, mapDeleteConditions, customCondition, keyConditions);
 		for (CustomConditionBuilder customCondition : queryBuilder.customNativeConditions()) {
 			nativeCondition(customCondition, classQueryJpql);
-			//mapNativeConditions.add(SPACE + "map.put(" + customCondition.parameter() + ", \" " + customCondition.condition().trim() + " \");");
+			// mapNativeConditions.add(SPACE + "map.put(" + customCondition.parameter() + ",
+			// \" " + customCondition.condition().trim() + " \");");
 			keyConditions.add(customCondition.parameter());
 		}
 
 		for (Entry<String, List<String>> conditions : mapListConditions.entrySet()) {
-			String method="get" + Character.toUpperCase(conditions.getKey().charAt(0)) + conditions.getKey().substring(1);
+			String method = "get" + Character.toUpperCase(conditions.getKey().charAt(0)) + conditions.getKey().substring(1);
 			ModelMethod methodConditions = getMapConditions(method, conditions.getValue());
 			classQueryJpql.getMethods().add(methodConditions);
 			mapNativeConditions.add(SPACE + "map.put(\"" + conditions.getKey() + "\"," + method + "());");
@@ -541,7 +542,7 @@ public class ClassBuilding {
 	}
 
 	private static void nativeCondition(CustomConditionBuilder customCondition, ModelClass classQueryJpql) throws JsonProcessingException {
-		for(String key:customCondition.keys()) {
+		for (String key : customCondition.keys()) {
 			List<String> mapNativeConditions = null;
 			if (!mapListConditions.containsKey(key)) {
 				mapNativeConditions = new ArrayList<>();
@@ -552,7 +553,7 @@ public class ClassBuilding {
 			mapNativeConditions = mapListConditions.get(key);
 			mapNativeConditions.add(1, SPACE + "map.put(" + customCondition.parameter() + ", \" " + customCondition.condition().trim() + " \");");
 		}
-		
+
 	}
 
 	/**
@@ -681,7 +682,7 @@ public class ClassBuilding {
 							if (manyProps.contains(keyProps))
 								keyProps = alias + Character.toUpperCase(fieldOneToMany.getSimpleName().toString().charAt(0)) + fieldOneToMany.getSimpleName().toString().substring(1);
 							manies.add(" left join fetch " + queryDetail.getAlias() + "." + join + " " + alias + " \"");
-							mapOneToMany.add(SPACE + "addJoinOneToMany(" + keyProps + ", " + printManies(manies) + " );");
+							mapOneToMany.add(SPACE + "addJoinOneToMany(" + keyProps + ", " + printManies(manies) + ");");
 							mapConditions.add(SPACE + "map.put(" + keyProps + ", \" and " + alias + "." + fieldOneToMany.getSimpleName().toString() + " in (:" + keyProps + ") \");");
 							keyConditions.add(keyProps);
 							queryDetail = new QueryDetail(alias, key, joinColumn.nullable() || nullable, true, classFieldRefernce);
@@ -701,7 +702,7 @@ public class ClassBuilding {
 								keyProps = alias + Character.toUpperCase(fieldManyToMany.getSimpleName().toString().charAt(0)) + fieldManyToMany.getSimpleName().toString().substring(1);
 							manyProps.add(keyProps);
 							manies.add(" left join fetch " + queryDetail.getAlias() + "." + join + " " + alias + " \"");
-							mapOneToMany.add(SPACE + "addJoinOneToMany(" + keyProps + ", " + printManies(manies) + " );");
+							mapOneToMany.add(SPACE + "addJoinOneToMany(" + keyProps + ", " + printManies(manies) + ");");
 							mapConditions.add(SPACE + "map.put(" + keyProps + ", \" and " + alias + "." + fieldManyToMany.getSimpleName().toString() + " in (:" + keyProps + ") \");");
 							keyConditions.add(keyProps);
 							queryDetail = new QueryDetail(alias, key, nullable, true, classFieldRefernce);
@@ -720,7 +721,7 @@ public class ClassBuilding {
 								mapConditions
 										.add(SPACE + "map.put(" + fieldReference.getSimpleName().toString() + ", \" and " + alias + "." + fieldReference.getSimpleName().toString() + " in (:" + fieldReference.getSimpleName().toString() + ") \");");
 								manies.add("\" left join fetch " + queryDetail.getAlias() + "." + join + " " + alias + " \"");
-								mapOneToMany.add(SPACE + "addJoinOneToMany(" + fieldReference.getSimpleName().toString() + ", " + printManies(manies) + " );");
+								mapOneToMany.add(SPACE + "addJoinOneToMany(" + fieldReference.getSimpleName().toString() + ", " + printManies(manies) + ");");
 								manyProps.add(fieldReference.getSimpleName().toString());
 								keyConditions.add(fieldReference.getSimpleName().toString());
 								break;
@@ -742,7 +743,7 @@ public class ClassBuilding {
 								mapConditions
 										.add(SPACE + "map.put(" + fieldReference.getSimpleName().toString() + ", \" and " + alias + "." + fieldReference.getSimpleName().toString() + " in (:" + fieldReference.getSimpleName().toString() + ") \");");
 								manies.add("\"" + (nullable ? " left" : "") + " join fetch " + queryDetail.getAlias() + "." + join + " " + alias + " \"");
-								mapOneToMany.add(SPACE + "addJoinOneToMany(" + fieldReference.getSimpleName().toString() + ", " + printManies(manies) + " );");
+								mapOneToMany.add(SPACE + "addJoinOneToMany(" + fieldReference.getSimpleName().toString() + ", " + printManies(manies) + ");");
 								manyProps.add(fieldReference.getSimpleName().toString());
 								keyConditions.add(fieldReference.getSimpleName().toString());
 								break;
@@ -758,7 +759,7 @@ public class ClassBuilding {
 
 		}
 		if (CollectionUtils.isNotEmpty(manies) && StringUtils.isNotEmpty(parameter)) {
-			mapOneToMany.add(SPACE + "addJoinOneToMany(" + parameter + ", " + printManies(manies) + " );");
+			mapOneToMany.add(SPACE + "addJoinOneToMany(" + parameter + ", " + printManies(manies) + ");");
 			keyConditions.add(parameter);
 		}
 
@@ -855,7 +856,8 @@ public class ClassBuilding {
 		mapClassField.put(classField.getClassName(), classField);
 		do {
 			for (Element element : typeElement.getEnclosedElements()) {
-				if (ElementKind.FIELD.equals(element.getKind()) && !classField.getElements().contains(element) && element.getAnnotation(Transient.class) == null) {
+				if (ElementKind.FIELD.equals(element.getKind()) && !element.getModifiers().contains(Modifier.FINAL) && !element.getModifiers().contains(Modifier.STATIC) && !classField.getElements().contains(element)
+						&& element.getAnnotation(Transient.class) == null) {
 					classField.getElements().add(element);
 					classField.getMapElement().put(element.getSimpleName().toString(), element);
 					if (element.getAnnotation(EmbeddedId.class) != null || element.getAnnotation(Id.class) != null) {
@@ -894,8 +896,7 @@ public class ClassBuilding {
 		mapConditionsMethod.getCommands().add(SPACE + command);
 		return mapConditionsMethod;
 	}
-	
-	
+
 	private static ModelMethod getNativeConditions(String name, String command) {
 		ModelMethod mapConditionsMethod = new ModelMethod();
 		mapConditionsMethod.setName(name);
@@ -988,7 +989,7 @@ public class ClassBuilding {
 		mapConditions.getGenericTypes().add(new ModelGenericType("String"));
 		return mapConditions;
 	}
-	
+
 	private static ModelField getFieldMapNativeConditions(String name, String value) {
 		ModelField mapConditions = finalStaticField(name, "Map", value, false);
 		mapConditions.getGenericTypes().add(new ModelGenericType("String"));
@@ -1022,5 +1023,5 @@ public class ClassBuilding {
 		mapConditions.setCommands(commands);
 		return mapConditions;
 	}
-	
+
 }

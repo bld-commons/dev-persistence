@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -19,7 +20,7 @@ import bld.commons.reflection.type.OrderType;
 /**
  * The Class BaseQueryParameter.
  *
- * @param <T> the generic type
+ * @param <T>  the generic type
  * @param <ID> the generic type
  */
 @SuppressWarnings("serial")
@@ -65,14 +66,7 @@ public abstract class BaseQueryParameter<T, ID> implements Serializable {
 	 */
 	protected BaseQueryParameter(BaseParameter baseParameter) {
 		super();
-		this.baseParameter = baseParameter;
-		if (baseParameter != null) {
-			if (CollectionUtils.isNotEmpty(baseParameter.getOrderBy()))
-				this.listOrderBy = baseParameter.getOrderBy();
-			if (baseParameter.getPageNumber() != null && baseParameter.getPageSize() != null)
-				this.pageable = PageRequest.of(baseParameter.getPageNumber(), baseParameter.getPageSize());
-		}
-
+		this.setBaseParameter(baseParameter);
 	}
 
 	/**
@@ -153,6 +147,12 @@ public abstract class BaseQueryParameter<T, ID> implements Serializable {
 	 */
 	public void setBaseParameter(BaseParameter baseParameter) {
 		this.baseParameter = baseParameter;
+		if (baseParameter != null) {
+			if (CollectionUtils.isNotEmpty(baseParameter.getOrderBy()))
+				this.listOrderBy = baseParameter.getOrderBy();
+			if (baseParameter.getPageNumber() != null && baseParameter.getPageSize() != null)
+				this.pageable = PageRequest.of(baseParameter.getPageNumber(), baseParameter.getPageSize());
+		}
 	}
 
 	/**
@@ -171,20 +171,23 @@ public abstract class BaseQueryParameter<T, ID> implements Serializable {
 	 *
 	 * @param orderBy the order by
 	 */
-	public void addOrderBy(OrderBy orderBy) {
-		if (orderBy != null)
-			this.listOrderBy.add(orderBy);
+	public void addOrderBy(OrderBy... listOrderBy) {
+		if (ArrayUtils.isNotEmpty(listOrderBy))
+			for (OrderBy orderBy : listOrderBy)
+				this.listOrderBy.add(orderBy);
 	}
-	
+
 	/**
 	 * Adds the order by.
 	 *
-	 * @param field the field
+	 * @param field      the field
 	 * @param ordertType the ordert type
 	 */
-	public void addOrderBy(String field,OrderType ordertType) {
+	public void addOrderBy(String field, OrderType ordertType) {
 		if (StringUtils.isNotBlank(field))
 			this.listOrderBy.add(new OrderBy(field, ordertType));
 	}
+	
+	public abstract void addParameter(String key,Object value);
 
 }

@@ -1,3 +1,6 @@
+server:
+  port: 8090
+
 spring:
   datasource:
     url: jdbc:postgresql://localhost:5432/risto_db
@@ -14,3 +17,14 @@ spring:
         ddl-auto: update
     database-platform: org.hibernate.dialect.PostgreSQLDialect
     generate-ddl: true
+    
+ 
+ 
+bld:
+  commons:
+    exception:
+      client:
+        enable: true
+        environment: DEV
+        project: APP
+        url: http://localhost:8080

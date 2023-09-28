@@ -1,7 +1,6 @@
-/**
- * @author Francesco Baldi
- * @mail francesco.baldi1987@gmail.com
- * @class bld.commons.persistence.base.service.JpaService.java
+/*
+ * @auth Francesco Baldi
+ * @class bld.commons.service.JpaService.java
  */
 package bld.commons.service;
 
@@ -13,7 +12,7 @@ import bld.commons.reflection.model.NativeQueryParameter;
 import bld.commons.reflection.model.QueryParameter;
 import bld.commons.utils.PersistenceMap;
 
-// TODO: Auto-generated Javadoc
+
 /**
  * The Interface BaseEntityService.
  *
@@ -36,6 +35,11 @@ public interface JpaService<T, ID> {
 	 */
 	public abstract void delete(T entity);
 	
+	/**
+	 * Delete all.
+	 *
+	 * @param entities the entities
+	 */
 	public abstract void deleteAll(Collection<T> entities);
 
 	/**
@@ -161,7 +165,7 @@ public interface JpaService<T, ID> {
 	 * @param queryParameter the query filter
 	 * @return the t
 	 */
-	public T findSingleResultByFilter(QueryParameter<T, ID> queryParameter);
+	public T singleResultByFilter(QueryParameter<T, ID> queryParameter);
 
 	/**
 	 * Find single result by filter.
@@ -170,7 +174,7 @@ public interface JpaService<T, ID> {
 	 * @param select      the select
 	 * @return the t
 	 */
-	public T findSingleResultByFilter(QueryParameter<T, ID> queryParameter, String select);
+	public T singleResultByFilter(QueryParameter<T, ID> queryParameter, String select);
 	
 
 	/**
@@ -233,6 +237,7 @@ public interface JpaService<T, ID> {
 
 
 
+
 	/**
 	 * Map key list find by filter.
 	 *
@@ -245,35 +250,38 @@ public interface JpaService<T, ID> {
 	 */
 	public <J> PersistenceMap<J, List<T>> mapKeyListFindByFilter(QueryParameter<T, ID> queryParameter, String sql, Class<J> classKey, String key);
 
+
 	/**
-	 * Native query find by filter.
+	 * Find by filter.
 	 *
 	 * @param <K> the key type
 	 * @param queryParameter the query parameter
 	 * @param sql the sql
 	 * @return the list
 	 */
-	public <K> List<K> nativeQueryFindByFilter(NativeQueryParameter<K, ID> queryParameter, String sql);
+	public <K> List<K> findByFilter(NativeQueryParameter<K, ID> queryParameter, String sql);
+
 
 	/**
-	 * Native query count by filter.
+	 * Count by filter.
 	 *
 	 * @param <K> the key type
-	 * @param queryParameter the query filter
+	 * @param queryParameter the query parameter
 	 * @param count the count
 	 * @return the long
 	 */
-	public <K> Long nativeQueryCountByFilter(NativeQueryParameter<K, ID> queryParameter, String count);
+	public <K> Long countByFilter(NativeQueryParameter<K, ID> queryParameter, String count);
+	
 	
 	/**
-	 * Native query single result by filter.
+	 * Single result by filter.
 	 *
 	 * @param <K> the key type
 	 * @param queryParameter the query parameter
 	 * @param sql the sql
 	 * @return the k
 	 */
-	public <K> K nativeQuerySingleResultByFilter(NativeQueryParameter<K, ID> queryParameter, String sql);
+	public <K> K singleResultByFilter(NativeQueryParameter<K, ID> queryParameter, String sql);
 
 //	public T findSingleResultByFilter(QueryParameter<T, ID> queryParameter, StringBuilder select);
 //

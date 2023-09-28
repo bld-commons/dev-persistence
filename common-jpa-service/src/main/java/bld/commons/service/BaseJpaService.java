@@ -378,14 +378,8 @@ public abstract class BaseJpaService<T, ID> {
 		return findSingleResultByFilter(buildQueryFilter);
 	}
 
-	/**
-	 * Native query select by filter.
-	 *
-	 * @param <K>              the key type
-	 * @param buildQueryFilter the build query filter
-	 * @return the list
-	 */
-	public <K> List<K> nativeQuerySelectByFilter(BuildNativeQueryParameter<K, ID> buildQueryFilter) {
+
+	public <K> List<K> findByFilter(BuildNativeQueryParameter<K, ID> buildQueryFilter) {
 		StringBuilder sql = buildNativeQuery(buildQueryFilter);
 		addOrderBy(buildQueryFilter.getQueryParameter().getListOrderBy(), sql, buildQueryFilter.getMapOrders());
 		final String select = sql.toString();
@@ -459,12 +453,14 @@ public abstract class BaseJpaService<T, ID> {
 	 */
 	private <K> StringBuilder buildNativeQuery(BuildNativeQueryParameter<K, ID> buildQueryFilter) {
 		StringBuilder sql = buildQueryFilter.getSql();
+		Set<String> zones=ReflectionCommons.variablesInText(sql.toString());
 		Map<String, ConditionsZoneModel> map = new HashMap<>(buildQueryFilter.getQueryParameter().getMapConditionsZone());
 		map.remove(JOIN_ZONE);
 		Map<String, StringBuilder> mapConditions = buildQueryFilter.getQueryParameter().getEmptyZones();
-		Map<String,String> conditions=buildQueryFilter.getMapConditions().get(buildQueryFilter.getQueryParameter().getKey());
+		
 		for (String key : map.keySet()) {
 			ConditionsZoneModel conditionsZoneModel = map.get(key);
+			Map<String,String> conditions=buildQueryFilter.getMapConditions().get(key);
 			if (!mapConditions.containsKey(key))
 				mapConditions.put(key, new StringBuilder(conditionsZoneModel.getWhere()));
 			for (String parameter : conditionsZoneModel.getParameters().keySet())
@@ -474,6 +470,16 @@ public abstract class BaseJpaService<T, ID> {
 		}
 		StringSubstitutor stringSubstitutor = new StringSubstitutor(mapConditions);
 		sql = new StringBuilder(stringSubstitutor.replace(sql));
+		for(String zone:zones) {
+			zone="${"+zone+"}";
+			int startIndex=sql.indexOf(zone);
+			if(startIndex>=0) {
+				int endIndex = startIndex + zone.length();
+				sql=sql.replace(startIndex, endIndex, "");
+			}
+				
+		}
+			
 		return sql;
 	}
 
