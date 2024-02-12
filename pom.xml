@@ -6,7 +6,7 @@
 	<groupId>com.github.bld-commons</groupId>
 	<artifactId>dev-persistence</artifactId>
 	<packaging>pom</packaging>
-	<version>2.0.9</version>
+	<version>3.0.0</version>
 	<url>https://github.com/bld-commons/dev-persistence.git</url>
 
 	<licenses>
@@ -40,45 +40,47 @@
 	<parent>
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
-		<version>2.7.4</version>
+		<version>3.2.2</version>
 		<relativePath />
 	</parent>
 
 	<properties>
 		<commons-compress.version>1.21</commons-compress.version>
 		<org.apache.commons-version>4.4</org.apache.commons-version>
-		<javax.validation-version>2.0.1.Final</javax.validation-version>
+		<jakarta.validation-version>3.0.2</jakarta.validation-version>
 		<commons-lang3.version>3.12.0</commons-lang3.version>
 		<commons-text.version>1.10.0</commons-text.version>
 		<commons-beanutils.version>1.9.4</commons-beanutils.version>
 		<io.leangen.geantyref-version>1.3.11</io.leangen.geantyref-version>
 		<org.reflections-version>0.9.12</org.reflections-version>
-		<org.hibernate.javax.persistence-version>1.0.2.Final</org.hibernate.javax.persistence-version>
 		<com.google.auto.service.version>1.0</com.google.auto.service.version>
-		<hibernate-validator.version>7.0.1.Final</hibernate-validator.version>
+		<hibernate-validator.version>8.0.1.Final</hibernate-validator.version>
 		<commons-logging.version>1.2</commons-logging.version>
-		<!-- PLUGIN INIZIO -->
-		<maven-compiler-plugin.version>3.8.1</maven-compiler-plugin.version>
-		<java.version>1.8</java.version>
+		<org.hibernate.orm-version>6.4.2.Final</org.hibernate.orm-version>
 		<org.mapstruct-version>1.3.0.Final</org.mapstruct-version>
+		<commons-io.version>2.11.0</commons-io.version>
+		<bld-common-utils.version>2.0.0</bld-common-utils.version>
+		<common-annotations.version>2.0.0</common-annotations.version>
+		<!-- PLUGIN INIZIO -->
+		<maven-compiler-plugin.version>3.12.1</maven-compiler-plugin.version>
+		<java.version>11</java.version>
 		<org.apache.maven.plugins-version>2.8.2</org.apache.maven.plugins-version>
 		<org.apache.maven.shared-version>3.2.1</org.apache.maven.shared-version>
 		<org.codehaus.plexus-version>3.0.5</org.codehaus.plexus-version>
 		<maven-javadoc-plugin.version>3.1.1</maven-javadoc-plugin.version>
-		<class-generator.version>1.0.8</class-generator.version>
+		<class-generator.version>2.0.0</class-generator.version>
 		<maven-compiler-plugin.version>3.8.1</maven-compiler-plugin.version>
 		<maven-site-plugin.version>3.8.2</maven-site-plugin.version>
-		<maven-plugin-plugin.version>3.6.0</maven-plugin-plugin.version>
+		<maven-plugin-plugin.version>3.11.0</maven-plugin-plugin.version>
 		<maven-shade-plugin.version>3.2.4</maven-shade-plugin.version>
-		<commons-io.version>2.11.0</commons-io.version>
-		<bld-common-utils.version>1.0.8</bld-common-utils.version>
-		<proxy-api-controller.version>1.0.0-SNNAPSHOT</proxy-api-controller.version>
-		<common-annotations.version>1.0.0</common-annotations.version>
+		<maven-plugin-api.version>3.9.6</maven-plugin-api.version>
+		<maven-core.version>3.9.6</maven-core.version>
 	</properties>
 
 	<scm>
 		<connection>scm:git:git@github.com:bld-commons/dev-persistence.git</connection>
-		<developerConnection>scm:git:git@github.com:bld-commons/dev-persistence.git</developerConnection>
+		<developerConnection>
+			scm:git:git@github.com:bld-commons/dev-persistence.git</developerConnection>
 		<url>https://github.com/bld-commons/dev-persistence</url>
 		<tag>HEAD</tag>
 	</scm>
@@ -94,6 +96,29 @@
 	<dependencyManagement>
 		<dependencies>
 			<dependency>
+				<groupId>org.hibernate.validator</groupId>
+				<artifactId>hibernate-validator</artifactId>
+				<version>${hibernate-validator.version}</version>
+			</dependency>
+
+			<dependency>
+				<groupId>org.apache.maven</groupId>
+				<artifactId>maven-core</artifactId>
+				<version>${maven-core.version}</version>
+			</dependency>
+
+			<dependency>
+				<groupId>org.apache.maven</groupId>
+				<artifactId>maven-plugin-api</artifactId>
+				<version>${maven-plugin-api.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.hibernate.orm</groupId>
+				<artifactId>hibernate-core</artifactId>
+				<version>${org.hibernate.orm-version}</version>
+			</dependency>
+
+			<dependency>
 				<groupId>com.github.bld-commons</groupId>
 				<artifactId>common-annotations</artifactId>
 				<version>${common-annotations.version}</version>
@@ -101,17 +126,12 @@
 			<dependency>
 				<groupId>com.github.bld-commons</groupId>
 				<artifactId>proxy-api-controller</artifactId>
-				<version>${proxy-api-controller.version}</version>
+				<version>${project.version}</version>
 			</dependency>
 			<dependency>
 				<groupId>com.github.bld-commons</groupId>
 				<artifactId>bld-common-utils</artifactId>
 				<version>${bld-common-utils.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>org.apache.commons</groupId>
-				<artifactId>commons-text</artifactId>
-				<version>${commons-text.version}</version>
 			</dependency>
 			<dependency>
 				<groupId>commons-logging</groupId>
@@ -122,11 +142,6 @@
 				<groupId>commons-io</groupId>
 				<artifactId>commons-io</artifactId>
 				<version>${commons-io.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>org.hibernate</groupId>
-				<artifactId>hibernate-validator</artifactId>
-				<version>${hibernate-validator.version}</version>
 			</dependency>
 			<dependency>
 				<groupId>com.google.auto.service</groupId>
@@ -143,11 +158,7 @@
 				<artifactId>processor-jpa-servcie</artifactId>
 				<version>${project.version}</version>
 			</dependency>
-			<dependency>
-				<groupId>org.hibernate.javax.persistence</groupId>
-				<artifactId>hibernate-jpa-2.1-api</artifactId>
-				<version>${org.hibernate.javax.persistence-version}</version>
-			</dependency>
+
 			<dependency>
 				<groupId>org.reflections</groupId>
 				<artifactId>reflections</artifactId>
@@ -174,9 +185,9 @@
 				<version>${commons-text.version}</version>
 			</dependency>
 			<dependency>
-				<groupId>javax.validation</groupId>
-				<artifactId>validation-api</artifactId>
-				<version>${javax.validation-version}</version>
+				<groupId>jakarta.validation</groupId>
+				<artifactId>jakarta.validation-api</artifactId>
+				<version>${jakarta.validation-version}</version>
 			</dependency>
 			<dependency>
 				<groupId>com.github.bld-commons</groupId>
@@ -224,12 +235,6 @@
 					<artifactId>maven-site-plugin</artifactId>
 					<version>${maven-site-plugin.version}</version>
 				</plugin>
-				<plugin>
-					<groupId>org.apache.maven.plugins</groupId>
-					<artifactId>maven-compiler-plugin</artifactId>
-					<version>${maven-compiler-plugin.version}</version>
-				</plugin>
-
 				<plugin>
 					<groupId>org.apache.maven.plugins</groupId>
 					<artifactId>maven-compiler-plugin</artifactId>
@@ -357,7 +362,7 @@
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-release-plugin</artifactId>
 				<configuration>
-					<tagNameFormat>v@{project.version}</tagNameFormat>
+					<tagNameFormat>${project.version}</tagNameFormat>
 					<autoVersionSubmodules>true</autoVersionSubmodules>
 					<releaseProfiles>releases</releaseProfiles>
 				</configuration>
@@ -365,7 +370,7 @@
 			<plugin>
 				<groupId>org.sonatype.plugins</groupId>
 				<artifactId>nexus-staging-maven-plugin</artifactId>
-				<version>1.6.8</version>
+				<version>1.6.13</version>
 				<extensions>true</extensions>
 				<configuration>
 					<serverId>ossrh</serverId>

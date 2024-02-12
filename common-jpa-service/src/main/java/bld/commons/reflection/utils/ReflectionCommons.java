@@ -38,9 +38,9 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.hibernate.jpa.TypedParameterValue;
+import org.hibernate.query.BindableType;
+import org.hibernate.query.TypedParameterValue;
 import org.hibernate.type.StandardBasicTypes;
-import org.hibernate.type.Type;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;
@@ -92,7 +92,7 @@ public class ReflectionCommons {
 	public final static Map<Class<?>, Class<?>> mapPrimitiveToObject = mapFromPrimitiveToObject();
 
 	/** The Constant mapType. */
-	public final static Map<Class<?>, Type> mapType = getMapType();
+	public final static Map<Class<?>, BindableType<?>> mapType = getMapType();
 
 	private final static Pattern pattern = Pattern.compile("\\$\\{([^}]+)\\}");
 
@@ -119,8 +119,8 @@ public class ReflectionCommons {
 	 *
 	 * @return the map type
 	 */
-	private static Map<Class<?>, Type> getMapType() {
-		Map<Class<?>, Type> map = new HashMap<>();
+	private static Map<Class<?>, BindableType<?>> getMapType() {
+		Map<Class<?>, BindableType<?>> map = new HashMap<>();
 		map.put(Boolean.class, StandardBasicTypes.BOOLEAN);
 		map.put(String.class, StandardBasicTypes.STRING);
 		map.put(Long.class, StandardBasicTypes.LONG);
@@ -197,7 +197,7 @@ public class ReflectionCommons {
 								} else
 									queryParameter.addParameter(field.getName(), value);
 							} else if (field.isAnnotationPresent(FilterNullValue.class) && field.getAnnotation(FilterNullValue.class).value() || method.isAnnotationPresent(FilterNullValue.class) && method.getAnnotation(FilterNullValue.class).value())
-								queryParameter.addParameter(field.getName(), new TypedParameterValue(mapType.get(field.getType()), value));
+								queryParameter.addParameter(field.getName(), initTypedParameterValue(mapType.get(field.getType()), value));
 						} catch (Exception e) {
 							logger.warn("Error converting data to map");
 						}
@@ -209,6 +209,11 @@ public class ReflectionCommons {
 		return queryParameter;
 	}
 
+	public static <J> TypedParameterValue<J> initTypedParameterValue(BindableType<J> bindableType,Object value){
+		return new TypedParameterValue<J>(bindableType, (J)value);
+	}
+ 	
+	
 	/**
 	 * Gets the value.
 	 *
@@ -303,7 +308,7 @@ public class ReflectionCommons {
 								} else
 									queryParameter.addParameter(field.getName(), value, conditionsZones);
 							} else if (field.isAnnotationPresent(FilterNullValue.class) && field.getAnnotation(FilterNullValue.class).value() || method.isAnnotationPresent(FilterNullValue.class) && method.getAnnotation(FilterNullValue.class).value())
-								queryParameter.addParameter(field.getName(), new TypedParameterValue(mapType.get(field.getType()), value), conditionsZones);
+								queryParameter.addParameter(field.getName(), initTypedParameterValue(mapType.get(field.getType()), value), conditionsZones);
 							else if (conditionsZones != null)
 								queryParameter.addEmptyZones(conditionsZones);
 						} catch (Exception e) {

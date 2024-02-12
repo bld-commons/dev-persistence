@@ -15,8 +15,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import javax.persistence.Id;
-
 import org.apache.commons.beanutils.PropertyUtils;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.collections4.CollectionUtils;
@@ -30,6 +28,7 @@ import bld.commons.reflection.model.NativeQueryParameter;
 import bld.commons.reflection.model.QueryParameter;
 import bld.commons.reflection.utils.ReflectionCommons;
 import bld.commons.utils.PersistenceMap;
+import jakarta.persistence.Id;
 
 /**
  * The Class BaseEntityServiceImpl.

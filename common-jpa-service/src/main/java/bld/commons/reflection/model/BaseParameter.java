@@ -9,12 +9,11 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.validation.Valid;
-
 import org.apache.commons.lang3.StringUtils;
 
 import bld.commons.reflection.annotations.IgnoreMapping;
 import bld.commons.reflection.type.OrderType;
+import jakarta.validation.Valid;
 
 /**
  * The Class BaseFilterRequest.

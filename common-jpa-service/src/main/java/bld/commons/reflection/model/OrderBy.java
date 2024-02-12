@@ -7,11 +7,10 @@ package bld.commons.reflection.model;
 
 import java.io.Serializable;
 
-import javax.validation.constraints.NotNull;
-
 import com.bld.commons.utils.json.annotations.CleanExcessSpaces;
 
 import bld.commons.reflection.type.OrderType;
+import jakarta.validation.constraints.NotNull;
 
 
 /**

@@ -19,7 +19,6 @@ import javax.lang.model.element.TypeElement;
 import javax.lang.model.type.DeclaredType;
 import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.ElementFilter;
-import javax.persistence.Entity;
 
 import com.bld.processor.build.ClassBuilding;
 
@@ -28,12 +27,13 @@ import bld.commons.classes.generator.config.ConfigurationClassGenerator;
 import bld.commons.classes.generator.impl.ClassesGeneratorImpl;
 import bld.commons.classes.model.ModelClasses;
 import bld.commons.processor.annotations.QueryBuilder;
+import jakarta.persistence.Entity;
 
 /**
  * The Class JpaProcessor.
  */
-@SupportedAnnotationTypes({ "javax.persistence.Entity", "bld.commons.processor.annotations.QueryBuilder" })
-@SupportedSourceVersion(SourceVersion.RELEASE_8)
+@SupportedAnnotationTypes({ "jakarta.persistence.Entity", "bld.commons.processor.annotations.QueryBuilder" })
+@SupportedSourceVersion(SourceVersion.RELEASE_11)
 public class JpaProcessor extends AbstractProcessor {
 
 	/** The model classes. */

@@ -5,8 +5,6 @@
  */
 package bld.commons.controller;
 
-import javax.validation.Valid;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.transaction.annotation.Transactional;
@@ -20,6 +18,7 @@ import com.bld.commons.utils.data.ObjectResponse;
 
 import bld.commons.controller.mapper.ModelMapper;
 import bld.commons.reflection.model.BaseParameter;
+import jakarta.validation.Valid;
 
 
 /**

@@ -15,7 +15,6 @@ import java.util.Set;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.hibernate.jpa.TypedParameterValue;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -200,7 +199,9 @@ class FindInterceptor {
 		String genericReturnType = method.getGenericReturnType().getTypeName();
 		if (!(genericReturnType.contains("<") && genericReturnType.contains(">")))
 			return null;
-		String genericType = genericReturnType.substring(genericReturnType.indexOf("<") + 1, genericReturnType.indexOf(">"));
+		String genericType = genericReturnType.substring(genericReturnType.indexOf("<") + 1, genericReturnType.lastIndexOf(">"));
+		if (genericType.contains("<"))
+			genericType = genericType.substring(0, genericType.indexOf("<"));
 		return Class.forName(genericType);
 	}
 
@@ -296,7 +297,7 @@ class FindInterceptor {
 								} else
 									queryParameter.addParameter(name, value, conditionsZones);
 							} else if (parameter.isAnnotationPresent(FilterNullValue.class) && parameter.getAnnotation(FilterNullValue.class).value())
-								queryParameter.addParameter(name, new TypedParameterValue(ReflectionCommons.mapType.get(parameter.getType()), value), conditionsZones);
+								queryParameter.addParameter(name, ReflectionCommons.initTypedParameterValue(ReflectionCommons.mapType.get(parameter.getType()), value), conditionsZones);
 							else if (conditionsZones != null)
 								queryParameter.addEmptyZones(conditionsZones);
 						} catch (Exception e) {
@@ -338,7 +339,7 @@ class FindInterceptor {
 							} else
 								queryParameter.addParameter(name, value);
 						} else if (parameter.isAnnotationPresent(FilterNullValue.class) && parameter.getAnnotation(FilterNullValue.class).value())
-							queryParameter.addParameter(name, new TypedParameterValue(ReflectionCommons.mapType.get(parameter.getType()), value));
+							queryParameter.addParameter(name, ReflectionCommons.initTypedParameterValue(ReflectionCommons.mapType.get(parameter.getType()), value));
 					} else
 						mapPagination.put(name, value);
 				}
@@ -470,10 +471,10 @@ class FindInterceptor {
 			if (this.apiMapper == null) {
 				ModelMapper<E, M> mapper = modelMapper(entityClass, modelClass);
 				model = mapper.convertToModel(entity);
-			}else {
+			} else {
 				Object mapper = this.applicationContext.getBean(this.apiMapper.bean());
 				Method mapperMethod = this.apiMapper.bean().getMethod(this.apiMapper.method(), entityClass);
-				model=(M) mapperMethod.invoke(mapper, entity);
+				model = (M) mapperMethod.invoke(mapper, entity);
 			}
 		}
 

@@ -17,6 +17,7 @@ import org.springframework.data.domain.Pageable;
 
 import bld.commons.reflection.type.OrderType;
 
+// TODO: Auto-generated Javadoc
 /**
  * The Class BaseQueryParameter.
  *
@@ -166,10 +167,11 @@ public abstract class BaseQueryParameter<T, ID> implements Serializable {
 			this.pageable = PageRequest.of(page, size);
 	}
 
+
 	/**
 	 * Adds the order by.
 	 *
-	 * @param orderBy the order by
+	 * @param listOrderBy the list order by
 	 */
 	public void addOrderBy(OrderBy... listOrderBy) {
 		if (ArrayUtils.isNotEmpty(listOrderBy))
@@ -188,6 +190,12 @@ public abstract class BaseQueryParameter<T, ID> implements Serializable {
 			this.listOrderBy.add(new OrderBy(field, ordertType));
 	}
 	
+	/**
+	 * Adds the parameter.
+	 *
+	 * @param key the key
+	 * @param value the value
+	 */
 	public abstract void addParameter(String key,Object value);
 
 }

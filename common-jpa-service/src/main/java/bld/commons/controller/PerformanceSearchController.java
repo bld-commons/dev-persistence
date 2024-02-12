@@ -3,8 +3,6 @@ package bld.commons.controller;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.validation.Valid;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.transaction.annotation.Transactional;
@@ -19,6 +17,7 @@ import com.bld.commons.utils.data.ObjectResponse;
 import bld.commons.controller.mapper.PerformanceModelMapper;
 import bld.commons.reflection.model.BaseParameter;
 import bld.commons.reflection.model.QueryParameter;
+import jakarta.validation.Valid;
 
 public abstract class PerformanceSearchController<E,ID,M extends BaseModel<ID>,PM extends BaseModel<ID>, P extends BaseParameter> extends BaseSearchController<E, ID, M, P,PerformanceModelMapper<E, M,PM>>{
 

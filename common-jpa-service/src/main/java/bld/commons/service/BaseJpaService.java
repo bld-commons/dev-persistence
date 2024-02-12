@@ -14,18 +14,11 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
-import javax.persistence.EntityManager;
-import javax.persistence.Query;
-import javax.persistence.Tuple;
-import javax.persistence.TupleElement;
-import javax.persistence.TypedQuery;
-
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.commons.text.StringSubstitutor;
-import org.hibernate.jpa.QueryHints;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import bld.commons.exception.JpaServiceException;
@@ -36,6 +29,11 @@ import bld.commons.reflection.model.ConditionsZoneModel;
 import bld.commons.reflection.model.OrderBy;
 import bld.commons.reflection.model.QueryParameter;
 import bld.commons.reflection.utils.ReflectionCommons;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.Query;
+import jakarta.persistence.Tuple;
+import jakarta.persistence.TupleElement;
+import jakarta.persistence.TypedQuery;
 
 /**
  * The Class BaseJpaService.
@@ -225,8 +223,7 @@ public abstract class BaseJpaService<T, ID> {
 	private <J>TypedQuery<J> buildQuery(BuildJpqlQueryParameter<T, ID> buildQueryFilter,Class<J>clazz,boolean removeFetch) {
 		QueryParameter<T, ID> queryFilter = buildQueryFilter.getQueryParameter();
 		Map<String, Object> mapParameters = queryFilter.getParameters();
-		ManageOneToMany manageOneToMany = addRelationshipsOneToMany(mapParameters, buildQueryFilter.getSql(), queryFilter.getNullables());
-		StringBuilder sql = manageOneToMany.getSelect();
+		StringBuilder sql = addRelationshipsOneToMany(mapParameters, buildQueryFilter.getSql(), queryFilter.getNullables());
 		buildWhere(buildQueryFilter, sql);
 		addOrderBy(queryFilter.getListOrderBy(), sql, buildQueryFilter.getMapOrders());
 		String select = sql.toString();
@@ -236,8 +233,6 @@ public abstract class BaseJpaService<T, ID> {
 		
 		TypedQuery<J> query = this.getEntityManager().createQuery(select, clazz);
 		setQueryParameters(mapParameters, query);
-		if (manageOneToMany.isOneToMany())
-			query.setHint(QueryHints.HINT_PASS_DISTINCT_THROUGH, false);
 		if (queryFilter.getPageable() != null) {
 			query.setFirstResult(queryFilter.getPageable().getPageNumber() * queryFilter.getPageable().getPageSize());
 			query.setMaxResults(queryFilter.getPageable().getPageSize());
@@ -308,7 +303,7 @@ public abstract class BaseJpaService<T, ID> {
 	 * @param nullables     the nullables
 	 * @return the manage one to many
 	 */
-	private ManageOneToMany addRelationshipsOneToMany(Map<String, Object> mapParameters, StringBuilder select, Set<String> nullables) {
+	private StringBuilder addRelationshipsOneToMany(Map<String, Object> mapParameters, StringBuilder select, Set<String> nullables) {
 		StringBuilder innerJoin = new StringBuilder("");
 		if (nullables == null)
 			nullables = new HashSet<>();
@@ -326,8 +321,7 @@ public abstract class BaseJpaService<T, ID> {
 			}
 		}
 		select.append(innerJoin).append(END_LINE);
-		ManageOneToMany manageOneToMany = new ManageOneToMany(select, listJoin.size() > 0);
-		return manageOneToMany;
+		return select;
 	}
 
 	/**
@@ -338,8 +332,7 @@ public abstract class BaseJpaService<T, ID> {
 	 */
 	public Long countByFilter(BuildJpqlQueryParameter<T, ID> buildQueryFilter) {
 		QueryParameter<T, ID> queryFilter = buildQueryFilter.getQueryParameter();
-		ManageOneToMany manageOneToMany = addRelationshipsOneToMany(queryFilter.getParameters(), buildQueryFilter.getSql(), queryFilter.getNullables());
-		StringBuilder sql = manageOneToMany.getSelect();
+		StringBuilder sql = addRelationshipsOneToMany(queryFilter.getParameters(), buildQueryFilter.getSql(), queryFilter.getNullables());
 		buildWhere(buildQueryFilter, sql);
 		final String count = sql.toString().replaceAll(fetch, "");
 		logger.debug("\nQuery: \n" + count);
@@ -483,47 +476,5 @@ public abstract class BaseJpaService<T, ID> {
 		return sql;
 	}
 
-	/**
-	 * The Class ManageOneToMany.
-	 */
-	private class ManageOneToMany {
-
-		/** The select. */
-		private StringBuilder select;
-
-		/** The one to many. */
-		private boolean oneToMany;
-
-		/**
-		 * Instantiates a new manage one to many.
-		 *
-		 * @param select    the select
-		 * @param oneToMany the one to many
-		 */
-		private ManageOneToMany(StringBuilder select, boolean oneToMany) {
-			super();
-			this.select = select;
-			this.oneToMany = oneToMany;
-		}
-
-		/**
-		 * Gets the select.
-		 *
-		 * @return the select
-		 */
-		public StringBuilder getSelect() {
-			return select;
-		}
-
-		/**
-		 * Checks if is one to many.
-		 *
-		 * @return true, if is one to many
-		 */
-		public boolean isOneToMany() {
-			return oneToMany;
-		}
-
-	}
 
 }
