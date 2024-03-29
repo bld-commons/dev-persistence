@@ -446,7 +446,7 @@ public abstract class BaseJpaService<T, ID> {
 	 */
 	private <K> StringBuilder buildNativeQuery(BuildNativeQueryParameter<K, ID> buildQueryFilter) {
 		StringBuilder sql = buildQueryFilter.getSql();
-		Set<String> zones=ReflectionCommons.variablesInText(sql.toString());
+		Set<String> zones=ReflectionCommons.extractVariables(sql.toString());
 		Map<String, ConditionsZoneModel> map = new HashMap<>(buildQueryFilter.getQueryParameter().getMapConditionsZone());
 		map.remove(JOIN_ZONE);
 		Map<String, StringBuilder> mapConditions = buildQueryFilter.getQueryParameter().getEmptyZones();

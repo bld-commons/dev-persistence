@@ -14,13 +14,14 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import com.bld.commons.utils.data.CollectionResponse;
 import com.bld.commons.utils.data.ObjectResponse;
 import com.bld.commons.utils.json.annotations.DateTimeZone;
-import com.bld.commons.utils.json.annotations.UpperLowerCase;
 import com.bld.commons.utils.types.UpperLowerType;
+import com.bld.persistence.common.GenereMapper;
 import com.bld.persistence.core.domain.Genere;
 import com.bld.persistence.parameter.GenereParameter;
 import com.bld.persistence.response.GenereModel;
 import com.bld.proxy.api.find.annotations.ApiFind;
 import com.bld.proxy.api.find.annotations.ApiFindController;
+import com.bld.proxy.api.find.annotations.ApiMapper;
 
 import bld.commons.reflection.annotations.DateFilter;
 import bld.commons.reflection.annotations.LikeString;
@@ -28,6 +29,7 @@ import bld.commons.reflection.annotations.LikeString;
 @ApiFindController
 @RequestMapping("/genere/find")
 @ApiFind(entity=Genere.class,id=Long.class)
+@ApiMapper(GenereMapper.class)
 public interface GenereFindController {
 
 	

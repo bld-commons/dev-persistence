@@ -68,7 +68,7 @@ public abstract class JpaServiceImpl<T, ID> extends BaseJpaService<T, ID> implem
 	public JpaServiceImpl() {
 		super();
 
-		Set<Field> fields = ReflectionCommons.getListField(this.getClassEntity());
+		Set<Field> fields = ReflectionCommons.fields(this.getClassEntity());
 		for (Field field : fields)
 			if (field.isAnnotationPresent(Id.class)) {
 				this.id = field;

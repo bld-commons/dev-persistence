@@ -2,8 +2,8 @@ package com.bld.persistence.core.domain.base;
 
 import java.sql.Timestamp;
 
-import javax.persistence.Column;
-import javax.persistence.MappedSuperclass;
+import jakarta.persistence.Column;
+import jakarta.persistence.MappedSuperclass;
 
 @MappedSuperclass
 public class BaseEntity {

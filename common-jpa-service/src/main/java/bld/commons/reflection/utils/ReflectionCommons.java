@@ -94,6 +94,7 @@ public class ReflectionCommons {
 	/** The Constant mapType. */
 	public final static Map<Class<?>, BindableType<?>> mapType = getMapType();
 
+	/** The Constant pattern. */
 	private final static Pattern pattern = Pattern.compile("\\$\\{([^}]+)\\}");
 
 	/**
@@ -173,8 +174,8 @@ public class ReflectionCommons {
 		BaseParameter obj = queryParameter.getBaseParameter();
 
 		if (obj != null) {
-			Set<Field> fields = ReflectionCommons.getListField(obj.getClass());
-			Map<String, LinkedHashSet<Method>> mapMethod = ReflectionCommons.getMapMethod(obj.getClass());
+			Set<Field> fields = ReflectionCommons.fields(obj.getClass());
+			Map<String, LinkedHashSet<Method>> mapMethod = ReflectionCommons.mapMethods(obj.getClass());
 			for (Field field : fields) {
 				Method method = ReflectionCommons.getMethod(mapMethod, field, GetSetType.get);
 				if (method != null) {
@@ -209,6 +210,14 @@ public class ReflectionCommons {
 		return queryParameter;
 	}
 
+	/**
+	 * Inits the typed parameter value.
+	 *
+	 * @param <J> the generic type
+	 * @param bindableType the bindable type
+	 * @param value the value
+	 * @return the typed parameter value
+	 */
 	public static <J> TypedParameterValue<J> initTypedParameterValue(BindableType<J> bindableType,Object value){
 		return new TypedParameterValue<J>(bindableType, (J)value);
 	}
@@ -228,6 +237,14 @@ public class ReflectionCommons {
 		return getValue(value, dateFilter, likeString);
 	}
 
+	/**
+	 * Gets the value.
+	 *
+	 * @param value the value
+	 * @param dateFilter the date filter
+	 * @param likeString the like string
+	 * @return the value
+	 */
 	public Object getValue(Object value, DateFilter dateFilter, LikeString likeString) {
 		if (dateFilter != null) {
 			if (value instanceof Calendar)
@@ -283,8 +300,8 @@ public class ReflectionCommons {
 		BaseParameter obj = queryParameter.getBaseParameter();
 
 		if (obj != null) {
-			Set<Field> fields = ReflectionCommons.getListField(obj.getClass());
-			Map<String, LinkedHashSet<Method>> mapMethod = ReflectionCommons.getMapMethod(obj.getClass());
+			Set<Field> fields = ReflectionCommons.fields(obj.getClass());
+			Map<String, LinkedHashSet<Method>> mapMethod = ReflectionCommons.mapMethods(obj.getClass());
 			for (Field field : fields) {
 				Method method = ReflectionCommons.getMethod(mapMethod, field, GetSetType.get);
 				if (method != null) {
@@ -362,6 +379,7 @@ public class ReflectionCommons {
 	 * @param <T>    the generic type
 	 * @param classT the class T
 	 * @param mapRow the map row
+	 * @param beanUtils the bean utils
 	 * @return the t
 	 * @throws InstantiationException    the instantiation exception
 	 * @throws IllegalAccessException    the illegal access exception
@@ -373,7 +391,7 @@ public class ReflectionCommons {
 	private <T> T mapResultSet(Class<T> classT, Map<String, Object> mapRow, BeanUtilsBean beanUtils)
 			throws InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException {
 		T t = classT.getConstructor().newInstance();
-		Set<Field> fields = getListField(classT);
+		Set<Field> fields = fields(classT);
 		boolean isEmpty = true;
 		for (Field field : fields) {
 			if (!field.isAnnotationPresent(IgnoreResultSet.class)) {
@@ -453,10 +471,25 @@ public class ReflectionCommons {
 		return getGenericTypeClass(entity.getClass(), 0);
 	}
 
+	/**
+	 * Gets the generic type class.
+	 *
+	 * @param <T> the generic type
+	 * @param clazz the clazz
+	 * @return the generic type class
+	 */
 	public static <T> Class<T> getGenericTypeClass(Class<?> clazz) {
 		return getGenericTypeClass(clazz, 0);
 	}
 
+	/**
+	 * Gets the generic type class.
+	 *
+	 * @param <T> the generic type
+	 * @param clazz the clazz
+	 * @param i the i
+	 * @return the generic type class
+	 */
 	public static <T> Class<T> getGenericTypeClass(Class<?> clazz, int i) {
 		ParameterizedType parameterizedType = null;
 		try {
@@ -519,13 +552,14 @@ public class ReflectionCommons {
 		return join;
 	}
 
+
 	/**
-	 * Gets the list field.
+	 * Fields.
 	 *
 	 * @param classApp the class app
-	 * @return the list field
+	 * @return the sets the
 	 */
-	public static Set<Field> getListField(Class<?> classApp) {
+	public static Set<Field> fields(Class<?> classApp) {
 		Set<Field> listField = new HashSet<>();
 		do {
 			for (Field field : classApp.getDeclaredFields())
@@ -536,14 +570,15 @@ public class ReflectionCommons {
 		return listField;
 	}
 
+	
 	/**
-	 * Gets the list field.
+	 * Fields.
 	 *
-	 * @param classApp   the class app
+	 * @param classApp the class app
 	 * @param annotation the annotation
-	 * @return the list field
+	 * @return the sets the
 	 */
-	public static Set<Field> getListField(Class<?> classApp, Class<? extends Annotation> annotation) {
+	public static Set<Field> fields(Class<?> classApp, Class<? extends Annotation> annotation) {
 		Set<Field> listField = new HashSet<>();
 		Set<Field> skipField = new HashSet<>();
 		do {
@@ -557,13 +592,14 @@ public class ReflectionCommons {
 		return listField;
 	}
 
+
 	/**
-	 * Gets the map field.
+	 * Map fields.
 	 *
 	 * @param classApp the class app
-	 * @return the map field
+	 * @return the map
 	 */
-	public static Map<String, Field> getMapField(Class<?> classApp) {
+	public static Map<String, Field> mapFields(Class<?> classApp) {
 		Map<String, Field> mapField = new HashMap<>();
 		do {
 			for (Field field : classApp.getDeclaredFields())
@@ -574,13 +610,14 @@ public class ReflectionCommons {
 		return mapField;
 	}
 
+
 	/**
-	 * Gets the map method.
+	 * Map methods.
 	 *
 	 * @param classApp the class app
-	 * @return the map method
+	 * @return the map
 	 */
-	public static Map<String, LinkedHashSet<Method>> getMapMethod(Class<?> classApp) {
+	public static Map<String, LinkedHashSet<Method>> mapMethods(Class<?> classApp) {
 		Map<String, LinkedHashSet<Method>> mapMethod = new HashMap<>();
 		do {
 			for (Method method : classApp.getMethods()) {
@@ -593,6 +630,12 @@ public class ReflectionCommons {
 		return mapMethod;
 	}
 
+	/**
+	 * Methods.
+	 *
+	 * @param classApp the class app
+	 * @return the sets the
+	 */
 	public static Set<Method> methods(Class<?> classApp) {
 		Set<Method> methods = new HashSet<>();
 		do {
@@ -650,7 +693,13 @@ public class ReflectionCommons {
 
 	}
 
-	public static Set<String> variablesInText(String input) {
+	/**
+	 * Extract variables.
+	 *
+	 * @param input the input
+	 * @return the sets the
+	 */
+	public static Set<String> extractVariables(String input) {
 		Matcher matcher = pattern.matcher(input);
 		Set<String> variables = new HashSet<>();
 		while (matcher.find())

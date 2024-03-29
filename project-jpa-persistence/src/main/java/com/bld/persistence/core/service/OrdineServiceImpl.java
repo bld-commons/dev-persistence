@@ -1,15 +1,17 @@
 package com.bld.persistence.core.service;
 
-import com.bld.persistence.core.domain.Ordine;
-import bld.commons.service.JpaServiceImpl;
-import org.springframework.stereotype.Service;
 import org.springframework.beans.factory.annotation.Autowired;
-import javax.persistence.EntityManager;
-import javax.persistence.PersistenceContext;
 import org.springframework.data.jpa.repository.JpaRepository;
-import com.bld.persistence.core.repository.OrdineRepository;
+import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import com.bld.persistence.core.domain.Ordine;
+import com.bld.persistence.core.repository.OrdineRepository;
+
 import bld.commons.processor.annotations.QueryBuilder;
+import bld.commons.service.JpaServiceImpl;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 
 @Service
 @Transactional

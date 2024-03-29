@@ -15,6 +15,7 @@ import java.util.Set;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,8 +40,8 @@ import com.bld.proxy.api.find.annotations.ApiMapper;
 import com.bld.proxy.api.find.config.ApiQuery;
 import com.bld.proxy.api.find.config.DefaultOrderBy;
 import com.bld.proxy.api.find.data.ParameterDetails;
+import com.bld.proxy.api.find.exception.ApiFindException;
 
-import bld.commons.controller.mapper.ModelMapper;
 import bld.commons.reflection.annotations.ConditionsZones;
 import bld.commons.reflection.annotations.DateFilter;
 import bld.commons.reflection.annotations.FilterNullValue;
@@ -92,25 +93,30 @@ class FindInterceptor {
 
 	public <E, ID> Object find(Object obj, Method method, Object[] args) throws Throwable {
 		Object response = null;
-		this.apiQuery = method.getAnnotation(ApiQuery.class);
-		ApiFind apiFind = method.getAnnotation(ApiFind.class);
-		if (apiFind == null)
-			apiFind = method.getDeclaringClass().getAnnotation(ApiFind.class);
-		this.method = method;
-		this.args = args;
-		Class<?> entityClass = apiFind.entity();
-		Class<?> idClass = apiFind.id();
-		Class<?> outputClass = method.getReturnType();
-		this.getParameters(this.method.getParameters(), args, RequestBody.class, AuthenticationPrincipal.class);
-		Assert.isTrue(!(this.apiQuery != null && StringUtils.isBlank(this.apiQuery.value()) && !this.apiQuery.jpql()), "For native query the field \"value\" can not be blank into ApiQuery");
+		try {
+			this.apiQuery = method.getAnnotation(ApiQuery.class);
+			ApiFind apiFind = method.getAnnotation(ApiFind.class);
+			if (apiFind == null)
+				apiFind = method.getDeclaringClass().getAnnotation(ApiFind.class);
+			this.method = method;
+			this.args = args;
+			Class<?> entityClass = apiFind.entity();
+			Class<?> idClass = apiFind.id();
+			Class<?> outputClass = method.getReturnType();
+			this.getParameters(this.method.getParameters(), args, RequestBody.class, AuthenticationPrincipal.class);
+			Assert.isTrue(!(this.apiQuery != null && StringUtils.isBlank(this.apiQuery.value()) && !this.apiQuery.jpql()), "For native query the field \"value\" can not be blank into ApiQuery");
 
-		if (this.apiQuery == null || this.apiQuery.jpql())
-			response = this.jpqlQuery(entityClass, idClass, outputClass);
-		else {
-			Class<?> modelClass = modelClass(method);
-			if (modelClass == null)
-				modelClass = outputClass;
-			response = this.nativeQuery(entityClass, idClass, outputClass, modelClass);
+			if (this.apiQuery == null || this.apiQuery.jpql())
+				response = this.jpqlQuery(entityClass, idClass, outputClass);
+			else {
+				Class<?> modelClass = modelClass(method);
+				if (modelClass == null)
+					modelClass = outputClass;
+				response = this.nativeQuery(entityClass, idClass, outputClass, modelClass);
+			}
+		} catch (Exception e) {
+			logger.error(ExceptionUtils.getStackTrace(e));
+			throw e;
 		}
 
 		return response;
@@ -119,6 +125,8 @@ class FindInterceptor {
 	private <E, ID, O> Object jpqlQuery(Class<E> entityClass, Class<ID> idClass, Class<O> outputClass) throws Exception {
 		Object response = null;
 		this.apiMapper = method.getAnnotation(ApiMapper.class);
+		if (this.apiMapper == null)
+			this.apiMapper = method.getDeclaringClass().getAnnotation(ApiMapper.class);
 		QueryParameter<E, ID> queryParameter = new QueryParameter<>();
 		addBodyParameter(queryParameter);
 		queryParameter(queryParameter);
@@ -138,10 +146,10 @@ class FindInterceptor {
 				if (Number.class.isAssignableFrom(modelClass))
 					response = new ObjectResponse<>(this.countByFilter(queryParameter, jpaService));
 				else
-					response = new ObjectResponse<>(this.singreResultByFilter(queryParameter, jpaService, entityClass, modelClass));
+					response = new ObjectResponse<>(this.singleResultByFilter(queryParameter, jpaService, entityClass, modelClass));
 			}
 		} else
-			response = this.singreResultByFilter(queryParameter, jpaService, entityClass, outputClass);
+			response = this.singleResultByFilter(queryParameter, jpaService, entityClass, outputClass);
 
 		return response;
 	}
@@ -440,27 +448,28 @@ class FindInterceptor {
 		else
 			entities = jpaService.findByFilter(queryParameter, this.apiQuery.value());
 		List<M> models = new ArrayList<>();
-		if (this.apiMapper == null) {
-			ModelMapper<E, M> mapper = modelMapper(entityClass, modelClass);
-			for (E entity : entities)
-				models.add(mapper.convertToModel(entity));
-		} else {
-			Object mapper = this.applicationContext.getBean(this.apiMapper.bean());
-			Method mapperMethod = this.apiMapper.bean().getMethod(this.apiMapper.method(), entityClass);
+		if (this.apiMapper == null)
+			throw new ApiFindException("The class to convert the entity to output is not declared");
+		try {
+			Object mapper = this.applicationContext.getBean(this.apiMapper.value());
+			Method mapperMethod = methodMapper(entityClass, modelClass);
 			for (E entity : entities)
 				models.add((M) mapperMethod.invoke(mapper, entity));
+		} catch (NoSuchMethodException e) {
+			logger.error("Method mapper is not found");
+			throw new ApiFindException("Method mapper is not found", e);
 		}
 
 		return models;
 	}
 
-	private <E, M> ModelMapper<E, M> modelMapper(Class<E> entityClass, Class<M> modelClass) {
-		ResolvableType resolvableType = ResolvableType.forClassWithGenerics(ModelMapper.class, entityClass, modelClass);
-		ModelMapper<E, M> mapper = (ModelMapper<E, M>) this.applicationContext.getBeanProvider(resolvableType).getObject();
-		return mapper;
-	}
+//	private <E, M> ModelMapper<E, M> modelMapper(Class<E> entityClass, Class<M> modelClass) {
+//		ResolvableType resolvableType = ResolvableType.forClassWithGenerics(ModelMapper.class, entityClass, modelClass);
+//		ModelMapper<E, M> mapper = (ModelMapper<E, M>) this.applicationContext.getBeanProvider(resolvableType).getObject();
+//		return mapper;
+//	}
 
-	private <E, M, ID> M singreResultByFilter(QueryParameter<E, ID> queryParameter, JpaService<E, ID> jpaService, Class<E> entityClass, Class<M> modelClass) throws Exception {
+	private <E, M, ID> M singleResultByFilter(QueryParameter<E, ID> queryParameter, JpaService<E, ID> jpaService, Class<E> entityClass, Class<M> modelClass) throws Exception {
 		E entity = null;
 		if (this.apiQuery == null || StringUtils.isBlank(this.apiQuery.value()))
 			entity = jpaService.singleResultByFilter(queryParameter);
@@ -468,17 +477,64 @@ class FindInterceptor {
 			entity = jpaService.singleResultByFilter(queryParameter, this.apiQuery.value());
 		M model = null;
 		if (entity != null) {
-			if (this.apiMapper == null) {
-				ModelMapper<E, M> mapper = modelMapper(entityClass, modelClass);
-				model = mapper.convertToModel(entity);
-			} else {
-				Object mapper = this.applicationContext.getBean(this.apiMapper.bean());
-				Method mapperMethod = this.apiMapper.bean().getMethod(this.apiMapper.method(), entityClass);
+			if (this.apiMapper == null)
+				throw new ApiFindException("The class to convert the entity to output is not declared");
+			try {
+				Object mapper = this.applicationContext.getBean(this.apiMapper.value());
+				Method mapperMethod = methodMapper(entityClass, modelClass);
 				model = (M) mapperMethod.invoke(mapper, entity);
+			} catch (NoSuchMethodException e) {
+				logger.error("Method mapper is not found");
+				throw new ApiFindException("Method mapper is not found", e);
 			}
+
 		}
 
 		return model;
+	}
+
+	private <P, O> Method methodMapper(Class<P> parameterClass, Class<O> outputClass) throws Exception {
+
+		Class<?> bean = null;
+		String methodName = null;
+		bean = this.apiMapper.value();
+		methodName = this.apiMapper.method();
+		Method method = null;
+		try {
+			method = StringUtils.isBlank(methodName) ? findMethod(bean, parameterClass, outputClass) : bean.getMethod(methodName, parameterClass);
+		} catch (NoSuchMethodException e) {
+			logger.error("Method mapper is not found");
+			throw new ApiFindException("Method mapper is not found", e);
+		}
+		return method;
+	}
+
+	private <M, P, O> Method findMethod(Class<M> mapperClass, Class<P> parameterClass, Class<O> outputClass) {
+		Method methodFound = null;
+		Method methodAssignInputFound = null;
+		int countMethodFound = 0;
+		int countAssignMethodFound = 0;
+		Set<Method>methods=ReflectionCommons.methods(mapperClass);
+		for (Method method : methods) {
+			if (method.getParameterCount() == 1 && method.getReturnType().equals(outputClass)) {
+				if (method.getParameterTypes()[0].equals(parameterClass)) {
+					methodFound = method;
+					countMethodFound++;
+				} else if (method.getParameterTypes()[0].isAssignableFrom(parameterClass)) {
+					methodAssignInputFound = method;
+					countAssignMethodFound++;
+				}
+			}
+
+		}
+		if (countMethodFound == 1)
+			return methodFound;
+		if (countAssignMethodFound == 1)
+			return methodAssignInputFound;
+		if (countMethodFound > 1 || countAssignMethodFound > 1)
+			throw new ApiFindException("More compatible methods were found in the mapping class, use @ApiMethodMapper or @ApiMapper to select the method name");
+		throw new ApiFindException("Method mapper is not found");
+
 	}
 
 }

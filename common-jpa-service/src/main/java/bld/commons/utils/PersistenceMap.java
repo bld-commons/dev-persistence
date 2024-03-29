@@ -124,7 +124,7 @@ public class PersistenceMap<K, V> {
 	private List<Field> fields(Object key) {
 		List<Field> listField = null;
 		if (!mapFields.containsKey(key.getClass())) {
-			Set<Field> fields = ReflectionCommons.getListField(key.getClass());
+			Set<Field> fields = ReflectionCommons.fields(key.getClass());
 			listField = new ArrayList<>();
 			if (key.getClass().isAnnotationPresent(Entity.class)) {
 				for (Field field : fields) {

@@ -8,7 +8,6 @@ import com.bld.persistence.parameter.GenereParameter;
 import com.bld.persistence.response.GenereModel;
 
 import bld.commons.controller.SearchController;
-import bld.commons.reflection.model.BaseParameter;
 
 @RestController
 @RequestMapping("/genere")
