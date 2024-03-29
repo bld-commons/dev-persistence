@@ -8,7 +8,6 @@ import org.springframework.boot.autoconfigure.security.reactive.ReactiveSecurity
 import org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 
-import com.bld.exception.audit.client.config.annotation.EnableExceptionAuditClient;
 import com.bld.proxy.api.find.config.annotation.EnableProxyApiController;
 
 import bld.commons.config.annotation.EnableJpaService;
@@ -17,7 +16,7 @@ import bld.commons.config.annotation.EnableJpaService;
 @EnableJpaRepositories(basePackages = "com.bld.persistence.core")
 @EnableJpaService
 @EnableProxyApiController(basePackages = "com.bld")
-@EnableExceptionAuditClient
+//@EnableExceptionAuditClient
 public class ProjectJpaPersistenceApplication {
 
 	public static void main(String[] args) {

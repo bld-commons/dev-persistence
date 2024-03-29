@@ -87,6 +87,7 @@ public class JpaProcessor extends AbstractProcessor {
 		Set<TypeElement> types = ElementFilter.typesIn(annotatedElements);
 
 		for (TypeElement type : types) {
+			System.out.println(type);
 			Annotation annotation = type.getAnnotation(classAnnotation);
 			if (annotation != null) {
 				if (Entity.class.isAssignableFrom(classAnnotation)) {

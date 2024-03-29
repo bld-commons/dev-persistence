@@ -15,6 +15,7 @@ import com.bld.commons.utils.data.CollectionResponse;
 import com.bld.commons.utils.data.ObjectResponse;
 import com.bld.commons.utils.json.annotations.DateTimeZone;
 import com.bld.commons.utils.types.UpperLowerType;
+import com.bld.persistence.common.Genere2Mapper;
 import com.bld.persistence.common.GenereMapper;
 import com.bld.persistence.core.domain.Genere;
 import com.bld.persistence.parameter.GenereParameter;
@@ -35,6 +36,7 @@ public interface GenereFindController {
 	
 	@PostMapping(path = "/filter",consumes = "application/json",produces = "application/json")
 	@ResponseBody
+	@ApiMapper(value = Genere2Mapper.class,method = "convertToGenereModel")
 	public List<GenereModel> findByFilter(@RequestBody GenereParameter parameter);
 	
 	
