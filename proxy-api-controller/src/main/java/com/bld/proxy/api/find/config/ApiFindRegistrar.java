@@ -242,46 +242,40 @@ public class ApiFindRegistrar implements ImportBeanDefinitionRegistrar, Environm
 	}
 
 	private void apiFind(Map<String, Object> mapBean, ApiFind apiFind) {
-		for (String beanName : applicationContext.getBeanDefinitionNames()) {
-			try {
-				Object service = applicationContext.getBean(beanName);
-				Class<?> serviceClass = service.getClass();
-				do {
-					if (serviceClass.getName().equals(JpaServiceImpl.class.getName())) {
-						Class<?>entity=ReflectionCommons.getGenericTypeClass(service.getClass(), 0);
-						Class<?>id=ReflectionCommons.getGenericTypeClass(service.getClass(), 1);
-						if(entity.getName().equals(apiFind.entity().getName()) && apiFind.id().getName().equals(id.getName())) {
-							logger.info("class " + beanName + " set in map");
-							mapBean.put(apiFind.entity().getName() + " " + apiFind.id().getName(), service);
-							return;
-						}
-					}
-					serviceClass = serviceClass.getSuperclass();
-
-				} while (serviceClass != null && !Object.class.getName().equals(serviceClass.getName()));
-				
-//				Class<?>[] typeArguments = ResolvableType.forType(applicationContext.getType(beanName)).as(JpaService.class).resolveGenerics();
-//				if (typeArguments[0].getName().equals(apiFind.entity().getName()) && apiFind.id().getName().equals(typeArguments[1].getName())) {
-//					JpaService<?, ?> jpaService = (JpaService<?, ?>) applicationContext.getBean(beanName);
-//					mapBean.put(apiFind.entity().getName() + " " + apiFind.id().getName(), jpaService);
-//					return;
-//				}
-			} catch (Exception e) {
-				logger.info("ignore");
-			}
-
-		}
-
-//		String[] beanNames = applicationContext.getBeanNamesForType(JpaService.class);
-//		for (String beanName : beanNames) {
-//			Class<?>[] typeArguments = ResolvableType.forType(applicationContext.getType(beanName)).as(JpaService.class).resolveGenerics();
-//			if (typeArguments[0].getName().equals(apiFind.entity().getName()) && apiFind.id().getName().equals(typeArguments[1].getName())) {
-//				JpaService<?, ?> jpaService = (JpaService<?, ?>) applicationContext.getBean(beanName);
-//				mapBean.put(apiFind.entity().getName()+" "+apiFind.id().getName(), jpaService);
-//				return;
+//		for (String beanName : applicationContext.getBeanDefinitionNames()) {
+//			try {
+//				Object service = applicationContext.getBean(beanName);
+//				Class<?> serviceClass = service.getClass();
+//				do {
+//					if (serviceClass.getName().equals(JpaServiceImpl.class.getName())) {
+//						Class<?>entity=ReflectionCommons.getGenericTypeClass(service.getClass(), 0);
+//						Class<?>id=ReflectionCommons.getGenericTypeClass(service.getClass(), 1);
+//						if(entity.getName().equals(apiFind.entity().getName()) && apiFind.id().getName().equals(id.getName())) {
+//							logger.info("class " + beanName + " set in map");
+//							mapBean.put(apiFind.entity().getName() + " " + apiFind.id().getName(), service);
+//							return;
+//						}
+//					}
+//					serviceClass = serviceClass.getSuperclass();
+//
+//				} while (serviceClass != null && !Object.class.getName().equals(serviceClass.getName()));
+//				
+//			} catch (Exception e) {
+//				logger.info("ignore");
 //			}
 //
 //		}
+
+		String[] beanNames = applicationContext.getBeanNamesForType(JpaService.class);
+		for (String beanName : beanNames) {
+			Class<?>[] typeArguments = ResolvableType.forType(applicationContext.getType(beanName)).as(JpaService.class).resolveGenerics();
+			if (typeArguments[0].getName().equals(apiFind.entity().getName()) && apiFind.id().getName().equals(typeArguments[1].getName())) {
+				JpaService<?, ?> jpaService = (JpaService<?, ?>) applicationContext.getBean(beanName);
+				mapBean.put(apiFind.entity().getName()+" "+apiFind.id().getName(), jpaService);
+				return;
+			}
+
+		}
 	}
 
 //	private <T> void registration(BeanDefinitionRegistry registry, Class<T> classApiController) {

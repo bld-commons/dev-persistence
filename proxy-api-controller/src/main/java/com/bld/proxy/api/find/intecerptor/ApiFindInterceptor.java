@@ -14,7 +14,6 @@ public class ApiFindInterceptor implements InvocationHandler {
 
 	private final FindInterceptor findInterceptor;
 
-
 	public ApiFindInterceptor(FindInterceptor findInterceptor) {
 		super();
 		this.findInterceptor = findInterceptor;

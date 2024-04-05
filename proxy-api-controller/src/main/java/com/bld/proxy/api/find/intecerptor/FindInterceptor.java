@@ -3,6 +3,8 @@ package com.bld.proxy.api.find.intecerptor;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -38,6 +40,8 @@ import com.bld.proxy.api.find.config.DefaultOrderBy;
 import com.bld.proxy.api.find.data.ApiMethod;
 import com.bld.proxy.api.find.data.ParameterDetails;
 import com.bld.proxy.api.find.exception.ApiFindException;
+import com.fasterxml.jackson.databind.JavaType;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import bld.commons.reflection.annotations.ConditionsZones;
 import bld.commons.reflection.annotations.DateFilter;
@@ -52,7 +56,6 @@ import bld.commons.reflection.model.QueryParameter;
 import bld.commons.reflection.type.OrderType;
 import bld.commons.reflection.utils.ReflectionCommons;
 import bld.commons.service.JpaServiceImpl;
-
 
 @SuppressWarnings("unchecked")
 public class FindInterceptor {
@@ -69,20 +72,21 @@ public class FindInterceptor {
 
 	private final static List<String> PAGINATION_KEYS = Arrays.asList(SORT_KEY, ORDER_TYPE, PAGE_SIZE, PAGE_NUMBER);
 
-	private final static List<Class<? extends Annotation>> REQUEST_ANNOTATIONS = Arrays.asList(RequestParam.class, RequestAttribute.class, PathVariable.class);
-
+	private final static List<Class<? extends Annotation>> REQUEST_ANNOTATIONS = Arrays.asList(RequestParam.class,
+			RequestAttribute.class, PathVariable.class);
 
 	private final ApplicationContext context;
 
 	private final Map<String, Object> mapBean;
 
+	private final ObjectMapper objMapper;
 
-	public FindInterceptor(ApplicationContext context,Map<String, Object>  mapBean) {
+	public FindInterceptor(ApplicationContext context, Map<String, Object> mapBean, ObjectMapper objMapper) {
 		super();
 		this.context = context;
-		this.mapBean=mapBean;
+		this.mapBean = mapBean;
+		this.objMapper = objMapper;
 	}
-
 
 	public <E, ID> Object find(Object obj, ApiMethod apiMethod) throws Throwable {
 
@@ -95,8 +99,12 @@ public class FindInterceptor {
 			Class<?> entityClass = apiFind.entity();
 			Class<?> idClass = apiFind.id();
 			Class<?> outputClass = apiMethod.getMethod().getReturnType();
-			this.getParameters(apiMethod.getMethod().getParameters(), apiMethod.getArgs(),apiMethod, RequestBody.class, AuthenticationPrincipal.class);
-			Assert.isTrue(!(apiMethod.getApiQuery() != null && StringUtils.isBlank(apiMethod.getApiQuery().value()) && !apiMethod.getApiQuery().jpql()), "For native query the field \"value\" can not be blank into ApiQuery");
+			this.getParameters(apiMethod.getMethod().getParameters(), apiMethod.getArgs(), apiMethod, RequestBody.class,
+					AuthenticationPrincipal.class);
+			Assert.isTrue(
+					!(apiMethod.getApiQuery() != null && StringUtils.isBlank(apiMethod.getApiQuery().value())
+							&& !apiMethod.getApiQuery().jpql()),
+					"For native query the field \"value\" can not be blank into ApiQuery");
 
 			if (apiMethod.getApiQuery() == null || apiMethod.getApiQuery().jpql())
 				response = this.jpqlQuery(entityClass, idClass, outputClass, apiMethod);
@@ -114,41 +122,44 @@ public class FindInterceptor {
 		return response;
 	}
 
-	private <E, ID, O> Object jpqlQuery(Class<E> entityClass, Class<ID> idClass, Class<O> outputClass, ApiMethod apiMethod) throws Exception {
+	private <E, ID, O> Object jpqlQuery(Class<E> entityClass, Class<ID> idClass, Class<O> outputClass,
+			ApiMethod apiMethod) throws Exception {
 		Object response = null;
 		apiMethod.setApiMapper(apiMethod.getMethod().getAnnotation(ApiMapper.class));
 
 		if (apiMethod.getApiMapper() == null)
 			apiMethod.setApiMapper(apiMethod.getMethod().getDeclaringClass().getAnnotation(ApiMapper.class));
 		QueryParameter<E, ID> queryParameter = new QueryParameter<>();
-		addBodyParameter(queryParameter,apiMethod);
+		addBodyParameter(queryParameter, apiMethod);
 		queryParameter(queryParameter, apiMethod);
-		this.addUserDetails(queryParameter,apiMethod);
+		this.addUserDetails(queryParameter, apiMethod);
 		firstStep(queryParameter, apiMethod);
 		JpaServiceImpl<E, ID> jpaService = jpaService(entityClass, idClass);
 		Class<?> modelClass = modelClass(apiMethod.getMethod());
 		if (Number.class.isAssignableFrom(outputClass))
-			response = this.countByFilter(queryParameter, jpaService,apiMethod);
+			response = this.countByFilter(queryParameter, jpaService, apiMethod);
 		else if (modelClass != null) {
 
 			if (CollectionResponse.class.isAssignableFrom(outputClass))
-				response = collectionResponse(queryParameter, jpaService, entityClass, modelClass,apiMethod);
+				response = collectionResponse(queryParameter, jpaService, entityClass, modelClass, apiMethod);
 			else if (Collection.class.isAssignableFrom(outputClass)) {
-				response = collection(queryParameter, jpaService, entityClass, (Class<? extends Collection<?>>) outputClass, modelClass,apiMethod);
+				response = collection(queryParameter, jpaService, entityClass,
+						(Class<? extends Collection<?>>) outputClass, modelClass, apiMethod);
 			} else if (ObjectResponse.class.isAssignableFrom(outputClass)) {
 				if (Number.class.isAssignableFrom(modelClass))
-					response = new ObjectResponse<>(this.countByFilter(queryParameter, jpaService,apiMethod));
+					response = new ObjectResponse<>(this.countByFilter(queryParameter, jpaService, apiMethod));
 				else
-					response = new ObjectResponse<>(this.singleResultByFilter(queryParameter, jpaService, entityClass, modelClass,apiMethod));
+					response = new ObjectResponse<>(
+							this.singleResultByFilter(queryParameter, jpaService, entityClass, modelClass, apiMethod));
 			}
 		} else
-			response = this.singleResultByFilter(queryParameter, jpaService, entityClass, outputClass,apiMethod);
+			response = this.singleResultByFilter(queryParameter, jpaService, entityClass, outputClass, apiMethod);
 
 		return response;
 	}
 
 	private <ID, E> JpaServiceImpl<E, ID> jpaService(Class<E> entityClass, Class<ID> idClass) {
-		return (JpaServiceImpl<E, ID>)mapBean.get(entityClass.getName()+" "+idClass.getName());
+		return (JpaServiceImpl<E, ID>) mapBean.get(entityClass.getName() + " " + idClass.getName());
 //		String[] beanNames = this.context.getBeanNamesForType(JpaServiceImpl.class);
 //		for (String beanName : beanNames) {
 //			Class<?>[] typeArguments = ResolvableType.forType(this.context.getType(beanName)).as(JpaServiceImpl.class).resolveGenerics();
@@ -161,40 +172,44 @@ public class FindInterceptor {
 //		throw new ApiFindException("The " + JpaServiceImpl.class.getName() + "<" + entityClass.getName() + "," + idClass.getName() + "> bean not found");
 	}
 
-	private void addBodyParameter(BaseQueryParameter<?, ?> queryParameter,ApiMethod apiMethod) {
+	private void addBodyParameter(BaseQueryParameter<?, ?> queryParameter, ApiMethod apiMethod) {
 		if (apiMethod.getMap().containsKey(RequestBody.class)) {
-			Assert.isTrue(apiMethod.getMap().get(RequestBody.class).getValue() instanceof BaseParameter, "The body must be \"BaseParameter\" type");
+			Assert.isTrue(apiMethod.getMap().get(RequestBody.class).getValue() instanceof BaseParameter,
+					"The body must be \"BaseParameter\" type");
 			queryParameter.setBaseParameter((BaseParameter) apiMethod.getMap().get(RequestBody.class).getValue());
 		}
 	}
 
-	private <E, ID, O, M> Object nativeQuery(Class<E> entityClass, Class<ID> idClass, Class<O> outputClass, Class<M> modelClass, ApiMethod apiMethod) throws Exception {
+	private <E, ID, O, M> Object nativeQuery(Class<E> entityClass, Class<ID> idClass, Class<O> outputClass,
+			Class<M> modelClass, ApiMethod apiMethod) throws Exception {
 		Object response = null;
 		NativeQueryParameter<M, ID> queryParameter = new NativeQueryParameter<>(modelClass);
-		this.addBodyParameter(queryParameter,apiMethod);
+		this.addBodyParameter(queryParameter, apiMethod);
 		this.queryParameter(queryParameter, apiMethod);
-		this.addUserDetails(queryParameter,apiMethod);
+		this.addUserDetails(queryParameter, apiMethod);
 		this.firstStep(queryParameter, apiMethod);
 		JpaServiceImpl<E, ID> jpaService = jpaService(entityClass, idClass);
 		if (Number.class.isAssignableFrom(outputClass))
-			response = this.countByFilter(queryParameter, jpaService,apiMethod);
+			response = this.countByFilter(queryParameter, jpaService, apiMethod);
 		else if (modelClass != null) {
 			if (CollectionResponse.class.isAssignableFrom(outputClass))
-				response = collectionResponse(queryParameter, jpaService,apiMethod);
+				response = collectionResponse(queryParameter, jpaService, apiMethod);
 			else if (Collection.class.isAssignableFrom(outputClass)) {
-				response = collection(queryParameter, jpaService, (Class<? extends Collection<?>>) outputClass,apiMethod);
+				response = collection(queryParameter, jpaService, (Class<? extends Collection<?>>) outputClass,
+						apiMethod);
 			} else if (ObjectResponse.class.isAssignableFrom(outputClass)) {
 				if (Number.class.isAssignableFrom(modelClass))
-					response = new ObjectResponse<>(this.countByFilter(queryParameter, jpaService,apiMethod));
+					response = new ObjectResponse<>(this.countByFilter(queryParameter, jpaService, apiMethod));
 				else
-					response = new ObjectResponse<>(this.singreResultByFilter(queryParameter, jpaService,apiMethod));
+					response = new ObjectResponse<>(this.singreResultByFilter(queryParameter, jpaService, apiMethod));
 			}
 		} else
-			response = this.singreResultByFilter(queryParameter, jpaService,apiMethod);
+			response = this.singreResultByFilter(queryParameter, jpaService, apiMethod);
 		return response;
 	}
 
-	private void getParameters(Parameter[] parameters, Object[] args,ApiMethod apiMethod, Class<? extends Annotation>... annotations) {
+	private void getParameters(Parameter[] parameters, Object[] args, ApiMethod apiMethod,
+			Class<? extends Annotation>... annotations) {
 		if (ArrayUtils.isNotEmpty(parameters))
 			for (int i = 0; i < parameters.length; i++)
 				for (Class<? extends Annotation> annotation : annotations)
@@ -207,17 +222,19 @@ public class FindInterceptor {
 		String genericReturnType = method.getGenericReturnType().getTypeName();
 		if (!(genericReturnType.contains("<") && genericReturnType.contains(">")))
 			return null;
-		String genericType = genericReturnType.substring(genericReturnType.indexOf("<") + 1, genericReturnType.lastIndexOf(">"));
+		String genericType = genericReturnType.substring(genericReturnType.indexOf("<") + 1,
+				genericReturnType.lastIndexOf(">"));
 		if (genericType.contains("<"))
 			genericType = genericType.substring(0, genericType.indexOf("<"));
 		return Class.forName(genericType);
 	}
 
 	private boolean ignoreMapping(Parameter parameter) {
-		return !parameter.isAnnotationPresent(IgnoreMapping.class) || parameter.isAnnotationPresent(IgnoreMapping.class) && !parameter.getAnnotation(IgnoreMapping.class).value();
+		return !parameter.isAnnotationPresent(IgnoreMapping.class) || parameter.isAnnotationPresent(IgnoreMapping.class)
+				&& !parameter.getAnnotation(IgnoreMapping.class).value();
 	}
 
-	private void addUserDetails(NativeQueryParameter<?, ?> queryParameter,ApiMethod apiMethod) {
+	private void addUserDetails(NativeQueryParameter<?, ?> queryParameter, ApiMethod apiMethod) {
 		ParameterDetails userDetails = apiMethod.getMap().get(AuthenticationPrincipal.class);
 		if (userDetails != null) {
 			UserDetails user = ((UserDetails) userDetails.getValue());
@@ -226,7 +243,8 @@ public class FindInterceptor {
 			if (userDetails.getParameter().isAnnotationPresent(Param.class))
 				key = userDetails.getParameter().getAnnotation(Param.class).value();
 			if (userDetails.getParameter().isAnnotationPresent(LikeString.class))
-				username = (String) ReflectionCommons.value(username, null, userDetails.getParameter().getAnnotation(LikeString.class));
+				username = (String) ReflectionCommons.value(username, null,
+						userDetails.getParameter().getAnnotation(LikeString.class));
 			ConditionsZones conditionsZones = userDetails.getParameter().getAnnotation(ConditionsZones.class);
 			queryParameter.addParameter(key, username, conditionsZones);
 
@@ -234,7 +252,7 @@ public class FindInterceptor {
 
 	}
 
-	private void addUserDetails(QueryParameter<?, ?> queryParameter,ApiMethod apiMethod) {
+	private void addUserDetails(QueryParameter<?, ?> queryParameter, ApiMethod apiMethod) {
 		ParameterDetails userDetails = apiMethod.getMap().get(AuthenticationPrincipal.class);
 		if (userDetails != null) {
 			UserDetails user = ((UserDetails) userDetails.getValue());
@@ -243,7 +261,8 @@ public class FindInterceptor {
 			if (userDetails.getParameter().isAnnotationPresent(Param.class))
 				key = userDetails.getParameter().getAnnotation(Param.class).value();
 			if (userDetails.getParameter().isAnnotationPresent(LikeString.class))
-				username = (String) ReflectionCommons.value(username, null, userDetails.getParameter().getAnnotation(LikeString.class));
+				username = (String) ReflectionCommons.value(username, null,
+						userDetails.getParameter().getAnnotation(LikeString.class));
 			queryParameter.addParameter(key, username);
 
 		}
@@ -297,15 +316,20 @@ public class FindInterceptor {
 								LikeString likeString = parameter.getAnnotation(LikeString.class);
 								value = ReflectionCommons.value(value, dateFilter, likeString);
 
-								if (value instanceof Boolean && (Boolean) value && parameter.isAnnotationPresent(ListFilter.class))
+								if (value instanceof Boolean && (Boolean) value
+										&& parameter.isAnnotationPresent(ListFilter.class))
 									queryParameter.addNullable(name, conditionsZones);
 								else if (value.getClass().isArray()) {
 									Object[] array = (Object[]) value;
 									queryParameter.addParameter(name, Arrays.asList(array), conditionsZones);
 								} else
 									queryParameter.addParameter(name, value, conditionsZones);
-							} else if (parameter.isAnnotationPresent(FilterNullValue.class) && parameter.getAnnotation(FilterNullValue.class).value())
-								queryParameter.addParameter(name, ReflectionCommons.initTypedParameterValue(ReflectionCommons.mapType.get(parameter.getType()), value), conditionsZones);
+							} else if (parameter.isAnnotationPresent(FilterNullValue.class)
+									&& parameter.getAnnotation(FilterNullValue.class).value())
+								queryParameter.addParameter(name,
+										ReflectionCommons.initTypedParameterValue(
+												ReflectionCommons.mapType.get(parameter.getType()), value),
+										conditionsZones);
 							else if (conditionsZones != null)
 								queryParameter.addEmptyZones(conditionsZones);
 						} catch (Exception e) {
@@ -315,8 +339,10 @@ public class FindInterceptor {
 						mapPagination.put(name, value);
 					}
 				}
-				queryParameter.addOrderBy((String) mapPagination.get(SORT_KEY), (OrderType) mapPagination.get(ORDER_TYPE));
-				queryParameter.setPageable((Integer) mapPagination.get(PAGE_NUMBER), (Integer) mapPagination.get(PAGE_SIZE));
+				queryParameter.addOrderBy((String) mapPagination.get(SORT_KEY),
+						(OrderType) mapPagination.get(ORDER_TYPE));
+				queryParameter.setPageable((Integer) mapPagination.get(PAGE_NUMBER),
+						(Integer) mapPagination.get(PAGE_SIZE));
 			}
 		}
 	}
@@ -339,34 +365,42 @@ public class FindInterceptor {
 							LikeString likeString = parameter.getAnnotation(LikeString.class);
 							value = ReflectionCommons.value(value, dateFilter, likeString);
 
-							if (value instanceof Boolean && (Boolean) value && parameter.isAnnotationPresent(ListFilter.class))
+							if (value instanceof Boolean && (Boolean) value
+									&& parameter.isAnnotationPresent(ListFilter.class))
 								queryParameter.addNullable(name);
 							else if (value.getClass().isArray()) {
 								Object[] array = (Object[]) value;
 								queryParameter.addParameter(name, Arrays.asList(array));
 							} else
 								queryParameter.addParameter(name, value);
-						} else if (parameter.isAnnotationPresent(FilterNullValue.class) && parameter.getAnnotation(FilterNullValue.class).value())
-							queryParameter.addParameter(name, ReflectionCommons.initTypedParameterValue(ReflectionCommons.mapType.get(parameter.getType()), value));
+						} else if (parameter.isAnnotationPresent(FilterNullValue.class)
+								&& parameter.getAnnotation(FilterNullValue.class).value())
+							queryParameter.addParameter(name, ReflectionCommons.initTypedParameterValue(
+									ReflectionCommons.mapType.get(parameter.getType()), value));
 					} else
 						mapPagination.put(name, value);
 				}
-				queryParameter.addOrderBy((String) mapPagination.get(SORT_KEY), (OrderType) mapPagination.get(ORDER_TYPE));
-				queryParameter.setPageable((Integer) mapPagination.get(PAGE_NUMBER), (Integer) mapPagination.get(PAGE_SIZE));
+				queryParameter.addOrderBy((String) mapPagination.get(SORT_KEY),
+						(OrderType) mapPagination.get(ORDER_TYPE));
+				queryParameter.setPageable((Integer) mapPagination.get(PAGE_NUMBER),
+						(Integer) mapPagination.get(PAGE_SIZE));
 			}
 		}
 
 	}
 
-	private <ID, E, M> CollectionResponse<M> collectionResponse(QueryParameter<E, ID> queryParameter, JpaServiceImpl<E, ID> jpaService, Class<E> entityClass, Class<M> modelClass,ApiMethod apiMethod) throws Exception {
+	private <ID, E, M> CollectionResponse<M> collectionResponse(QueryParameter<E, ID> queryParameter,
+			JpaServiceImpl<E, ID> jpaService, Class<E> entityClass, Class<M> modelClass, ApiMethod apiMethod)
+			throws Exception {
 		CollectionResponse<M> response = new CollectionResponse<>();
 		Long totalCount = 0L;
 		if (apiMethod.getApiQuery() == null || StringUtils.isBlank(apiMethod.getApiQuery().value()))
-			totalCount = this.countByFilter(queryParameter, jpaService,apiMethod);
+			totalCount = this.countByFilter(queryParameter, jpaService, apiMethod);
 		response.setTotalCount(totalCount);
-		if (totalCount > 0 || (apiMethod.getApiQuery() != null && StringUtils.isNotBlank(apiMethod.getApiQuery().value()))) {
-			this.defaultOrderBy(queryParameter,apiMethod);
-			List<M> list = this.findByFilter(queryParameter, jpaService, entityClass, modelClass,apiMethod);
+		if (totalCount > 0
+				|| (apiMethod.getApiQuery() != null && StringUtils.isNotBlank(apiMethod.getApiQuery().value()))) {
+			this.defaultOrderBy(queryParameter, apiMethod);
+			List<M> list = this.findByFilter(queryParameter, jpaService, entityClass, modelClass, apiMethod);
 			response.setData(list);
 			if (queryParameter.getPageable() != null) {
 				response.setPageNumber(queryParameter.getPageable().getPageNumber());
@@ -377,9 +411,10 @@ public class FindInterceptor {
 		return response;
 	}
 
-	private <ID, E, K> CollectionResponse<K> collectionResponse(NativeQueryParameter<K, ID> queryParameter, JpaServiceImpl<E, ID> jpaService,ApiMethod apiMethod) throws Exception {
+	private <ID, E, K> CollectionResponse<K> collectionResponse(NativeQueryParameter<K, ID> queryParameter,
+			JpaServiceImpl<E, ID> jpaService, ApiMethod apiMethod) throws Exception {
 		CollectionResponse<K> response = new CollectionResponse<>();
-		this.defaultOrderBy(queryParameter,apiMethod);
+		this.defaultOrderBy(queryParameter, apiMethod);
 		List<K> list = jpaService.findByFilter(queryParameter, apiMethod.getApiQuery().value());
 		response.setData(list);
 		if (queryParameter.getPageable() != null) {
@@ -390,8 +425,9 @@ public class FindInterceptor {
 		return response;
 	}
 
-	private <K, L extends Collection<?>, E, ID> L collection(NativeQueryParameter<K, ID> queryParameter, JpaServiceImpl<E, ID> jpaService, Class<L> collectionClass,ApiMethod apiMethod) throws Exception {
-		this.defaultOrderBy(queryParameter,apiMethod);
+	private <K, L extends Collection<?>, E, ID> L collection(NativeQueryParameter<K, ID> queryParameter,
+			JpaServiceImpl<E, ID> jpaService, Class<L> collectionClass, ApiMethod apiMethod) throws Exception {
+		this.defaultOrderBy(queryParameter, apiMethod);
 		List<K> list = jpaService.findByFilter(queryParameter, apiMethod.getApiQuery().value());
 		L l = null;
 		if (List.class.equals(collectionClass))
@@ -403,17 +439,19 @@ public class FindInterceptor {
 		return l;
 	}
 
-	private <E, K, ID> K singreResultByFilter(NativeQueryParameter<K, ID> queryParameter, JpaServiceImpl<E, ID> jpaService,ApiMethod apiMethod) throws Exception {
+	private <E, K, ID> K singreResultByFilter(NativeQueryParameter<K, ID> queryParameter,
+			JpaServiceImpl<E, ID> jpaService, ApiMethod apiMethod) throws Exception {
 		return jpaService.singleResultByFilter(queryParameter, apiMethod.getApiQuery().value());
 	}
 
-	private void defaultOrderBy(BaseQueryParameter<?, ?> queryParameter,ApiMethod apiMethod) {
+	private void defaultOrderBy(BaseQueryParameter<?, ?> queryParameter, ApiMethod apiMethod) {
 		if (CollectionUtils.isEmpty(queryParameter.getListOrderBy()) && apiMethod.getApiQuery() != null)
 			for (DefaultOrderBy orderBy : apiMethod.getApiQuery().orderBy())
 				queryParameter.addOrderBy(orderBy.value(), orderBy.orderType());
 	}
 
-	private <E, ID> Long countByFilter(QueryParameter<E, ID> queryParameter, JpaServiceImpl<E, ID> jpaService,ApiMethod apiMethod) {
+	private <E, ID> Long countByFilter(QueryParameter<E, ID> queryParameter, JpaServiceImpl<E, ID> jpaService,
+			ApiMethod apiMethod) {
 		Long totalCount = 0L;
 		if (apiMethod.getApiQuery() == null || StringUtils.isBlank(apiMethod.getApiQuery().value()))
 			totalCount = jpaService.countByFilter(queryParameter);
@@ -422,15 +460,18 @@ public class FindInterceptor {
 		return totalCount;
 	}
 
-	private <K, E, ID> Long countByFilter(NativeQueryParameter<K, ID> queryParameter, JpaServiceImpl<E, ID> jpaService,ApiMethod apiMethod) {
+	private <K, E, ID> Long countByFilter(NativeQueryParameter<K, ID> queryParameter, JpaServiceImpl<E, ID> jpaService,
+			ApiMethod apiMethod) {
 		Long totalCount = 0L;
 		totalCount = jpaService.countByFilter(queryParameter, apiMethod.getApiQuery().value());
 		return totalCount;
 	}
 
-	private <M, L extends Collection<?>, E, ID> L collection(QueryParameter<E, ID> queryParameter, JpaServiceImpl<E, ID> jpaService, Class<E> entityClass, Class<L> collectionClass, Class<M> modelClass,ApiMethod apiMethod) throws Exception {
-		this.defaultOrderBy(queryParameter,apiMethod);
-		List<?> list = this.findByFilter(queryParameter, jpaService, entityClass, modelClass,apiMethod);
+	private <M, L extends Collection<?>, E, ID> L collection(QueryParameter<E, ID> queryParameter,
+			JpaServiceImpl<E, ID> jpaService, Class<E> entityClass, Class<L> collectionClass, Class<M> modelClass,
+			ApiMethod apiMethod) throws Exception {
+		this.defaultOrderBy(queryParameter, apiMethod);
+		List<?> list = this.findByFilter(queryParameter, jpaService, entityClass, modelClass, apiMethod);
 		L l = null;
 		if (List.class.equals(collectionClass))
 			l = (L) new ArrayList<>(list);
@@ -441,7 +482,8 @@ public class FindInterceptor {
 		return l;
 	}
 
-	private <M, E, ID> List<M> findByFilter(QueryParameter<E, ID> queryParameter, JpaServiceImpl<E, ID> jpaService, Class<E> entityClass, Class<M> modelClass,ApiMethod apiMethod) throws Exception {
+	private <M, E, ID> List<M> findByFilter(QueryParameter<E, ID> queryParameter, JpaServiceImpl<E, ID> jpaService,
+			Class<E> entityClass, Class<M> modelClass, ApiMethod apiMethod) throws Exception {
 		List<E> entities = null;
 		if (apiMethod.getApiQuery() == null || StringUtils.isBlank(apiMethod.getApiQuery().value()))
 			entities = jpaService.findByFilter(queryParameter);
@@ -460,31 +502,39 @@ public class FindInterceptor {
 //			logger.info(resolvableType.toString());
 //			String[] beanNames = this.context.getBeanNamesForType(apiMethod.getApiMapper().value());
 //			Object mapper = this.context.getBean(beanNames[0]);
-			
-			
+
 //			if (!mapBean.containsKey(apiMethod.getApiMapper().value().getName()))
 //				throw new ApiFindException(apiMethod.getApiMapper().value().getName() + " bean is not found");
 //			else if (mapBean.containsKey(apiMethod.getApiMapper().value().getName()) && mapBean.get(apiMethod.getApiMapper().value().getName()).size() > 1)
 //				throw new ApiFindException("Found more beans for \"" + apiMethod.getApiMapper().value().getName() + "\"");
 //			String beanName = mapBean.get(apiMethod.getApiMapper().value().getName()).get(0);
-			
+
 //			String[] beanNames = this.context.getBeanNamesForType(apiMethod.getApiMapper().value());
 //			logger.info("Bean names");
 //			for(String beanName:beanNames)
 //				logger.info(beanName);
-			
-			
-			
+
 //			Object mapper = this.context.getBean(beanName);
-			Object mapper=mapBean.get(apiMethod.getApiMapper().value().getName());
-			//Object mapper= this.context.getBean(apiMethod.getApiMapper().value());
-			if(mapper!=null)
+			Object mapper = mapBean.get(apiMethod.getApiMapper().value().getName());
+			// Object mapper= this.context.getBean(apiMethod.getApiMapper().value());
+			if (mapper != null)
 				logger.info("mapper is not null");
-			Method mapperMethod = methodMapper(entityClass, modelClass,mapper.getClass(),apiMethod.getApiMapper().method());
-			
-			
-			for (E entity : entities)
-				models.add((M) mapperMethod.invoke(mapper, entity));
+			Method mapperMethod = methodMapper(entityClass, modelClass, mapper.getClass(),
+					apiMethod.getApiMapper().method());
+
+			Class<?>[] types = outputGenericType(mapperMethod);
+
+			for (E entity : entities) {
+				String json = this.objMapper.writeValueAsString(mapperMethod.invoke(mapper, entity));
+				if (ArrayUtils.isNotEmpty(types)) {
+					JavaType type = objMapper.getTypeFactory().constructParametricType(modelClass, types);
+					models.add(this.objMapper.readValue(json, type));
+				} else {
+					models.add(this.objMapper.readValue(json, modelClass));
+				}
+
+			}
+
 		} catch (Throwable e) {
 			logger.error(ExceptionUtils.getStackTrace(e));
 			throw new ApiFindException("Method mapper is not found", e);
@@ -493,13 +543,35 @@ public class FindInterceptor {
 		return models;
 	}
 
+	private Class<?>[] outputGenericType(Method method) throws Exception {
+		Type returnType = method.getGenericReturnType();
+		Class<?>[] types = null;
+		int i = 0;
+		if (returnType instanceof ParameterizedType) {
+			ParameterizedType type = (ParameterizedType) returnType;
+			Type[] typeArguments = type.getActualTypeArguments();
+
+			if (ArrayUtils.isNotEmpty(typeArguments)) {
+				types = new Class[typeArguments.length];
+				for (Type typeArgument : typeArguments) {
+					logger.info(typeArgument.getTypeName());
+					types[i++] = Class.forName(typeArgument.getTypeName());
+				}
+
+			}
+
+		}
+		return types;
+	}
+
 //	private <E, M> ModelMapper<E, M> modelMapper(Class<E> entityClass, Class<M> modelClass) {
 //		ResolvableType resolvableType = ResolvableType.forClassWithGenerics(ModelMapper.class, entityClass, modelClass);
 //		ModelMapper<E, M> mapper = (ModelMapper<E, M>) this.applicationContext.getBeanProvider(resolvableType).getObject();
 //		return mapper;
 //	}
 
-	private <E, M, ID> M singleResultByFilter(QueryParameter<E, ID> queryParameter, JpaServiceImpl<E, ID> jpaService, Class<E> entityClass, Class<M> modelClass,ApiMethod apiMethod) throws Exception {
+	private <E, M, ID> M singleResultByFilter(QueryParameter<E, ID> queryParameter, JpaServiceImpl<E, ID> jpaService,
+			Class<E> entityClass, Class<M> modelClass, ApiMethod apiMethod) throws Exception {
 		E entity = null;
 		if (apiMethod.getApiQuery() == null || StringUtils.isBlank(apiMethod.getApiQuery().value()))
 			entity = jpaService.singleResultByFilter(queryParameter);
@@ -510,10 +582,16 @@ public class FindInterceptor {
 			if (apiMethod.getApiMapper() == null)
 				throw new ApiFindException("The class to convert the entity to output is not declared");
 			try {
-				String[] beanNames = this.context.getBeanNamesForType(apiMethod.getApiMapper().value());
-				Object mapper = this.context.getBean(beanNames[0]);
-				Method mapperMethod = methodMapper(entityClass, modelClass,apiMethod.getApiMapper().value(),apiMethod.getApiMapper().method());
-				model = (M) mapperMethod.invoke(mapper, entity);
+				Object mapper = mapBean.get(apiMethod.getApiMapper().value().getName());
+				Method mapperMethod = methodMapper(entityClass, modelClass, mapper.getClass(),
+						apiMethod.getApiMapper().method());
+				Class<?>[] types = outputGenericType(mapperMethod);
+				String json = this.objMapper.writeValueAsString(mapperMethod.invoke(mapper, entity));
+				if (ArrayUtils.isNotEmpty(types)) {
+					JavaType type = objMapper.getTypeFactory().constructParametricType(modelClass, types);
+					model = this.objMapper.readValue(json, type);
+				} else
+					model = this.objMapper.readValue(json, modelClass);
 			} catch (NoSuchMethodException e) {
 				logger.error("Method mapper is not found");
 				throw new ApiFindException("Method mapper is not found", e);
@@ -524,11 +602,13 @@ public class FindInterceptor {
 		return model;
 	}
 
-	private <P, O> Method methodMapper(Class<P> parameterClass, Class<O> outputClass,Class<?>mapperClass,String methodName) throws Exception {
+	private <P, O> Method methodMapper(Class<P> parameterClass, Class<O> outputClass, Class<?> mapperClass,
+			String methodName) throws Exception {
 
 		Method method = null;
 		try {
-			method = StringUtils.isBlank(methodName) ? findMethod(mapperClass, parameterClass, outputClass) : mapperClass.getMethod(methodName, parameterClass);
+			method = StringUtils.isBlank(methodName) ? findMethod(mapperClass, parameterClass, outputClass)
+					: mapperClass.getMethod(methodName, parameterClass);
 		} catch (NoSuchMethodException e) {
 			logger.error("Method mapper is not found");
 			throw new ApiFindException("Method mapper is not found", e);
@@ -536,31 +616,33 @@ public class FindInterceptor {
 		return method;
 	}
 
-	private <M, P, O> Method findMethod(Class<M> mapperClass, Class<P> parameterClass, Class<O> outputClass) {
+	private <M, P, O> Method findMethod(Class<M> mapperClass, Class<P> parameterClass, Class<O> outputClass)
+			throws Exception {
 		Method methodFound = null;
 		Method methodAssignInputFound = null;
 		int countMethodFound = 0;
 		int countAssignMethodFound = 0;
 		Set<Method> methods = ReflectionCommons.methods(mapperClass);
 		for (Method method : methods) {
-			if (method.getParameterCount() == 1 && method.getReturnType().equals(outputClass)) {
+			if (method.getParameterCount() == 1 && method.getReturnType().getName().equals(outputClass.getName())) {
 				if (method.getParameterTypes()[0].getName().equals(parameterClass.getName())) {
 					methodFound = method;
 					countMethodFound++;
-				} else if (method.getParameterTypes()[0].isAssignableFrom(parameterClass)) {
+				} else if (Class.forName(method.getParameterTypes()[0].getName())
+						.isAssignableFrom(Class.forName(parameterClass.getName()))) {
 					methodAssignInputFound = method;
 					countAssignMethodFound++;
 				}
 			}
 
 		}
-		logger.info("count: "+countMethodFound);
 		if (countMethodFound == 1)
 			return methodFound;
 		if (countAssignMethodFound == 1)
 			return methodAssignInputFound;
 		if (countMethodFound > 1 || countAssignMethodFound > 1)
-			throw new ApiFindException("More compatible methods were found in the mapping class, use @ApiMethodMapper or @ApiMapper to select the method name");
+			throw new ApiFindException(
+					"More compatible methods were found in the mapping class, use @ApiMethodMapper or @ApiMapper to select the method name");
 		throw new ApiFindException("Method mapper is not found");
 
 	}

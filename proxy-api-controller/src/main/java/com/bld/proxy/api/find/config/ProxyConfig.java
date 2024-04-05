@@ -1,16 +1,17 @@
 package com.bld.proxy.api.find.config;
 
 import java.lang.reflect.Proxy;
-import java.util.HashMap;
 import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;
 
 import com.bld.proxy.api.find.intecerptor.ApiFindInterceptor;
 import com.bld.proxy.api.find.intecerptor.FindInterceptor;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 @Component
 public class ProxyConfig {
@@ -19,6 +20,9 @@ public class ProxyConfig {
 //	private ApplicationContext applicationContext;
 
 	private final static Logger logger = LoggerFactory.getLogger(ProxyConfig.class);
+	
+	@Autowired
+	private ObjectMapper objMapper;
 
 	@SuppressWarnings("unchecked")
 	public <T> T newProxyInstance(Class<T> clazz,ApplicationContext applicationContext,Map<String, Object> mapBean) {
@@ -37,7 +41,7 @@ public class ProxyConfig {
 //			addBean(mapBean, apiFind, apiMapper,applicationContext);
 //		}
 
-		T t = (T) Proxy.newProxyInstance(clazz.getClassLoader(), new Class<?>[] { clazz }, new ApiFindInterceptor(new FindInterceptor(applicationContext, mapBean)));
+		T t = (T) Proxy.newProxyInstance(clazz.getClassLoader(), new Class<?>[] { clazz }, new ApiFindInterceptor(new FindInterceptor(applicationContext, mapBean,objMapper)));
 		return t;
 	}
 
