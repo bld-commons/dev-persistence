@@ -2,14 +2,12 @@ package com.bld.proxy.api.find.config;
 
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
-
-import com.bld.commons.utils.config.annotation.EnableCommonUtils;
+import org.springframework.context.annotation.EnableAspectJAutoProxy;
 
 @Configuration
-@ComponentScan(basePackages = "com.bld.proxy.api.find")
-@EnableCommonUtils
+@ComponentScan(basePackages = {"com.bld.proxy.api.find"})
+@EnableAspectJAutoProxy(proxyTargetClass = true)
 public class ProxyApiFindConfig {
 
-	
-	
+
 }

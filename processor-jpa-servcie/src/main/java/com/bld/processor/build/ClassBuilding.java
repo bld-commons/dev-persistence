@@ -231,7 +231,6 @@ public class ClassBuilding {
 			String elementToString = element.asType().toString().trim().replace("@"+NotNull.class.getName()+" ", "");
 			if (elementToString.contains(" "))
 				elementToString = elementToString.substring(elementToString.lastIndexOf(" ")).trim();
-			System.out.println(elementToString);
 			ClassField classField = mapClassField.get(elementToString);
 			String fieldName = element.getSimpleName().toString();
 			if (element.getAnnotation(EmbeddedId.class) != null || element.getAnnotation(Id.class) != null) {
@@ -292,8 +291,6 @@ public class ClassBuilding {
 						fromByFilter = manyToOneJoinColumn(fieldEntity, mapConditions, mapDeleteConditions, mapJpaOrders, mapAlias, aliases, fromByFilter, manyProps, keyConditions, element, classField, fieldName, joinColumn);
 				else {
 					JoinColumn joinColumn = element.getAnnotation(JoinColumn.class);
-					System.out.println("class entity: "+classEntity);
-					System.out.println(classField.getClassName());
 					fromByFilter = manyToOneJoinColumn(fieldEntity, mapConditions, mapDeleteConditions, mapJpaOrders, mapAlias, aliases, fromByFilter, manyProps, keyConditions, element, classField, fieldName, joinColumn);
 				}
 

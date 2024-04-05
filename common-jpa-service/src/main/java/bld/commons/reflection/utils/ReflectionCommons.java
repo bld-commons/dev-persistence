@@ -234,18 +234,11 @@ public class ReflectionCommons {
 	private Object getValue(Field field, Method method, Object value) {
 		DateFilter dateFilter = method.isAnnotationPresent(DateFilter.class) ? method.getAnnotation(DateFilter.class) : field.getAnnotation(DateFilter.class);
 		LikeString likeString = method.isAnnotationPresent(LikeString.class) ? method.getAnnotation(LikeString.class) : field.getAnnotation(LikeString.class);
-		return getValue(value, dateFilter, likeString);
+		return value(value, dateFilter, likeString);
 	}
 
-	/**
-	 * Gets the value.
-	 *
-	 * @param value the value
-	 * @param dateFilter the date filter
-	 * @param likeString the like string
-	 * @return the value
-	 */
-	public Object getValue(Object value, DateFilter dateFilter, LikeString likeString) {
+
+	public static Object value(Object value, DateFilter dateFilter, LikeString likeString) {
 		if (dateFilter != null) {
 			if (value instanceof Calendar)
 				value = DateUtils.sumDate((Calendar) value, dateFilter.addYear(), dateFilter.addMonth(), dateFilter.addWeek(), dateFilter.addDay(), dateFilter.addHour(), dateFilter.addMinute(), dateFilter.addSecond());
@@ -638,14 +631,29 @@ public class ReflectionCommons {
 	 */
 	public static Set<Method> methods(Class<?> classApp) {
 		Set<Method> methods = new HashSet<>();
+		Set<MethodOverride>methodsOverride=new HashSet<>();
 		do {
-			for (Method method : classApp.getMethods())
-				if (!methods.contains(method))
+			for (Method method : classApp.getMethods()) {
+				MethodOverride methodOverride=new MethodOverride(method.getName(), method.getParameterTypes());
+				if (!methodsOverride.contains(methodOverride)) {
 					methods.add(method);
+					methodsOverride.add(methodOverride);
+				}
+					
+			}
+				
+				
 			classApp = classApp.getSuperclass();
 		} while (classApp != null && !classApp.getName().equals(Object.class.getName()));
 		return methods;
 	}
+	
+	
+	
+
+		
+		
+	
 
 	/**
 	 * Gets the method.
