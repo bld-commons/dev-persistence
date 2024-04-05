@@ -25,7 +25,7 @@ public class ApiFindInterceptor implements InvocationHandler {
 	public Object invoke(Object obj, Method method, Object[] args) throws Throwable {
 		if ("hashCode".equalsIgnoreCase(method.getName()))
 			return 0;
-		logger.info("invoke");
+		logger.debug("method invocation handler");
 		return findInterceptor.find(obj, new ApiMethod(method, args));
 	}
 

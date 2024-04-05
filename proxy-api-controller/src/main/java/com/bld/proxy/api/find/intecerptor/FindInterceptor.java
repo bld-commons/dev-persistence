@@ -493,32 +493,7 @@ public class FindInterceptor {
 		if (apiMethod.getApiMapper() == null)
 			throw new ApiFindException("The class to convert the entity to output is not declared");
 		try {
-//			for (String beanName : this.applicationContext.getBeanDefinitionNames()) {
-//				Class<?> beanType = this.applicationContext.getType(beanName);
-//				logger.info(beanName + " " + beanType);
-//			}
-//
-//			ResolvableType resolvableType = ResolvableType.forType(apiMethod.getApiMapper().value());
-//			logger.info(resolvableType.toString());
-//			String[] beanNames = this.context.getBeanNamesForType(apiMethod.getApiMapper().value());
-//			Object mapper = this.context.getBean(beanNames[0]);
-
-//			if (!mapBean.containsKey(apiMethod.getApiMapper().value().getName()))
-//				throw new ApiFindException(apiMethod.getApiMapper().value().getName() + " bean is not found");
-//			else if (mapBean.containsKey(apiMethod.getApiMapper().value().getName()) && mapBean.get(apiMethod.getApiMapper().value().getName()).size() > 1)
-//				throw new ApiFindException("Found more beans for \"" + apiMethod.getApiMapper().value().getName() + "\"");
-//			String beanName = mapBean.get(apiMethod.getApiMapper().value().getName()).get(0);
-
-//			String[] beanNames = this.context.getBeanNamesForType(apiMethod.getApiMapper().value());
-//			logger.info("Bean names");
-//			for(String beanName:beanNames)
-//				logger.info(beanName);
-
-//			Object mapper = this.context.getBean(beanName);
 			Object mapper = mapBean.get(apiMethod.getApiMapper().value().getName());
-			// Object mapper= this.context.getBean(apiMethod.getApiMapper().value());
-			if (mapper != null)
-				logger.info("mapper is not null");
 			Method mapperMethod = methodMapper(entityClass, modelClass, mapper.getClass(),
 					apiMethod.getApiMapper().method());
 
@@ -554,7 +529,6 @@ public class FindInterceptor {
 			if (ArrayUtils.isNotEmpty(typeArguments)) {
 				types = new Class[typeArguments.length];
 				for (Type typeArgument : typeArguments) {
-					logger.info(typeArgument.getTypeName());
 					types[i++] = Class.forName(typeArgument.getTypeName());
 				}
 

@@ -33,9 +33,7 @@ import com.bld.proxy.api.find.annotations.ApiFindController;
 import com.bld.proxy.api.find.annotations.ApiMapper;
 import com.bld.proxy.api.find.config.annotation.EnableProxyApiController;
 
-import bld.commons.reflection.utils.ReflectionCommons;
 import bld.commons.service.JpaService;
-import bld.commons.service.JpaServiceImpl;
 
 @Configuration
 public class ApiFindRegistrar implements ImportBeanDefinitionRegistrar, EnvironmentAware, ResourceLoaderAware, ApplicationContextAware {
@@ -210,13 +208,10 @@ public class ApiFindRegistrar implements ImportBeanDefinitionRegistrar, Environm
 	private void apiMapper(Map<String, Object> mapBean, ApiMapper apiMapper) {
 		for (String beanName : applicationContext.getBeanDefinitionNames()) {
 			try {
-				// logger.info("Bean Name: "+beanName);
 				Object mapper = applicationContext.getBean(beanName);
-				// logger.info(beanName+" not null= "+(mapper!=null));
 				Class<?> mapperClass = mapper.getClass();
 				do {
 					if (mapperClass.getName().equals(apiMapper.value().getName())) {
-						logger.info("class " + beanName + " set in map");
 						mapBean.put(apiMapper.value().getName(), mapper);
 						return;
 					}
@@ -227,7 +222,6 @@ public class ApiFindRegistrar implements ImportBeanDefinitionRegistrar, Environm
 				Class<?>[] interfaces = mapperClass.getInterfaces();
 				for (Class<?> intrf : interfaces) {
 					if (intrf.getClass().getName().equals(apiMapper.value().getName())) {
-						logger.info("interface " + beanName + " set in map");
 						mapBean.put(apiMapper.value().getName(), mapper);
 						return;
 					}
@@ -235,7 +229,7 @@ public class ApiFindRegistrar implements ImportBeanDefinitionRegistrar, Environm
 				}
 
 			} catch (BeansException e) {
-				logger.warn("ignore bean");
+				logger.warn("Bean "+beanName+" ignored for @ApiController");
 			}
 
 		}
