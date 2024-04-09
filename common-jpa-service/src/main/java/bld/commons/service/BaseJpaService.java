@@ -16,6 +16,7 @@ import java.util.Set;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.commons.text.StringSubstitutor;
@@ -354,7 +355,7 @@ public abstract class BaseJpaService<T, ID> {
 
 			t = query.getSingleResult();
 		} catch (Exception e) {
-			logger.info("Record not found");
+			logger.warn("Record not found");
 		}
 		return t;
 	}
