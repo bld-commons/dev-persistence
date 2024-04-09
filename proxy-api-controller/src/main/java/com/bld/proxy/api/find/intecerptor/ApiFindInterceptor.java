@@ -5,28 +5,27 @@ import java.lang.reflect.Method;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
+import org.springframework.stereotype.Component;
 
-import com.bld.proxy.api.find.data.ApiMethod;
-
+@Component
 public class ApiFindInterceptor implements InvocationHandler {
+
 
 	private final static Logger logger = LoggerFactory.getLogger(ApiFindInterceptor.class);
 
-	private final FindInterceptor findInterceptor;
+	@Autowired
+	private ApplicationContext applicationContext;
 
-	public ApiFindInterceptor(FindInterceptor findInterceptor) {
-		super();
-		this.findInterceptor = findInterceptor;
-	}
-
-
-
+	
 	@Override
 	public Object invoke(Object obj, Method method, Object[] args) throws Throwable {
 		if ("hashCode".equalsIgnoreCase(method.getName()))
 			return 0;
-		logger.debug("method invocation handler");
-		return findInterceptor.find(obj, new ApiMethod(method, args));
+		logger.info("invoke");
+		FindInterceptor findInterceptor = this.applicationContext.getBean(FindInterceptor.class);
+		return findInterceptor.find(obj, method, args);
 	}
 
 }

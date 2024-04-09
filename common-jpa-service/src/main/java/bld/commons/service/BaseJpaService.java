@@ -354,7 +354,7 @@ public abstract class BaseJpaService<T, ID> {
 
 			t = query.getSingleResult();
 		} catch (Exception e) {
-			logger.info("Record not found");
+			logger.warn("Record not found");
 		}
 		return t;
 	}

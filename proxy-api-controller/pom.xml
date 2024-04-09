@@ -6,7 +6,7 @@
 	<parent>
 		<groupId>com.github.bld-commons</groupId>
 		<artifactId>dev-persistence</artifactId>
-		<version>3.0.2</version>
+		<version>3.0.3</version>
 	</parent>
 	<artifactId>proxy-api-controller</artifactId>
 
@@ -48,14 +48,7 @@
 			<groupId>com.github.bld-commons</groupId>
 			<artifactId>common-jpa-service</artifactId>
 		</dependency>
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-devtools</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-devtools</artifactId>
-		</dependency>
+		
 	</dependencies>
 	<build>
 		<plugins>
