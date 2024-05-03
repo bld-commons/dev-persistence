@@ -6,7 +6,7 @@
 	<groupId>com.github.bld-commons</groupId>
 	<artifactId>dev-persistence</artifactId>
 	<packaging>pom</packaging>
-	<version>2.0.9</version>
+	<version>2.1.0</version>
 	<url>https://github.com/bld-commons/dev-persistence.git</url>
 
 	<licenses>
@@ -71,9 +71,9 @@
 		<maven-plugin-plugin.version>3.6.0</maven-plugin-plugin.version>
 		<maven-shade-plugin.version>3.2.4</maven-shade-plugin.version>
 		<commons-io.version>2.11.0</commons-io.version>
-		<bld-common-utils.version>1.0.8</bld-common-utils.version>
-		<proxy-api-controller.version>1.0.0-SNNAPSHOT</proxy-api-controller.version>
-		<common-annotations.version>1.0.0</common-annotations.version>
+		<bld-common-utils.version>1.1.0</bld-common-utils.version>
+		
+		
 	</properties>
 
 	<scm>
@@ -96,12 +96,12 @@
 			<dependency>
 				<groupId>com.github.bld-commons</groupId>
 				<artifactId>common-annotations</artifactId>
-				<version>${common-annotations.version}</version>
+				<version>${bld-common-utils.version}</version>
 			</dependency>
 			<dependency>
 				<groupId>com.github.bld-commons</groupId>
 				<artifactId>proxy-api-controller</artifactId>
-				<version>${proxy-api-controller.version}</version>
+				<version>${project.version}</version>
 			</dependency>
 			<dependency>
 				<groupId>com.github.bld-commons</groupId>

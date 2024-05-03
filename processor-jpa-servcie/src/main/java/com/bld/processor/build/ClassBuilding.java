@@ -30,17 +30,7 @@ import javax.lang.model.element.Modifier;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.type.DeclaredType;
 import javax.lang.model.type.TypeMirror;
-import javax.persistence.Column;
-import javax.persistence.EmbeddedId;
-import javax.persistence.Id;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToMany;
-import javax.persistence.ManyToOne;
-import javax.persistence.OneToMany;
-import javax.persistence.OneToOne;
-import javax.persistence.Transient;
 import javax.tools.Diagnostic.Kind;
-import javax.validation.constraints.NotNull;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.ArrayUtils;
@@ -71,6 +61,17 @@ import bld.commons.processor.annotations.OrderAlias;
 import bld.commons.processor.annotations.QueryBuilder;
 import bld.commons.reflection.utils.ReflectionCommons;
 import bld.commons.service.BaseJpaService;
+import javax.persistence.Column;
+import javax.persistence.EmbeddedId;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.JoinColumns;
+import javax.persistence.ManyToMany;
+import javax.persistence.ManyToOne;
+import javax.persistence.OneToMany;
+import javax.persistence.OneToOne;
+import javax.persistence.Transient;
+import javax.validation.constraints.NotNull;
 
 /**
  * The Class ClassBuilding.
@@ -193,7 +194,7 @@ public class ClassBuilding {
 		List<String> mapBaseConditions = new ArrayList<>();
 		List<String> mapNativeConditions = new ArrayList<>();
 		List<String> mapConditions = new ArrayList<>();
-		List<String> mapDeleteConditions = new ArrayList<>();
+		Set<String> mapDeleteConditions = new LinkedHashSet<>();
 		Set<String> mapJpaOrders = new LinkedHashSet<>();
 		List<String> mapNativeOrders = new ArrayList<>();
 		LinkedHashSet<String> mapOneToMany = new LinkedHashSet<>();
@@ -227,11 +228,10 @@ public class ClassBuilding {
 		Set<String> manyProps = new HashSet<>();
 		Set<String> keyConditions = new TreeSet<>();
 		for (Element element : elements) {
-			String elementToString = element.asType().toString().trim();
+			String elementToString = element.asType().toString().trim().replace("@"+NotNull.class.getName()+" ", "");
 			if (elementToString.contains(" "))
 				elementToString = elementToString.substring(elementToString.lastIndexOf(" ")).trim();
 			ClassField classField = mapClassField.get(elementToString);
-
 			String fieldName = element.getSimpleName().toString();
 			if (element.getAnnotation(EmbeddedId.class) != null || element.getAnnotation(Id.class) != null) {
 
@@ -285,21 +285,15 @@ public class ClassBuilding {
 				keyConditions.add(fieldName);
 
 			} else if (element.getAnnotation(ManyToOne.class) != null) {
-				JoinColumn joinColumn = element.getAnnotation(JoinColumn.class);
-				boolean nullable = element.getAnnotation(NotNull.class) != null || !joinColumn.nullable() ? false : true;
-				fromByFilter = fromManyAndOneToOne(fieldEntity, mapAlias, aliases, fromByFilter, classField, fieldName, nullable);
-				Set<Element> listFieldReference = classField.getElements();
-				for (Element fieldReference : listFieldReference) {
-					if (fieldReference.getAnnotation(Id.class) != null || fieldReference.getAnnotation(EmbeddedId.class) != null) {
-						mapConditions.add(SPACE + "map.put(" + fieldReference.getSimpleName().toString() + ", \" and " + fieldName + "." + fieldReference.getSimpleName().toString() + " in (:" + fieldReference.getSimpleName().toString() + ") \");");
-						mapDeleteConditions.add(SPACE + "map.put(" + fieldReference.getSimpleName().toString() + ", \" and " + fieldEntity + "." + fieldName + "." + fieldReference.getSimpleName().toString() + " in (:"
-								+ fieldReference.getSimpleName().toString() + ") \");");
-						mapJpaOrders.add(SPACE + "map.put(\"" + fieldName + "." + fieldReference.getSimpleName().toString() + "\",\"" + fieldName + "." + fieldReference.getSimpleName().toString() + "\");");
-						manyProps.add(fieldReference.getSimpleName().toString());
-						keyConditions.add(fieldReference.getSimpleName().toString());
-						break;
-					}
+				JoinColumns joinColumns = element.getAnnotation(JoinColumns.class);
+				if (joinColumns != null)
+					for (JoinColumn joinColumn : joinColumns.value())
+						fromByFilter = manyToOneJoinColumn(fieldEntity, mapConditions, mapDeleteConditions, mapJpaOrders, mapAlias, aliases, fromByFilter, manyProps, keyConditions, element, classField, fieldName, joinColumn);
+				else {
+					JoinColumn joinColumn = element.getAnnotation(JoinColumn.class);
+					fromByFilter = manyToOneJoinColumn(fieldEntity, mapConditions, mapDeleteConditions, mapJpaOrders, mapAlias, aliases, fromByFilter, manyProps, keyConditions, element, classField, fieldName, joinColumn);
 				}
+
 			} else if (element.getAnnotation(OneToOne.class) != null) {
 				fromByFilter = fromManyAndOneToOne(fieldEntity, mapAlias, aliases, fromByFilter, classField, fieldName, nullableOneToOne(element));
 			} else if (element.getAnnotation(OneToMany.class) != null || element.getAnnotation(ManyToMany.class) != null) {
@@ -331,12 +325,12 @@ public class ClassBuilding {
 				} else {
 					for (Element fieldManyToMany : listReferenceField) {
 						if (fieldManyToMany.getAnnotation(Id.class) != null) {
-							String keyProps = fieldName + Character.toUpperCase(fieldManyToMany.getSimpleName().toString().charAt(0)) + fieldManyToMany.getSimpleName().toString().substring(1);	
+							String keyProps = fieldName + Character.toUpperCase(fieldManyToMany.getSimpleName().toString().charAt(0)) + fieldManyToMany.getSimpleName().toString().substring(1);
 							manyProps.add(keyProps);
 							mapOneToMany.add(SPACE + "addJoinOneToMany(" + keyProps + ", \" left join fetch " + fieldEntity + "." + fieldName + " " + fieldName + " \");");
 							mapConditions.add(SPACE + "map.put(" + keyProps + ", \" and " + fieldName + "." + fieldManyToMany.getSimpleName().toString() + " in (:" + keyProps + ") \");");
 							mapJpaOrders.add(SPACE + "map.put(\"" + fieldName + "." + fieldManyToMany.getSimpleName().toString() + "\",\"" + fieldName + "." + fieldManyToMany.getSimpleName().toString() + "\");");
-							
+
 							keyConditions.add(keyProps);
 							QueryDetail queryDetail = new QueryDetail(fieldName, fieldName, false, true, classFieldRefernce);
 							mapAlias.put(fieldEntity + "." + fieldName, queryDetail);
@@ -541,6 +535,25 @@ public class ClassBuilding {
 		modelClasses.getClasses().add(classQueryJpql);
 	}
 
+	private static String manyToOneJoinColumn(String fieldEntity, List<String> mapConditions, Set<String> mapDeleteConditions, Set<String> mapJpaOrders, Map<String, QueryDetail> mapAlias, Set<String> aliases, String fromByFilter,
+			Set<String> manyProps, Set<String> keyConditions, Element element, ClassField classField, String fieldName, JoinColumn joinColumn) {
+		boolean nullable = element.getAnnotation(NotNull.class) != null || !joinColumn.nullable() ? false : true;
+		fromByFilter = fromManyAndOneToOne(fieldEntity, mapAlias, aliases, fromByFilter, classField, fieldName, nullable);
+		Set<Element> listFieldReference = classField.getElements();
+		for (Element fieldReference : listFieldReference) {
+			if (fieldReference.getAnnotation(Id.class) != null || fieldReference.getAnnotation(EmbeddedId.class) != null) {
+				mapConditions.add(SPACE + "map.put(" + fieldReference.getSimpleName().toString() + ", \" and " + fieldName + "." + fieldReference.getSimpleName().toString() + " in (:" + fieldReference.getSimpleName().toString() + ") \");");
+				mapDeleteConditions.add(
+						SPACE + "map.put(" + fieldReference.getSimpleName().toString() + ", \" and " + fieldEntity + "." + fieldName + "." + fieldReference.getSimpleName().toString() + " in (:" + fieldReference.getSimpleName().toString() + ") \");");
+				mapJpaOrders.add(SPACE + "map.put(\"" + fieldName + "." + fieldReference.getSimpleName().toString() + "\",\"" + fieldName + "." + fieldReference.getSimpleName().toString() + "\");");
+				manyProps.add(fieldReference.getSimpleName().toString());
+				keyConditions.add(fieldReference.getSimpleName().toString());
+				break;
+			}
+		}
+		return fromByFilter;
+	}
+
 	private static void nativeCondition(CustomConditionBuilder customCondition, ModelClass classQueryJpql) throws JsonProcessingException {
 		for (String key : customCondition.keys()) {
 			List<String> mapNativeConditions = null;
@@ -599,7 +612,7 @@ public class ClassBuilding {
 	 * @param customCondition  the custom condition
 	 * @param keyConditions    the key conditions
 	 */
-	private static void writeCustomCondition(List<String> conditions, List<String> deleteConditions, CustomConditionBuilder customCondition, Set<String> keyConditions) {
+	private static void writeCustomCondition(List<String> conditions, Set<String> deleteConditions, CustomConditionBuilder customCondition, Set<String> keyConditions) {
 		String condition = SPACE + "map.put(" + customCondition.parameter() + ", \" " + customCondition.condition().trim() + " \");";
 		keyConditions.add(customCondition.parameter());
 		if (ConditionType.SELECT.equals(customCondition.type()))
