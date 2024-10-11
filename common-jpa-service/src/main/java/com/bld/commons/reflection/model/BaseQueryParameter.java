@@ -186,7 +186,7 @@ public abstract class BaseQueryParameter<T, ID> implements Serializable {
 	 */
 	public void addOrderBy(String field, OrderType ordertType) {
 		if (StringUtils.isNotBlank(field))
-			this.listOrderBy.add(new OrderBy(field, ordertType));
+			this.listOrderBy.add(OrderBy.of(field, ordertType));
 	}
 	
 	/**
