@@ -6,7 +6,7 @@
 	<groupId>com.github.bld-commons</groupId>
 	<artifactId>dev-persistence</artifactId>
 	<packaging>pom</packaging>
-	<version>3.0.3</version>
+	<version>3.0.4</version>
 	<url>https://github.com/bld-commons/dev-persistence.git</url>
 
 	<licenses>
@@ -40,7 +40,7 @@
 	<parent>
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
-		<version>3.2.4</version>
+		<version>3.3.3</version>
 		<relativePath />
 	</parent>
 
@@ -61,14 +61,13 @@
 		<commons-io.version>2.11.0</commons-io.version>
 		<bld-commons.version>2.0.3</bld-commons.version>
 		<!-- PLUGIN INIZIO -->
-		<maven-compiler-plugin.version>3.12.1</maven-compiler-plugin.version>
-		<java.version>11</java.version>
+		<maven-compiler-plugin.version>3.13.0</maven-compiler-plugin.version>
+		<java.version>17</java.version>
 		<org.apache.maven.plugins-version>2.8.2</org.apache.maven.plugins-version>
 		<org.apache.maven.shared-version>3.2.1</org.apache.maven.shared-version>
 		<org.codehaus.plexus-version>3.0.5</org.codehaus.plexus-version>
 		<maven-javadoc-plugin.version>3.1.1</maven-javadoc-plugin.version>
 		<class-generator.version>2.0.0</class-generator.version>
-		<maven-compiler-plugin.version>3.8.1</maven-compiler-plugin.version>
 		<maven-site-plugin.version>3.8.2</maven-site-plugin.version>
 		<maven-plugin-plugin.version>3.11.0</maven-plugin-plugin.version>
 		<maven-shade-plugin.version>3.2.4</maven-shade-plugin.version>
@@ -89,7 +88,7 @@
 		<!--<module>project-jpa-persistence</module> -->
 		<module>jpa-service-plugin-generator</module>
 		<module>proxy-api-controller</module>
-		<module>processor-jpa-servcie</module>
+		<module>processor-jpa-service</module>
 	</modules>
 
 	<dependencyManagement>
@@ -154,7 +153,7 @@
 			</dependency>
 			<dependency>
 				<groupId>com.github.bld-commons</groupId>
-				<artifactId>processor-jpa-servcie</artifactId>
+				<artifactId>processor-jpa-service</artifactId>
 				<version>${project.version}</version>
 			</dependency>
 
@@ -307,14 +306,6 @@
 						</goals>
 					</execution>
 				</executions>
-			</plugin>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-compiler-plugin</artifactId>
-				<configuration>
-					<source>${java.version}</source>
-					<target>${java.version}</target>
-				</configuration>
 			</plugin>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
