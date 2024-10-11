@@ -1,7 +1,7 @@
 /**
  * @author Francesco Baldi
  * @mail francesco.baldi1987@gmail.com
- * @class bld.commons.workspace.mapper.MapperModel.java
+ * @class com.bld.commons.controller.mapper.MapperModel.java
  */
 package com.bld.commons.controller.mapper;
 

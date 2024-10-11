@@ -16,7 +16,7 @@ import com.bld.commons.utils.config.annotation.EnableCommonUtils;
  */
 @Configuration
 @EnableCommonUtils
-@ComponentScan({"bld.commons.config","bld.commons.reflection","bld.commons.repository","bld.commons.service","bld.commons.workspace","bld.commons.annotations"})
+@ComponentScan({"com.bld.commons"})
 public class EnableJpaServiceConfiguration {
 	
 	
