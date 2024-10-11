@@ -24,7 +24,7 @@ bld:
   commons:
     exception:
       client:
-        enable: true
+        enable: false
         environment: DEV
         project: APP
         url: http://localhost:8080
