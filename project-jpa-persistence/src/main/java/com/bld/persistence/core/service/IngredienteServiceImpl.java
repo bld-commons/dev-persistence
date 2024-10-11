@@ -1,17 +1,15 @@
 package com.bld.persistence.core.service;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.jpa.repository.JpaRepository;
+import com.bld.commons.service.JpaServiceImpl;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
-import com.bld.persistence.core.domain.Ingrediente;
-import com.bld.persistence.core.repository.IngredienteRepository;
-
-import bld.commons.processor.annotations.QueryBuilder;
-import bld.commons.service.JpaServiceImpl;
 import jakarta.persistence.EntityManager;
+import org.springframework.beans.factory.annotation.Autowired;
+import com.bld.persistence.core.repository.IngredienteRepository;
+import com.bld.commons.processor.annotations.QueryBuilder;
+import com.bld.persistence.core.domain.Ingrediente;
 import jakarta.persistence.PersistenceContext;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @Transactional

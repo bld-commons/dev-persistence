@@ -8,9 +8,8 @@ import org.springframework.boot.autoconfigure.security.reactive.ReactiveSecurity
 import org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 
+import com.bld.commons.config.annotation.EnableJpaService;
 import com.bld.proxy.api.find.config.annotation.EnableProxyApiController;
-
-import bld.commons.config.annotation.EnableJpaService;
 
 @SpringBootApplication(exclude = {SecurityAutoConfiguration.class,ManagementWebSecurityAutoConfiguration.class, ReactiveSecurityAutoConfiguration.class, ReactiveManagementWebSecurityAutoConfiguration.class })
 @EnableJpaRepositories(basePackages = "com.bld.persistence.core")

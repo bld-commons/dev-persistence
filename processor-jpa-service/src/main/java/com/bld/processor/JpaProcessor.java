@@ -8,10 +8,10 @@ package com.bld.processor;
 import java.lang.annotation.Annotation;
 import java.util.Set;
 
-import jakarta.annotation.processing.AbstractProcessor;
-import jakarta.annotation.processing.RoundEnvironment;
-import jakarta.annotation.processing.SupportedAnnotationTypes;
-import jakarta.annotation.processing.SupportedSourceVersion;
+import javax.annotation.processing.AbstractProcessor;
+import javax.annotation.processing.RoundEnvironment;
+import javax.annotation.processing.SupportedAnnotationTypes;
+import javax.annotation.processing.SupportedSourceVersion;
 import javax.lang.model.SourceVersion;
 import javax.lang.model.element.AnnotationMirror;
 import javax.lang.model.element.Element;
@@ -20,13 +20,13 @@ import javax.lang.model.type.DeclaredType;
 import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.ElementFilter;
 
+import com.bld.commons.classes.generator.ClassesGenerator;
+import com.bld.commons.classes.generator.config.ConfigurationClassGenerator;
+import com.bld.commons.classes.generator.impl.ClassesGeneratorImpl;
+import com.bld.commons.classes.model.ModelClasses;
+import com.bld.commons.processor.annotations.QueryBuilder;
 import com.bld.processor.build.ClassBuilding;
 
-import bld.commons.classes.generator.ClassesGenerator;
-import bld.commons.classes.generator.config.ConfigurationClassGenerator;
-import bld.commons.classes.generator.impl.ClassesGeneratorImpl;
-import bld.commons.classes.model.ModelClasses;
-import bld.commons.processor.annotations.QueryBuilder;
 import jakarta.persistence.Entity;
 
 /**

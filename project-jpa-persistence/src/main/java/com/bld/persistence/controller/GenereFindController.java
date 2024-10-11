@@ -11,6 +11,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
+import com.bld.commons.reflection.annotations.DateFilter;
+import com.bld.commons.reflection.annotations.LikeString;
 import com.bld.commons.utils.data.CollectionResponse;
 import com.bld.commons.utils.data.ObjectResponse;
 import com.bld.commons.utils.json.annotations.DateTimeZone;
@@ -23,9 +25,6 @@ import com.bld.persistence.response.GenereModel;
 import com.bld.proxy.api.find.annotations.ApiFind;
 import com.bld.proxy.api.find.annotations.ApiFindController;
 import com.bld.proxy.api.find.annotations.ApiMapper;
-
-import bld.commons.reflection.annotations.DateFilter;
-import bld.commons.reflection.annotations.LikeString;
 
 @ApiFindController
 @RequestMapping("/genere/find")

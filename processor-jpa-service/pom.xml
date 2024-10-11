@@ -8,8 +8,7 @@
 		<artifactId>dev-persistence</artifactId>
 		<version>3.0.4</version>
 	</parent>
-	<artifactId>processor-jpa-servcie</artifactId>
-	<name>processor-jpa-servcie</name>
+	<artifactId>processor-jpa-service</artifactId>
 	<description>Demo project for Spring Boot</description>
 	<dependencies>
 		<!-- <dependency> <groupId>com.google.auto.service</groupId>

@@ -4,7 +4,7 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
 import java.lang.annotation.Retention;
 
-import bld.commons.reflection.type.OrderType;
+import com.bld.commons.reflection.type.OrderType;
 
 @Retention(RUNTIME)
 public @interface DefaultOrderBy {

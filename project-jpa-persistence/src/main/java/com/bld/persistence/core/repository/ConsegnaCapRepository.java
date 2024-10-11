@@ -1,8 +1,8 @@
 package com.bld.persistence.core.repository;
 
 import com.bld.persistence.core.domain.ConsegnaCap;
-import bld.commons.repository.BaseJpaRepository;
 import com.bld.persistence.core.domain.ConsegnaCapPK;
+import com.bld.commons.repository.BaseJpaRepository;
 import org.springframework.stereotype.Repository;
 
 @Repository

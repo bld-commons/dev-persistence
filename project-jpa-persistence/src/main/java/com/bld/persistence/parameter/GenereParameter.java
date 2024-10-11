@@ -3,12 +3,12 @@ package com.bld.persistence.parameter;
 import java.util.Date;
 import java.util.List;
 
+import com.bld.commons.reflection.annotations.DateFilter;
+import com.bld.commons.reflection.annotations.LikeString;
+import com.bld.commons.reflection.model.BaseParameter;
 import com.bld.commons.utils.json.annotations.DateTimeZone;
 import com.bld.commons.utils.types.UpperLowerType;
 
-import bld.commons.reflection.annotations.DateFilter;
-import bld.commons.reflection.annotations.LikeString;
-import bld.commons.reflection.model.BaseParameter;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
