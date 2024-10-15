@@ -17,7 +17,10 @@ spring:
         ddl-auto: update
     database-platform: org.hibernate.dialect.PostgreSQLDialect
     generate-ddl: true
-    
+  jackson:
+    deserialization:
+      accept-single-value-as-array: true
+          
  
  
 bld:

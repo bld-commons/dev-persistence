@@ -28,6 +28,7 @@ import com.bld.commons.reflection.model.BuildNativeQueryParameter;
 import com.bld.commons.reflection.model.ConditionsZoneModel;
 import com.bld.commons.reflection.model.OrderBy;
 import com.bld.commons.reflection.model.QueryParameter;
+import com.bld.commons.reflection.model.TupleParameter;
 import com.bld.commons.reflection.utils.ReflectionCommons;
 
 import jakarta.persistence.EntityManager;
@@ -53,8 +54,8 @@ public abstract class BaseJpaService<T, ID> {
 
 	/** The classe. */
 	private Class<T> classEntity = null;
-	
-	private Class<ID> classId=null;
+
+	private Class<ID> classId = null;
 
 	/** The Constant FETCH. */
 	private static final String fetch = "(?i)fetch";
@@ -110,7 +111,7 @@ public abstract class BaseJpaService<T, ID> {
 	public BaseJpaService() {
 		super();
 		this.classEntity = ReflectionCommons.getGenericTypeClass(this);
-		this.classId= ReflectionCommons.getGenericTypeClass(this,1);
+		this.classId = ReflectionCommons.getGenericTypeClass(this, 1);
 	}
 
 	/**
@@ -121,7 +122,6 @@ public abstract class BaseJpaService<T, ID> {
 	protected Class<T> getClassEntity() {
 		return classEntity;
 	}
-
 
 	/**
 	 * Sets the query parameters.
@@ -153,19 +153,26 @@ public abstract class BaseJpaService<T, ID> {
 	 * @return the where condition
 	 */
 	private void getWhereCondition(Map<String, Object> mapParameters, StringBuilder where, Map<String, String> mapConditions) {
-		for (String key : mapParameters.keySet()) {
+		for (String key : mapParameters.keySet()) 
 			this.setCondition(where, mapConditions, key);
-		}
 	}
+	
+	private void getWhereTupleCondition(Map<String, TupleParameter> mapParameters, StringBuilder where, Map<String, String> mapConditions) {
+		for (Entry<String, TupleParameter> entry : mapParameters.entrySet()) {
+			String condition=this.buildTupleCondition(entry.getKey(), mapConditions, entry.getValue());
+			where.append(condition);
+		}
+			
+	}
+
 
 	private void setCondition(StringBuilder where, Map<String, String> mapConditions, String key) {
 		String condition = mapConditions.get(key);
-		if(StringUtils.isBlank(condition))
-			throw new JpaServiceException("The \""+key+"\" parameter is not mappend in condition");
+		if (StringUtils.isBlank(condition))
+			throw new JpaServiceException("The \"" + key + "\" parameter is not mappend in condition");
 		where.append(condition);
 	}
 
-	
 	/**
 	 * Gets the where condition.
 	 *
@@ -188,22 +195,22 @@ public abstract class BaseJpaService<T, ID> {
 	 * @param buildQueryFilter the build query filter
 	 */
 	public void deleteByFilter(BuildJpqlQueryParameter<T, ID> buildQueryFilter) {
-		QueryParameter<T, ID> queryFilter = buildQueryFilter.getQueryParameter();
+		QueryParameter<T, ID> queryParameter = buildQueryFilter.getQueryParameter();
 		StringBuilder sql = buildQueryFilter.getSql();
 		buildWhere(buildQueryFilter, sql);
+		queryParameter.mergeParameters();
 		final String delete = sql.toString();
 		logger.debug("Query= " + delete);
 		Query query = this.getEntityManager().createQuery(delete);
-		setQueryParameters(queryFilter.getParameters(), query);
+		setQueryParameters(queryParameter.getParameters(), query);
 		query.executeUpdate();
 	}
 
-
 	public List<ID> findIdByFilter(BuildJpqlQueryParameter<T, ID> buildQueryFilter) {
-		TypedQuery<ID> query = buildQuery(buildQueryFilter,this.classId,true);
+		TypedQuery<ID> query = buildQuery(buildQueryFilter, this.classId, true);
 		return query.getResultList();
 	}
-	
+
 	/**
 	 * Find by filter.
 	 *
@@ -211,7 +218,7 @@ public abstract class BaseJpaService<T, ID> {
 	 * @return the list
 	 */
 	public List<T> findByFilter(BuildJpqlQueryParameter<T, ID> buildQueryFilter) {
-		TypedQuery<T> query = buildQuery(buildQueryFilter,this.classEntity,false);
+		TypedQuery<T> query = buildQuery(buildQueryFilter, this.classEntity, false);
 		return query.getResultList();
 	}
 
@@ -221,22 +228,24 @@ public abstract class BaseJpaService<T, ID> {
 	 * @param buildQueryFilter the build query filter
 	 * @return the typed query
 	 */
-	private <J>TypedQuery<J> buildQuery(BuildJpqlQueryParameter<T, ID> buildQueryFilter,Class<J>clazz,boolean removeFetch) {
-		QueryParameter<T, ID> queryFilter = buildQueryFilter.getQueryParameter();
-		Map<String, Object> mapParameters = queryFilter.getParameters();
-		StringBuilder sql = addRelationshipsOneToMany(mapParameters, buildQueryFilter.getSql(), queryFilter.getNullables());
+	private <J> TypedQuery<J> buildQuery(BuildJpqlQueryParameter<T, ID> buildQueryFilter, Class<J> clazz, boolean removeFetch) {
+		QueryParameter<T, ID> queryParameter = buildQueryFilter.getQueryParameter();
+		Map<String, Object> mapParameters = queryParameter.getParameters();
+		StringBuilder sql = addRelationshipsOneToMany(mapParameters, buildQueryFilter.getSql(), queryParameter.getNullables());
 		buildWhere(buildQueryFilter, sql);
-		addOrderBy(queryFilter.getListOrderBy(), sql, buildQueryFilter.getMapOrders());
+		addOrderBy(queryParameter.getListOrderBy(), sql, buildQueryFilter.getMapOrders());
+		queryParameter.mergeParameters();
 		String select = sql.toString();
-		if(removeFetch)
+		if (removeFetch)
 			select = select.replaceAll(fetch, "");
 		logger.debug("\nQuery: \n" + select);
-		
+
 		TypedQuery<J> query = this.getEntityManager().createQuery(select, clazz);
+		
 		setQueryParameters(mapParameters, query);
-		if (queryFilter.getPageable() != null) {
-			query.setFirstResult(queryFilter.getPageable().getPageNumber() * queryFilter.getPageable().getPageSize());
-			query.setMaxResults(queryFilter.getPageable().getPageSize());
+		if (queryParameter.getPageable() != null) {
+			query.setFirstResult(queryParameter.getPageable().getPageNumber() * queryParameter.getPageable().getPageSize());
+			query.setMaxResults(queryParameter.getPageable().getPageSize());
 		}
 		return query;
 	}
@@ -255,29 +264,29 @@ public abstract class BaseJpaService<T, ID> {
 //	}
 
 	/**
- * Builds the sql.
- *
- * @param buildQueryFilter the build query filter
- * @param sql the sql
- * @return the string
- */
+	 * Builds the sql.
+	 *
+	 * @param buildQueryFilter the build query filter
+	 * @param sql              the sql
+	 * @return the string
+	 */
 	private void buildWhere(BuildJpqlQueryParameter<T, ID> buildQueryFilter, StringBuilder sql) {
 		QueryParameter<T, ID> queryFilter = buildQueryFilter.getQueryParameter();
 		StringBuilder where = new StringBuilder("");
 		getWhereCondition(queryFilter.getNullables(), where, buildQueryFilter.getMapConditions());
 		getWhereCondition(queryFilter.getParameters(), where, buildQueryFilter.getMapConditions());
+		getWhereTupleCondition(queryFilter.getTupleParamenters(), where, buildQueryFilter.getMapConditions());
 		if (where.length() > 0)
 			sql.append("where\n").append(where.substring(4));
 
 	}
 
-	
 	/**
 	 * Adds the order by.
 	 *
 	 * @param listOrderBy the list order by
-	 * @param sql the sql
-	 * @param mapOrders the map orders
+	 * @param sql         the sql
+	 * @param mapOrders   the map orders
 	 */
 	private void addOrderBy(List<OrderBy> listOrderBy, StringBuilder sql, Map<String, String> mapOrders) {
 		if (!sql.toString().toLowerCase().contains(ORDER_BY.trim()) && CollectionUtils.isNotEmpty(listOrderBy)) {
@@ -285,8 +294,8 @@ public abstract class BaseJpaService<T, ID> {
 			int substring = 0;
 			if (CollectionUtils.isNotEmpty(listOrderBy)) {
 				for (OrderBy orderBy : listOrderBy) {
-					if(!mapOrders.containsKey(orderBy.getSortKey()))
-							throw new OrderByException("The \""+orderBy.getSortKey()+"\" sort key is not found");
+					if (!mapOrders.containsKey(orderBy.getSortKey()))
+						throw new OrderByException("The \"" + orderBy.getSortKey() + "\" sort key is not found");
 					writeOrderBy.append(",").append(mapOrders.get(orderBy.getSortKey())).append(" ").append(orderBy.getOrderType().name());
 				}
 				substring = 1;
@@ -332,13 +341,14 @@ public abstract class BaseJpaService<T, ID> {
 	 * @return the long
 	 */
 	public Long countByFilter(BuildJpqlQueryParameter<T, ID> buildQueryFilter) {
-		QueryParameter<T, ID> queryFilter = buildQueryFilter.getQueryParameter();
-		StringBuilder sql = addRelationshipsOneToMany(queryFilter.getParameters(), buildQueryFilter.getSql(), queryFilter.getNullables());
+		QueryParameter<T, ID> queryParameter = buildQueryFilter.getQueryParameter();
+		StringBuilder sql = addRelationshipsOneToMany(queryParameter.getParameters(), buildQueryFilter.getSql(), queryParameter.getNullables());
 		buildWhere(buildQueryFilter, sql);
+		queryParameter.mergeParameters();
 		final String count = sql.toString().replaceAll(fetch, "");
 		logger.debug("\nQuery: \n" + count);
 		Query query = this.getEntityManager().createQuery(count, Long.class);
-		setQueryParameters(queryFilter.getParameters(), query);
+		setQueryParameters(queryParameter.getParameters(), query);
 		return (Long) query.getSingleResult();
 	}
 
@@ -349,7 +359,7 @@ public abstract class BaseJpaService<T, ID> {
 	 * @return the t
 	 */
 	public T findSingleResultByFilter(BuildJpqlQueryParameter<T, ID> buildQueryFilter) {
-		TypedQuery<T> query = buildQuery(buildQueryFilter,this.classEntity,false);
+		TypedQuery<T> query = buildQuery(buildQueryFilter, this.classEntity, false);
 		T t = null;
 		try {
 
@@ -371,7 +381,6 @@ public abstract class BaseJpaService<T, ID> {
 		queryFilter.getParameters().put(QueryParameter.ID, queryFilter.getId());
 		return findSingleResultByFilter(buildQueryFilter);
 	}
-
 
 	public <K> List<K> findByFilter(BuildNativeQueryParameter<K, ID> buildQueryFilter) {
 		StringBuilder sql = buildNativeQuery(buildQueryFilter);
@@ -395,8 +404,8 @@ public abstract class BaseJpaService<T, ID> {
 				if (value != null)
 					mapRow.put(element.getAlias(), value);
 			}
-			
-			K k=this.reflectionCommons.reflection(buildQueryFilter.getQueryParameter().getResultClass(), mapRow);
+
+			K k = this.reflectionCommons.reflection(buildQueryFilter.getQueryParameter().getResultClass(), mapRow);
 			listK.add(k);
 		}
 		return listK;
@@ -405,9 +414,9 @@ public abstract class BaseJpaService<T, ID> {
 	/**
 	 * Sets the native query parameters.
 	 *
-	 * @param <Q> the generic type
+	 * @param <Q>     the generic type
 	 * @param mapZone the map zone
-	 * @param query the query
+	 * @param query   the query
 	 */
 	private <Q extends Query> void setNativeQueryParameters(Map<String, ConditionsZoneModel> mapZone, Q query) {
 
@@ -428,7 +437,7 @@ public abstract class BaseJpaService<T, ID> {
 	 * @param buildQueryFilter the build query filter
 	 * @return the long
 	 */
-	public <K> Long nativeQueryCountByFilter(BuildNativeQueryParameter<K, ID> buildQueryFilter) {
+	public <K> Long countByFilter(BuildNativeQueryParameter<K, ID> buildQueryFilter) {
 		StringBuilder sql = buildNativeQuery(buildQueryFilter);
 		final String count = sql.toString();
 		logger.debug(count);
@@ -447,35 +456,52 @@ public abstract class BaseJpaService<T, ID> {
 	 */
 	private <K> StringBuilder buildNativeQuery(BuildNativeQueryParameter<K, ID> buildQueryFilter) {
 		StringBuilder sql = buildQueryFilter.getSql();
-		Set<String> zones=ReflectionCommons.extractVariables(sql.toString());
+		Set<String> zones = ReflectionCommons.extractVariables(sql.toString());
 		Map<String, ConditionsZoneModel> map = new HashMap<>(buildQueryFilter.getQueryParameter().getMapConditionsZone());
 		map.remove(JOIN_ZONE);
 		Map<String, StringBuilder> mapConditions = buildQueryFilter.getQueryParameter().getEmptyZones();
-		
+
 		for (String key : map.keySet()) {
 			ConditionsZoneModel conditionsZoneModel = map.get(key);
-			Map<String,String> conditions=buildQueryFilter.getMapConditions().get(key);
+			Map<String, String> conditions = buildQueryFilter.getMapConditions().get(key);
 			if (!mapConditions.containsKey(key))
 				mapConditions.put(key, new StringBuilder(conditionsZoneModel.getWhere()));
 			for (String parameter : conditionsZoneModel.getParameters().keySet())
 				mapConditions.get(key).append(conditions.get(parameter)).append(END_LINE);
 			for (String nullable : conditionsZoneModel.getNullables())
 				mapConditions.get(key).append(conditions.get(nullable)).append(END_LINE);
+			for (Entry<String, TupleParameter> entry: conditionsZoneModel.getTupleParamenters().entrySet()) {
+				String tupleKey=entry.getKey();
+				TupleParameter tupleParameter=entry.getValue();
+				String condition = buildTupleCondition(tupleKey, conditions, tupleParameter);
+				mapConditions.get(key).append(condition).append(END_LINE);
+			}
+			conditionsZoneModel.mergeParameters();
 		}
 		StringSubstitutor stringSubstitutor = new StringSubstitutor(mapConditions);
 		sql = new StringBuilder(stringSubstitutor.replace(sql));
-		for(String zone:zones) {
-			zone="${"+zone+"}";
-			int startIndex=sql.indexOf(zone);
-			if(startIndex>=0) {
+		for (String zone : zones) {
+			zone = "${" + zone + "}";
+			int startIndex = sql.indexOf(zone);
+			if (startIndex >= 0) {
 				int endIndex = startIndex + zone.length();
-				sql=sql.replace(startIndex, endIndex, "");
+				sql = sql.replace(startIndex, endIndex, "");
 			}
-				
+
 		}
-			
+
 		return sql;
 	}
 
+	private String buildTupleCondition(String tupleKey, Map<String, String> conditions, TupleParameter tupleParameter) {
+		String condition=conditions.get(tupleKey);
+		if (StringUtils.isBlank(condition))
+			throw new JpaServiceException("The \"" + tupleKey + "\" parameter is not mappend in condition");
+		String refactorCondition="";
+		for(int i=0;i<tupleParameter.getObjects().size();i++) 
+			refactorCondition+=","+tupleParameter.getCondition(i);
+		condition=condition.replace(":"+tupleKey, refactorCondition.substring(1));
+		return condition;
+	}
 
 }

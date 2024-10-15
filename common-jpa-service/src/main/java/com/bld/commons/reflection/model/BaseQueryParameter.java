@@ -26,6 +26,8 @@ import com.bld.commons.reflection.type.OrderType;
 @SuppressWarnings("serial")
 public abstract class BaseQueryParameter<T, ID> implements Serializable {
 
+	
+	
 	/** The Constant ID. */
 	public final static String ID = "id";
 
@@ -56,7 +58,6 @@ public abstract class BaseQueryParameter<T, ID> implements Serializable {
 	protected BaseQueryParameter(ID id) {
 		super();
 		this.id = id;
-
 	}
 
 	/**
@@ -196,5 +197,5 @@ public abstract class BaseQueryParameter<T, ID> implements Serializable {
 	 * @param value the value
 	 */
 	public abstract void addParameter(String key,Object value);
-
+	
 }
