@@ -54,9 +54,11 @@ import com.bld.commons.reflection.annotations.IgnoreResultSet;
 import com.bld.commons.reflection.annotations.LikeString;
 import com.bld.commons.reflection.annotations.ListFilter;
 import com.bld.commons.reflection.annotations.ResultMapping;
+import com.bld.commons.reflection.annotations.TupleComparison;
 import com.bld.commons.reflection.model.BaseParameter;
 import com.bld.commons.reflection.model.NativeQueryParameter;
 import com.bld.commons.reflection.model.QueryParameter;
+import com.bld.commons.reflection.model.TupleParameter;
 import com.bld.commons.reflection.type.GetSetType;
 import com.bld.commons.utils.CamelCaseUtils;
 import com.bld.commons.utils.DateUtils;
@@ -188,8 +190,10 @@ public class ReflectionCommons {
 								value = null;
 							if (value != null) {
 								value = getValue(field, method, value);
-
-								if (value instanceof Boolean && (Boolean) value && field.isAnnotationPresent(ListFilter.class))
+								if (field.isAnnotationPresent(TupleComparison.class)) {
+									TupleParameter tupleParameter=this.getTupleParameter(field, value);
+									queryParameter.addParameter(field.getName(), tupleParameter);
+								} else if (value instanceof Boolean && (Boolean) value && field.isAnnotationPresent(ListFilter.class))
 									queryParameter.addNullable(field.getName());
 								else if (value.getClass().isArray()) {
 									Object[] array = (Object[]) value;
@@ -209,19 +213,28 @@ public class ReflectionCommons {
 		return queryParameter;
 	}
 
+	private <T, ID> TupleParameter getTupleParameter(Field field, Object value) {
+		TupleComparison tupleComparison = field.getAnnotation(TupleComparison.class);
+		TupleParameter tuple = new TupleParameter(tupleComparison.value());
+		if (value instanceof Collection)
+			tuple.setObjects((Collection<Object>) value);
+		else
+			tuple.setObjects(value);
+		return tuple;
+	}
+
 	/**
 	 * Inits the typed parameter value.
 	 *
-	 * @param <J> the generic type
+	 * @param <J>          the generic type
 	 * @param bindableType the bindable type
-	 * @param value the value
+	 * @param value        the value
 	 * @return the typed parameter value
 	 */
-	public static <J> TypedParameterValue<J> initTypedParameterValue(BindableType<J> bindableType,Object value){
-		return new TypedParameterValue<J>(bindableType, (J)value);
+	public static <J> TypedParameterValue<J> initTypedParameterValue(BindableType<J> bindableType, Object value) {
+		return new TypedParameterValue<J>(bindableType, (J) value);
 	}
- 	
-	
+
 	/**
 	 * Gets the value.
 	 *
@@ -235,7 +248,6 @@ public class ReflectionCommons {
 		LikeString likeString = method.isAnnotationPresent(LikeString.class) ? method.getAnnotation(LikeString.class) : field.getAnnotation(LikeString.class);
 		return value(value, dateFilter, likeString);
 	}
-
 
 	public static Object value(Object value, DateFilter dateFilter, LikeString likeString) {
 		if (dateFilter != null) {
@@ -309,7 +321,10 @@ public class ReflectionCommons {
 							if (value != null) {
 								value = getValue(field, method, value);
 
-								if (value instanceof Boolean && (Boolean) value && field.isAnnotationPresent(ListFilter.class))
+								if (field.isAnnotationPresent(TupleComparison.class)) {
+									TupleParameter tupleParameter=this.getTupleParameter(field, value);
+									queryParameter.addParameter(field.getName(), tupleParameter, conditionsZones);
+								} else if (value instanceof Boolean && (Boolean) value && field.isAnnotationPresent(ListFilter.class))
 									queryParameter.addNullable(field.getName(), conditionsZones);
 								else if (value.getClass().isArray()) {
 									Object[] array = (Object[]) value;
@@ -368,9 +383,9 @@ public class ReflectionCommons {
 	/**
 	 * Map result set.
 	 *
-	 * @param <T>    the generic type
-	 * @param classT the class T
-	 * @param mapRow the map row
+	 * @param <T>       the generic type
+	 * @param classT    the class T
+	 * @param mapRow    the map row
 	 * @param beanUtils the bean utils
 	 * @return the t
 	 * @throws InstantiationException    the instantiation exception
@@ -466,7 +481,7 @@ public class ReflectionCommons {
 	/**
 	 * Gets the generic type class.
 	 *
-	 * @param <T> the generic type
+	 * @param <T>   the generic type
 	 * @param clazz the clazz
 	 * @return the generic type class
 	 */
@@ -477,9 +492,9 @@ public class ReflectionCommons {
 	/**
 	 * Gets the generic type class.
 	 *
-	 * @param <T> the generic type
+	 * @param <T>   the generic type
 	 * @param clazz the clazz
-	 * @param i the i
+	 * @param i     the i
 	 * @return the generic type class
 	 */
 	public static <T> Class<T> getGenericTypeClass(Class<?> clazz, int i) {
@@ -544,7 +559,6 @@ public class ReflectionCommons {
 		return join;
 	}
 
-
 	/**
 	 * Fields.
 	 *
@@ -562,11 +576,10 @@ public class ReflectionCommons {
 		return listField;
 	}
 
-	
 	/**
 	 * Fields.
 	 *
-	 * @param classApp the class app
+	 * @param classApp   the class app
 	 * @param annotation the annotation
 	 * @return the sets the
 	 */
@@ -584,7 +597,6 @@ public class ReflectionCommons {
 		return listField;
 	}
 
-
 	/**
 	 * Map fields.
 	 *
@@ -601,7 +613,6 @@ public class ReflectionCommons {
 		} while (classApp != null && !classApp.getName().equals(Object.class.getName()));
 		return mapField;
 	}
-
 
 	/**
 	 * Map methods.
@@ -630,29 +641,21 @@ public class ReflectionCommons {
 	 */
 	public static Set<Method> methods(Class<?> classApp) {
 		Set<Method> methods = new HashSet<>();
-		Set<MethodOverride>methodsOverride=new HashSet<>();
+		Set<MethodOverride> methodsOverride = new HashSet<>();
 		do {
 			for (Method method : classApp.getMethods()) {
-				MethodOverride methodOverride=new MethodOverride(method.getName(), method.getParameterTypes());
+				MethodOverride methodOverride = new MethodOverride(method.getName(), method.getParameterTypes());
 				if (!methodsOverride.contains(methodOverride)) {
 					methods.add(method);
 					methodsOverride.add(methodOverride);
 				}
-					
+
 			}
-				
-				
+
 			classApp = classApp.getSuperclass();
 		} while (classApp != null && !classApp.getName().equals(Object.class.getName()));
 		return methods;
 	}
-	
-	
-	
-
-		
-		
-	
 
 	/**
 	 * Gets the method.

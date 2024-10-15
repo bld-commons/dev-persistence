@@ -3,6 +3,8 @@ package com.bld.persistence.parameter;
 import java.util.Date;
 import java.util.List;
 
+import com.bld.commons.reflection.annotations.ConditionsZone;
+import com.bld.commons.reflection.annotations.ConditionsZones;
 import com.bld.commons.reflection.annotations.DateFilter;
 import com.bld.commons.reflection.annotations.LikeString;
 import com.bld.commons.reflection.model.BaseParameter;

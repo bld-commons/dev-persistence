@@ -580,7 +580,7 @@ public abstract class JpaServiceImpl<T, ID> extends BaseJpaService<T, ID> implem
 	@Override
 	public <K> Long countByFilter(NativeQueryParameter<K, ID> queryParameter, String count) {
 		BuildNativeQueryParameter<K, ID> buildQueryFilter = getBuildNativeQueryFilter(queryParameter, count);
-		return this.nativeQueryCountByFilter(buildQueryFilter);
+		return this.countByFilter(buildQueryFilter);
 	}
 
 

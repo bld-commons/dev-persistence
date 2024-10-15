@@ -5,13 +5,18 @@
  */
 package com.bld.commons.reflection.model;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.Map.Entry;
 
+import org.apache.commons.beanutils.PropertyUtils;
+import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 
+import com.bld.commons.exception.JpaServiceException;
 import com.bld.commons.reflection.annotations.ConditionsZone;
 
 /**
@@ -27,11 +32,11 @@ public class ConditionsZoneModel {
 
 	/** The parameters. */
 	private Map<String, Object> parameters;
-	
+
 	/** The nullables. */
 	private Set<String> nullables;
-	
-	
+
+	private Map<String, TupleParameter> tupleParamenters;
 
 	/**
 	 * Inits the.
@@ -39,7 +44,8 @@ public class ConditionsZoneModel {
 	private void init() {
 		this.where = "";
 		this.parameters = new HashMap<>();
-		this.nullables=new HashSet<>();
+		this.nullables = new HashSet<>();
+		this.tupleParamenters = new HashMap<>();
 	}
 
 	/**
@@ -52,7 +58,7 @@ public class ConditionsZoneModel {
 		this.key = key;
 		this.init();
 	}
-	
+
 	/**
 	 * Instantiates a new conditions zone model.
 	 *
@@ -101,15 +107,44 @@ public class ConditionsZoneModel {
 		return parameters;
 	}
 
+	public Map<String, TupleParameter> getTupleParamenters() {
+		return tupleParamenters;
+	}
+
 	/**
 	 * Adds the parameter.
 	 *
-	 * @param key the key
+	 * @param key   the key
 	 * @param value the value
 	 */
 	public void addParameter(String key, Object value) {
 		if (StringUtils.isNotBlank(key))
 			this.parameters.put(key, value);
+	}
+
+	public void addParameter(String key, TupleParameter tupleParameter) {
+		if (key != null && tupleParameter != null)
+			this.tupleParamenters.put(key, tupleParameter);
+	}
+
+	public void mergeParameters() {
+		if(MapUtils.isNotEmpty(tupleParamenters)) {
+			for(Entry<String, TupleParameter> entry:this.tupleParamenters.entrySet()) {
+				TupleParameter tupleParameter=entry.getValue();
+				int i=0;
+				for(Object object:tupleParameter.getObjects()) {
+					for(String param:tupleParameter.getParams()) {
+						try {
+							Object value=PropertyUtils.getProperty(object, param);
+							this.addParameter(param+i, value);
+						} catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
+							throw new JpaServiceException("The tuple with the name: \""+param+"\" is not found");
+						}
+					}			
+					i++;
+				}
+			}
+		}
 	}
 
 	/**
@@ -120,7 +155,7 @@ public class ConditionsZoneModel {
 	public Set<String> getNullables() {
 		return nullables;
 	}
-	
+
 	/**
 	 * Adds the nullables.
 	 *
@@ -130,7 +165,5 @@ public class ConditionsZoneModel {
 		if (StringUtils.isNotBlank(nullable))
 			this.nullables.add(nullable);
 	}
-
-	
 
 }

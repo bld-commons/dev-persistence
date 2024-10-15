@@ -129,6 +129,24 @@ public class NativeQueryParameter<T, ID> extends BaseQueryParameter<T, ID> {
 		}
 	}
 	
+	
+	private void addParameters(String key, TupleParameter value, ConditionsZone zone) {
+		if (key != null ) {
+			if(zone!=null) {
+				if (!this.mapConditionsZone.containsKey(zone.key()))
+					this.mapConditionsZone.put(zone.key(), new ConditionsZoneModel(zone));
+				this.mapConditionsZone.get(zone.key()).setWhere(zone);
+				this.mapConditionsZone.get(zone.key()).addParameter(key, value);
+			}else {
+				if (!this.mapConditionsZone.containsKey(BaseJpaService.JOIN_ZONE))
+					this.mapConditionsZone.put(BaseJpaService.JOIN_ZONE, new ConditionsZoneModel(BaseJpaService.JOIN_ZONE));
+				this.mapConditionsZone.get(BaseJpaService.JOIN_ZONE).addParameter(key, value);
+			}
+			
+			
+		}
+	}
+	
 	/**
 	 * Adds the empty zones.
 	 *
@@ -148,6 +166,16 @@ public class NativeQueryParameter<T, ID> extends BaseQueryParameter<T, ID> {
 	 * @param conditionsZones the conditions zones
 	 */
 	public void addParameter(String key, Object value, ConditionsZones conditionsZones) {
+		if(conditionsZones==null)
+			this.addParameter(key, value);
+		else 
+			for(ConditionsZone conditionsZone:conditionsZones.value())
+				this.addParameters(key, value, conditionsZone);
+		
+		
+	}
+	
+	public void addParameter(String key, TupleParameter value, ConditionsZones conditionsZones) {
 		if(conditionsZones==null)
 			this.addParameter(key, value);
 		else 
@@ -244,5 +272,6 @@ public class NativeQueryParameter<T, ID> extends BaseQueryParameter<T, ID> {
 	public void setKey(String key) {
 		this.key = key;
 	}
+
 
 }
