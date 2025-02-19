@@ -63,6 +63,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.EmbeddedId;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.JoinColumns;
@@ -228,7 +229,7 @@ public class ClassBuilding {
 		Set<String> manyProps = new HashSet<>();
 		Set<String> keyConditions = new TreeSet<>();
 		for (Element element : elements) {
-			String elementToString = element.asType().toString().trim().replace("@"+NotNull.class.getName()+" ", "");
+			String elementToString = element.asType().toString().trim().replace("@" + NotNull.class.getName() + " ", "");
 			if (elementToString.contains(" "))
 				elementToString = elementToString.substring(elementToString.lastIndexOf(" ")).trim();
 			ClassField classField = mapClassField.get(elementToString);
@@ -263,6 +264,10 @@ public class ClassBuilding {
 				keyConditions.add("id");
 				selectIdByFilter = selectIdByFilter.replace(ID, fieldEntity + "." + element.getSimpleName().toString());
 
+			} else if (element.getAnnotation(Enumerated.class) != null) {
+				mapBaseConditions.add(SPACE + "map.put(" + fieldName + ", \" and " + fieldEntity + "." + fieldName + " in (:" + fieldName + ") \");");
+				mapJpaOrders.add(SPACE + "map.put(\"" + fieldEntity + "." + fieldName + "\",\"" + fieldEntity + "." + fieldName + "\");");
+				keyConditions.add(fieldName);
 			} else if (element.getAnnotation(Column.class) != null) {
 
 				Class<?> classFieldElement = PrimitiveType.getClass(element.asType().toString());
@@ -371,20 +376,27 @@ public class ClassBuilding {
 				throw new ProcessorJpaServiceException(errorMessage);
 			}
 
-			Class<?> classFieldElement = PrimitiveType.getClass(fieldElement.asType().toString());
-			if (classFieldElement == null)
-				classFieldElement = Class.forName(fieldElement.asType().toString());
-
-			if (String.class.isAssignableFrom(classFieldElement)) {
-				mapConditions.add(SPACE + "map.put(" + condition.parameter() + ", \" and (" + condition.upperLower().getFunction() + "(" + queryDetail.getAlias() + "." + field + ") "
-						+ condition.operation().getValue().replace(BaseJpaService.KEY_PROPERTY, ":" + condition.parameter()) + (condition.nullable() ? " or " + queryDetail.getAlias() + "." + field + " is null " : "") + ")\");");
-				mapDeleteConditions.add(SPACE + "map.put(" + condition.parameter() + ", \" and (" + condition.upperLower().getFunction() + "(" + condition.field() + ") "
-						+ condition.operation().getValue().replace(BaseJpaService.KEY_PROPERTY, ":" + condition.parameter()) + (condition.nullable() ? " or " + condition.field() + " is null " : "") + ") \");");
-			} else {
+			if (fieldElement.getAnnotation(Enumerated.class) != null) {
 				mapConditions.add(SPACE + "map.put(" + condition.parameter() + ", \" and (" + queryDetail.getAlias() + "." + field + " " + condition.operation().getValue().replace(BaseJpaService.KEY_PROPERTY, ":" + condition.parameter())
 						+ (condition.nullable() ? " or " + queryDetail.getAlias() + "." + field + " is null " : "") + ")\");");
 				mapDeleteConditions.add(SPACE + "map.put(" + condition.parameter() + ", \" and (" + condition.field() + " " + condition.operation().getValue().replace(BaseJpaService.KEY_PROPERTY, ":" + condition.parameter())
 						+ (condition.nullable() ? " or " + condition.field() + " is null " : "") + ")\");");
+			} else {
+				Class<?> classFieldElement = PrimitiveType.getClass(fieldElement.asType().toString());
+				if (classFieldElement == null)
+					classFieldElement = Class.forName(fieldElement.asType().toString());
+
+				if (String.class.isAssignableFrom(classFieldElement)) {
+					mapConditions.add(SPACE + "map.put(" + condition.parameter() + ", \" and (" + condition.upperLower().getFunction() + "(" + queryDetail.getAlias() + "." + field + ") "
+							+ condition.operation().getValue().replace(BaseJpaService.KEY_PROPERTY, ":" + condition.parameter()) + (condition.nullable() ? " or " + queryDetail.getAlias() + "." + field + " is null " : "") + ")\");");
+					mapDeleteConditions.add(SPACE + "map.put(" + condition.parameter() + ", \" and (" + condition.upperLower().getFunction() + "(" + condition.field() + ") "
+							+ condition.operation().getValue().replace(BaseJpaService.KEY_PROPERTY, ":" + condition.parameter()) + (condition.nullable() ? " or " + condition.field() + " is null " : "") + ") \");");
+				} else {
+					mapConditions.add(SPACE + "map.put(" + condition.parameter() + ", \" and (" + queryDetail.getAlias() + "." + field + " " + condition.operation().getValue().replace(BaseJpaService.KEY_PROPERTY, ":" + condition.parameter())
+							+ (condition.nullable() ? " or " + queryDetail.getAlias() + "." + field + " is null " : "") + ")\");");
+					mapDeleteConditions.add(SPACE + "map.put(" + condition.parameter() + ", \" and (" + condition.field() + " " + condition.operation().getValue().replace(BaseJpaService.KEY_PROPERTY, ":" + condition.parameter())
+							+ (condition.nullable() ? " or " + condition.field() + " is null " : "") + ")\");");
+				}
 			}
 			mapJpaOrders.add(SPACE + "map.put(\"" + queryDetail.getAlias() + "." + field + "\",\"" + queryDetail.getAlias() + "." + field + "\");");
 			keyConditions.add(condition.parameter());
@@ -473,7 +485,6 @@ public class ClassBuilding {
 
 		for (String keyCondition : keyConditions)
 			interfaceQueryJpql.addFields(finalStaticField(keyCondition, STRING, mapOrder.containsKey(keyCondition) ? mapOrder.get(keyCondition) : keyCondition, true, LevelType.PUBLIC));
-
 		classQueryJpql.addExtendsClass(getSuperClassQueryJpql(classEntity));
 		classQueryJpql.addInterface(getInterfaceQueryJpql(classEntity));
 
