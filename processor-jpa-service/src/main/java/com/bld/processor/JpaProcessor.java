@@ -32,7 +32,7 @@ import jakarta.persistence.Entity;
 /**
  * The Class JpaProcessor.
  */
-@SupportedAnnotationTypes({ "jakarta.persistence.Entity", "bld.commons.processor.annotations.QueryBuilder" })
+@SupportedAnnotationTypes({ "jakarta.persistence.Entity", "com.bld.commons.processor.annotations.QueryBuilder" })
 @SupportedSourceVersion(SourceVersion.RELEASE_11)
 public class JpaProcessor extends AbstractProcessor {
 
