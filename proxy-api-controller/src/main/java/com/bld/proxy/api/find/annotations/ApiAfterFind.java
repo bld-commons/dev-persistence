@@ -6,11 +6,13 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 
+import com.bld.proxy.api.find.AfterFind;
+
 @Retention(RUNTIME)
 @Target(METHOD)
-public @interface ApiAfterRequest {
+public @interface ApiAfterFind {
 
-	public Class<?> bean();
+	public Class<? extends AfterFind<?>> value();
 	
-	public String method();
+
 }

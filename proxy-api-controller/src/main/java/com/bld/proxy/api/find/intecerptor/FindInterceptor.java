@@ -47,7 +47,10 @@ import com.bld.commons.reflection.utils.ReflectionCommons;
 import com.bld.commons.service.JpaService;
 import com.bld.commons.utils.data.CollectionResponse;
 import com.bld.commons.utils.data.ObjectResponse;
-import com.bld.proxy.api.find.annotations.ApiBeforeRequest;
+import com.bld.proxy.api.find.AfterFind;
+import com.bld.proxy.api.find.BeforeFind;
+import com.bld.proxy.api.find.annotations.ApiAfterFind;
+import com.bld.proxy.api.find.annotations.ApiBeforeFind;
 import com.bld.proxy.api.find.annotations.ApiFind;
 import com.bld.proxy.api.find.annotations.ApiMapper;
 import com.bld.proxy.api.find.config.ApiQuery;
@@ -94,6 +97,7 @@ class FindInterceptor {
 		try {
 			this.apiQuery = method.getAnnotation(ApiQuery.class);
 			ApiFind apiFind = method.getAnnotation(ApiFind.class);
+			ApiAfterFind afterFind = method.getAnnotation(ApiAfterFind.class);
 			if (apiFind == null)
 				apiFind = method.getDeclaringClass().getAnnotation(ApiFind.class);
 			this.method = method;
@@ -112,11 +116,16 @@ class FindInterceptor {
 					modelClass = outputClass;
 				response = this.nativeQuery(entityClass, idClass, outputClass, modelClass);
 			}
+			if(afterFind!=null) {
+				AfterFind<Object> beanAfterFind=(AfterFind<Object>) this.applicationContext.getBean(afterFind.value());
+				response=beanAfterFind.after(response, this.args);
+			}
+				
 		} catch (Exception e) {
 			logger.error(ExceptionUtils.getStackTrace(e));
 			throw e;
 		}
-
+		
 		return response;
 	}
 
@@ -148,7 +157,7 @@ class FindInterceptor {
 			}
 		} else
 			response = this.singleResultByFilter(queryParameter, jpaService, entityClass, outputClass);
-
+		
 		return response;
 	}
 
@@ -248,23 +257,12 @@ class FindInterceptor {
 
 	}
 
-	private void firstStep(BaseQueryParameter<?, ?> queryParameter) throws Exception {
-		if (method.isAnnotationPresent(ApiBeforeRequest.class)) {
-			ApiBeforeRequest beforeRequest = method.getAnnotation(ApiBeforeRequest.class);
-			Object bean = this.applicationContext.getBean(beforeRequest.bean());
-			Class<?>[] paramaterClasses = new Class<?>[args.length + 1];
-			Object[] parameters = new Object[args.length + 1];
-			int i = 0;
-			for (Object arg : args) {
-				paramaterClasses[i] = arg.getClass();
-				parameters[i] = arg;
-				i++;
-			}
-
-			parameters[i] = queryParameter;
-			paramaterClasses[i] = queryParameter.getClass();
-			Method m = beforeRequest.bean().getMethod(beforeRequest.method(), paramaterClasses);
-			m.invoke(bean, parameters);
+	private <E,ID>void firstStep(BaseQueryParameter<E, ID> queryParameter) throws Exception {
+		if (method.isAnnotationPresent(ApiBeforeFind.class)) {
+			ApiBeforeFind apiBeforeFind = method.getAnnotation(ApiBeforeFind.class);
+			BeforeFind<E,ID> beforeFind = (BeforeFind<E, ID>) this.applicationContext.getBean(apiBeforeFind.value());
+			beforeFind.before(queryParameter, this.args);
+			
 		}
 	}
 

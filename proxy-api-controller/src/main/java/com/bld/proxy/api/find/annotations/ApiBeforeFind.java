@@ -6,11 +6,13 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 
+import com.bld.proxy.api.find.BeforeFind;
+
 @Retention(RUNTIME)
 @Target(METHOD)
-public @interface ApiBeforeRequest {
+public @interface ApiBeforeFind {
 
-	public Class<?> bean();
+	public Class<? extends BeforeFind<?,?>> value();
 	
-	public String method();
+
 }
