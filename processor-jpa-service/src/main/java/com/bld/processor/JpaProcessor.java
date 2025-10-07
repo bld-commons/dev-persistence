@@ -54,7 +54,6 @@ public class JpaProcessor extends AbstractProcessor {
 			this.runAnnotationWithGeneration(roundEnv, QueryBuilder.class);
 
 		} catch (Exception e) {
-			e.printStackTrace();
 			throw new IllegalArgumentException(e);
 		}
 

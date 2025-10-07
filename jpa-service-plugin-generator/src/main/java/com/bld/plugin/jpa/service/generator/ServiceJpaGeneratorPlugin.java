@@ -181,7 +181,7 @@ public class ServiceJpaGeneratorPlugin extends AbstractMojo {
 			generatorClass.writeClass(modelClasses, outputDirectory);
 
 		} catch (Exception e) {
-			e.printStackTrace();
+			getLog().error(ExceptionUtils.getStackTrace(e));
 		}
 
 	}
