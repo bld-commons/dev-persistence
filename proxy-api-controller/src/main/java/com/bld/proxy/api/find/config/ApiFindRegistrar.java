@@ -5,6 +5,9 @@ import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.commons.lang3.exception.ExceptionUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.AnnotatedBeanDefinition;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
@@ -32,6 +35,8 @@ public class ApiFindRegistrar implements ImportBeanDefinitionRegistrar, Environm
 	private Environment env;
 
 	private ResourceLoader resourceLoader;
+	
+	private static final Logger logger=LoggerFactory.getLogger(ApiFindRegistrar.class);
 
 	@Override
 	public void registerBeanDefinitions(AnnotationMetadata metadata, BeanDefinitionRegistry registry) {
@@ -65,8 +70,7 @@ public class ApiFindRegistrar implements ImportBeanDefinitionRegistrar, Environm
 //					registry.registerBeanDefinition(beanClassName, builder.getBeanDefinition());
 				}
 			} catch (ClassNotFoundException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+				logger.error(ExceptionUtils.getStackTrace(e));
 			}
 		}
 		
