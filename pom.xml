@@ -75,7 +75,7 @@
 
 	<modules>
 		<module>common-jpa-service</module>
-		<!--<module>project-jpa-persistence</module>-->
+		<module>project-jpa-persistence</module>
 		<module>jpa-service-plugin-generator</module>
 		<module>proxy-api-controller</module>
 		<module>processor-jpa-service</module>
