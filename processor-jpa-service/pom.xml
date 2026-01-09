@@ -9,6 +9,7 @@
 		<version>3.0.9</version>
 	</parent>
 	<artifactId>processor-jpa-service</artifactId>
+	<name>Processor Jpa Service</name>
 	<description>Demo project for Spring Boot</description>
 	<dependencies>
 		<!-- <dependency> <groupId>com.google.auto.service</groupId>

@@ -9,7 +9,7 @@
 		<version>3.0.9</version>
 	</parent>
 	<artifactId>proxy-api-controller</artifactId>
-
+	<name>Proxy Api Controller</name>
 
 	<dependencies>
 		<dependency>
