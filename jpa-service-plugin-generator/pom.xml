@@ -8,10 +8,9 @@
 		<artifactId>dev-persistence</artifactId>
 		<version>3.0.9</version>
 	</parent>
-
+	<name>Jpa Service Plugin Generator</name>
 	<artifactId>jpa-service-plugin-generator</artifactId>
 	<packaging>maven-plugin</packaging>
-
 
 
 	<dependencies>
