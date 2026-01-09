@@ -31,7 +31,6 @@ import com.bld.plugin.jpa.service.generator.classes.ClassBuilding;
  * The Class JpaServiceGeneratorPlugin.
  */
 @Mojo(name = "jpa-service-generator", defaultPhase = LifecyclePhase.GENERATE_SOURCES, requiresDependencyResolution = ResolutionScope.COMPILE, requiresDependencyCollection = ResolutionScope.COMPILE)
-@SuppressWarnings("resource")
 public class ServiceJpaGeneratorPlugin extends AbstractMojo {
 
 	/** The Constant TARGET_GENERATED_SOURCES_CLASSES. */
