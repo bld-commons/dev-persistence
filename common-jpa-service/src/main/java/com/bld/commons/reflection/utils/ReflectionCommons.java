@@ -38,8 +38,9 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.hibernate.query.BindableType;
 import org.hibernate.query.TypedParameterValue;
+import org.hibernate.type.BasicTypeReference;
+import org.hibernate.type.BindableType;
 import org.hibernate.type.StandardBasicTypes;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
@@ -93,7 +94,7 @@ public class ReflectionCommons {
 	public final static Map<Class<?>, Class<?>> mapPrimitiveToObject = mapFromPrimitiveToObject();
 
 	/** The Constant mapType. */
-	public final static Map<Class<?>, BindableType<?>> mapType = getMapType();
+	public final static Map<Class<?>, BasicTypeReference<?>> mapType = getMapType();
 
 	/** The Constant pattern. */
 	private final static Pattern pattern = Pattern.compile("\\$\\{([^}]+)\\}");
@@ -121,8 +122,8 @@ public class ReflectionCommons {
 	 *
 	 * @return the map type
 	 */
-	private static Map<Class<?>, BindableType<?>> getMapType() {
-		Map<Class<?>, BindableType<?>> map = new HashMap<>();
+	private static Map<Class<?>, BasicTypeReference<?>> getMapType() {
+		Map<Class<?>, BasicTypeReference<?>> map = new HashMap<>();
 		map.put(Boolean.class, StandardBasicTypes.BOOLEAN);
 		map.put(String.class, StandardBasicTypes.STRING);
 		map.put(Long.class, StandardBasicTypes.LONG);
