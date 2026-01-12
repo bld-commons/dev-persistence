@@ -5,6 +5,7 @@
  */
 package com.bld.commons.service;
 
+import com.bld.commons.reflection.model.BaseQueryParameter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -196,14 +197,22 @@ public abstract class BaseJpaService<T, ID> {
 	 */
 	public void deleteByFilter(BuildJpqlQueryParameter<T, ID> buildQueryFilter) {
 		QueryParameter<T, ID> queryParameter = buildQueryFilter.getQueryParameter();
+		EntityManager em = setEntityManager(queryParameter);
 		StringBuilder sql = buildQueryFilter.getSql();
 		buildWhere(buildQueryFilter, sql);
 		queryParameter.mergeParameters();
 		final String delete = sql.toString();
 		logger.debug("Query= " + delete);
-		Query query = this.getEntityManager().createQuery(delete);
+		Query query = em.createQuery(delete);
 		setQueryParameters(queryParameter.getParameters(), query);
 		query.executeUpdate();
+	}
+
+	private EntityManager setEntityManager(BaseQueryParameter<?, ID> queryParameter) {
+		EntityManager em=this.getEntityManager();
+		if(queryParameter.getEntityManager()!=null)
+			em=queryParameter.getEntityManager();
+		return em;
 	}
 
 	public List<ID> findIdByFilter(BuildJpqlQueryParameter<T, ID> buildQueryFilter) {
@@ -230,6 +239,7 @@ public abstract class BaseJpaService<T, ID> {
 	 */
 	private <J> TypedQuery<J> buildQuery(BuildJpqlQueryParameter<T, ID> buildQueryFilter, Class<J> clazz, boolean removeFetch) {
 		QueryParameter<T, ID> queryParameter = buildQueryFilter.getQueryParameter();
+		EntityManager em = setEntityManager(queryParameter);
 		Map<String, Object> mapParameters = queryParameter.getParameters();
 		StringBuilder sql = addRelationshipsOneToMany(mapParameters, buildQueryFilter.getSql(), queryParameter.getNullables());
 		buildWhere(buildQueryFilter, sql);
@@ -240,7 +250,7 @@ public abstract class BaseJpaService<T, ID> {
 			select = select.replaceAll(fetch, "");
 		logger.debug("\nQuery: \n" + select);
 
-		TypedQuery<J> query = this.getEntityManager().createQuery(select, clazz);
+		TypedQuery<J> query = em.createQuery(select, clazz);
 		
 		setQueryParameters(mapParameters, query);
 		if (queryParameter.getPageable() != null) {
@@ -342,12 +352,13 @@ public abstract class BaseJpaService<T, ID> {
 	 */
 	public Long countByFilter(BuildJpqlQueryParameter<T, ID> buildQueryFilter) {
 		QueryParameter<T, ID> queryParameter = buildQueryFilter.getQueryParameter();
+		EntityManager em = setEntityManager(queryParameter);
 		StringBuilder sql = addRelationshipsOneToMany(queryParameter.getParameters(), buildQueryFilter.getSql(), queryParameter.getNullables());
 		buildWhere(buildQueryFilter, sql);
 		queryParameter.mergeParameters();
 		final String count = sql.toString().replaceAll(fetch, "");
 		logger.debug("\nQuery: \n" + count);
-		Query query = this.getEntityManager().createQuery(count, Long.class);
+		Query query = em.createQuery(count, Long.class);
 		setQueryParameters(queryParameter.getParameters(), query);
 		return (Long) query.getSingleResult();
 	}
@@ -383,11 +394,12 @@ public abstract class BaseJpaService<T, ID> {
 	}
 
 	public <K> List<K> findByFilter(BuildNativeQueryParameter<K, ID> buildQueryFilter) {
+		EntityManager em = setEntityManager(buildQueryFilter.getQueryParameter());
 		StringBuilder sql = buildNativeQuery(buildQueryFilter);
 		addOrderBy(buildQueryFilter.getQueryParameter().getListOrderBy(), sql, buildQueryFilter.getMapOrders());
 		final String select = sql.toString();
 		logger.debug(select);
-		Query query = this.getEntityManager().createNativeQuery(select, Tuple.class);
+		Query query = em.createNativeQuery(select, Tuple.class);
 		setNativeQueryParameters(buildQueryFilter.getQueryParameter().getMapConditionsZone(), query);
 		if (buildQueryFilter.getQueryParameter().getPageable() != null) {
 			query.setFirstResult(buildQueryFilter.getQueryParameter().getPageable().getPageNumber() * buildQueryFilter.getQueryParameter().getPageable().getPageSize());
@@ -438,10 +450,12 @@ public abstract class BaseJpaService<T, ID> {
 	 * @return the long
 	 */
 	public <K> Long countByFilter(BuildNativeQueryParameter<K, ID> buildQueryFilter) {
+		EntityManager em = setEntityManager(buildQueryFilter.getQueryParameter());
+
 		StringBuilder sql = buildNativeQuery(buildQueryFilter);
 		final String count = sql.toString();
 		logger.debug(count);
-		Query query = this.getEntityManager().createNativeQuery(count);
+		Query query = em.createNativeQuery(count);
 		setNativeQueryParameters(buildQueryFilter.getQueryParameter().getMapConditionsZone(), query);
 		Number size = (Number) query.getSingleResult();
 		return size.longValue();
