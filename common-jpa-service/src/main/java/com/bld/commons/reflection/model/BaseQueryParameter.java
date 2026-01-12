@@ -17,6 +17,8 @@ import org.springframework.data.domain.Pageable;
 
 import com.bld.commons.reflection.type.OrderType;
 
+import jakarta.persistence.EntityManager;
+
 /**
  * The Class BaseQueryParameter.
  *
@@ -42,6 +44,8 @@ public abstract class BaseQueryParameter<T, ID> implements Serializable {
 
 	/** The parameter filter. */
 	private BaseParameter baseParameter;
+	
+	private EntityManager entityManager;
 
 	/**
 	 * Instantiates a new base query parameter.
@@ -197,5 +201,15 @@ public abstract class BaseQueryParameter<T, ID> implements Serializable {
 	 * @param value the value
 	 */
 	public abstract void addParameter(String key,Object value);
+
+	public EntityManager getEntityManager() {
+		return entityManager;
+	}
+
+	public void setEntityManager(EntityManager entityManager) {
+		this.entityManager = entityManager;
+	}
+
+	
 	
 }
