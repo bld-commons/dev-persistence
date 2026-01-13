@@ -592,7 +592,7 @@ public abstract class JpaServiceImpl<T, ID> extends BaseJpaService<T, ID> implem
 	 * @param sql the sql
 	 * @return the builds the native query filter
 	 */
-	private <K> BuildNativeQueryParameter<K, ID> getBuildNativeQueryFilter(NativeQueryParameter<K, ID> queryParameter, String sql) {
+	<K> BuildNativeQueryParameter<K, ID> getBuildNativeQueryFilter(NativeQueryParameter<K, ID> queryParameter, String sql) {
 		if (queryParameter.getBaseParameter() != null)
 			queryParameter = reflectionCommons.dataToMap(queryParameter);
 		BuildNativeQueryParameter<K, ID> buildQueryFilter = new BuildNativeQueryParameter<>(this.queryJpl.mapNativeConditions(), this.queryJpl.mapNativeOrders(), queryParameter, sql);

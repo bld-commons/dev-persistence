@@ -6,7 +6,7 @@
 	<parent>
 		<groupId>com.github.bld-commons</groupId>
 		<artifactId>dev-persistence</artifactId>
-		<version>3.0.11</version>
+		<version>3.0.12</version>
 	</parent>
 	<name>Jpa Service Plugin Generator</name>
 	<artifactId>jpa-service-plugin-generator</artifactId>
