@@ -9,6 +9,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 
 import com.bld.commons.reflection.annotations.ConditionsZone;
 import com.bld.commons.reflection.annotations.ConditionsZones;
@@ -35,6 +36,8 @@ public class NativeQueryParameter<T, ID> extends BaseQueryParameter<T, ID> {
 	private Map<String,ConditionsZoneModel> mapConditionsZone;
 	
 	private String key;
+	
+	private NamedParameterJdbcTemplate jdbcTemplate;
 
 	/**
 	 * Instantiates a new native query parameter.
@@ -271,6 +274,14 @@ public class NativeQueryParameter<T, ID> extends BaseQueryParameter<T, ID> {
 
 	public void setKey(String key) {
 		this.key = key;
+	}
+
+	public NamedParameterJdbcTemplate getJdbcTemplate() {
+		return jdbcTemplate;
+	}
+
+	public void setJdbcTemplate(NamedParameterJdbcTemplate jdbcTemplate) {
+		this.jdbcTemplate = jdbcTemplate;
 	}
 
 
