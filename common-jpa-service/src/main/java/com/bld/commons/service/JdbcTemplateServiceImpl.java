@@ -1,18 +1,25 @@
 package com.bld.commons.service;
 
+import java.lang.reflect.Field;
+import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import org.apache.commons.beanutils.PropertyUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 
+import com.bld.commons.exception.JdbcTemplateServiceException;
 import com.bld.commons.reflection.model.BuildNativeQueryParameter;
 import com.bld.commons.reflection.model.ConditionsZoneModel;
 import com.bld.commons.reflection.model.NativeQueryParameter;
+import com.bld.commons.reflection.utils.ReflectionCommons;
+import com.bld.commons.utils.CamelCaseUtils;
 
 import jakarta.persistence.Query;
 
@@ -20,7 +27,7 @@ import jakarta.persistence.Query;
 /**
  * The Class JdbcTemplateServiceImpl.
  *
- * @param <T> the generic type
+ * @param <T>  the generic type
  * @param <ID> the generic type
  */
 public abstract class JdbcTemplateServiceImpl<T, ID> extends JpaServiceImpl<T, ID> implements JdbcTemplateService<T, ID> {
@@ -31,30 +38,30 @@ public abstract class JdbcTemplateServiceImpl<T, ID> extends JpaServiceImpl<T, I
 	 * @return the jdbc template
 	 */
 	protected abstract NamedParameterJdbcTemplate getJdbcTemplate();
-	
+
 	/** The Constant logger. */
-	private static final Logger logger=LoggerFactory.getLogger(JdbcTemplateServiceImpl.class);
-	
+	private static final Logger logger = LoggerFactory.getLogger(JdbcTemplateServiceImpl.class);
+
 	/**
 	 * Jdbc find by filter.
 	 *
-	 * @param <K> the key type
+	 * @param <K>            the key type
 	 * @param queryParameter the query parameter
-	 * @param sql the sql
+	 * @param sql            the sql
 	 * @return the list
 	 */
 	@Override
-	public <K> List<K> jdbcFindByFilter(NativeQueryParameter<K, ID>queryParameter,String sql){
+	public <K> List<K> jdbcFindByFilter(NativeQueryParameter<K, ID> queryParameter, String sql) {
 		BuildNativeQueryParameter<K, ID> buildQueryFilter = getBuildNativeQueryFilter(queryParameter, sql);
 		return this.jdbcFindByFilter(buildQueryFilter);
 	}
-	
+
 	/**
 	 * Jdbc single result by filter.
 	 *
-	 * @param <K> the key type
+	 * @param <K>            the key type
 	 * @param queryParameter the query parameter
-	 * @param sql the sql
+	 * @param sql            the sql
 	 * @return the k
 	 */
 	@Override
@@ -69,11 +76,10 @@ public abstract class JdbcTemplateServiceImpl<T, ID> extends JpaServiceImpl<T, I
 		return k;
 	}
 
-	
 	/**
 	 * Jdbc find by filter.
 	 *
-	 * @param <K> the key type
+	 * @param <K>              the key type
 	 * @param buildQueryFilter the build query filter
 	 * @return the list
 	 */
@@ -82,27 +88,43 @@ public abstract class JdbcTemplateServiceImpl<T, ID> extends JpaServiceImpl<T, I
 		NamedParameterJdbcTemplate jdbcTemplate = setJdbcTemplate(queryParameter);
 		StringBuilder sql = buildNativeQuery(buildQueryFilter);
 		addOrderBy(buildQueryFilter.getQueryParameter().getListOrderBy(), sql, buildQueryFilter.getMapOrders());
-		Map<String,Object>parameters=new HashMap<>();
+		Map<String, Object> parameters = new HashMap<>();
 		if (buildQueryFilter.getQueryParameter().getPageable() != null) {
 			sql.append("\n").append("LIMIT :pageSize OFFSET (:pageSize*:pageNumber)");
-			parameters.put("pageSize",queryParameter.getPageable().getPageSize());
-			parameters.put("pageNumber",queryParameter.getPageable().getPageNumber());
+			parameters.put("pageSize", queryParameter.getPageable().getPageSize());
+			parameters.put("pageNumber", queryParameter.getPageable().getPageNumber());
 		}
-			
+
 		final String select = sql.toString();
 		logger.debug(select);
 		parameters.putAll(parameters(queryParameter.getMapConditionsZone()));
-		
-		List<Map<String, Object>> result = jdbcTemplate.queryForList(select, parameters);
+		Map<String,Field>mapFields=ReflectionCommons.mapFields(buildQueryFilter.getQueryParameter().getResultClass());
 		List<K> listK = new ArrayList<>();
-		for(Map<String, Object> item:result) {
-			K k = this.reflectionCommons.reflection(buildQueryFilter.getQueryParameter().getResultClass(), item);
-			listK.add(k);
-		}
-			
+		jdbcTemplate.query(select,parameters, (ResultSet rs) -> {
+			ResultSetMetaData metaData = rs.getMetaData();
+			try {
+				Map<String,Object>result=new HashMap<>();
+				for (int i = 1; i <= metaData.getColumnCount(); i++) {
+					String fieldName = CamelCaseUtils.camelCase(metaData.getColumnName(i), true);
+					if(mapFields.containsKey(fieldName)) 
+						result.put(metaData.getColumnName(i), rs.getObject(metaData.getColumnName(i)));
+				}
+				K k = this.reflectionCommons.reflection(buildQueryFilter.getQueryParameter().getResultClass(), result);
+				listK.add(k);
+			} catch (Exception e) {
+				throw new JdbcTemplateServiceException(e);
+			}
+		});
+//		List<Map<String, Object>> result = jdbcTemplate.queryForList(select, parameters);
+//		
+//		for (Map<String, Object> item : result) {
+//			K k = this.reflectionCommons.reflection(buildQueryFilter.getQueryParameter().getResultClass(), item);
+//			listK.add(k);
+//		}
+
 		return listK;
 	}
-	
+
 	/**
 	 * Sets the jdbc template.
 	 *
@@ -110,22 +132,21 @@ public abstract class JdbcTemplateServiceImpl<T, ID> extends JpaServiceImpl<T, I
 	 * @return the named parameter jdbc template
 	 */
 	private NamedParameterJdbcTemplate setJdbcTemplate(NativeQueryParameter<?, ID> queryParameter) {
-		NamedParameterJdbcTemplate jdbcTemplate=this.getJdbcTemplate();
-		if(queryParameter.getJdbcTemplate()!=null)
-			jdbcTemplate=queryParameter.getJdbcTemplate();
+		NamedParameterJdbcTemplate jdbcTemplate = this.getJdbcTemplate();
+		if (queryParameter.getJdbcTemplate() != null)
+			jdbcTemplate = queryParameter.getJdbcTemplate();
 		return jdbcTemplate;
 	}
-	
-	
+
 	/**
 	 * Parameters.
 	 *
-	 * @param <Q> the generic type
+	 * @param <Q>     the generic type
 	 * @param mapZone the map zone
 	 * @return the map
 	 */
-	private <Q extends Query> Map<String,Object> parameters(Map<String, ConditionsZoneModel> mapZone) {
-		Map<String,Object>parameters=new HashMap<>();
+	private <Q extends Query> Map<String, Object> parameters(Map<String, ConditionsZoneModel> mapZone) {
+		Map<String, Object> parameters = new HashMap<>();
 		for (ConditionsZoneModel zone : mapZone.values()) {
 			for (Entry<String, Object> entry : zone.getParameters().entrySet()) {
 				logger.debug("Parameter: " + entry.getKey() + "= " + entry.getValue());

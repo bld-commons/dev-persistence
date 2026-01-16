@@ -368,8 +368,8 @@ public class ReflectionCommons {
 		});
 		beanUtils.getConvertUtils().register(false, false, 0);
 		for (String keyResult : mapResult.keySet()) {
-			String nameField = CamelCaseUtils.camelCase(keyResult, true);
-			mapRow.put(nameField, mapResult.get(keyResult));
+			String fieldName = CamelCaseUtils.camelCase(keyResult, true);
+			mapRow.put(fieldName, mapResult.get(keyResult));
 		}
 		T t = null;
 		try {

@@ -37,7 +37,7 @@ public abstract class BaseParameter implements Serializable{
 	/** The page number. */
 	@IgnoreMapping
 	private Integer pageNumber;
-
+	
 	/**
 	 * Instantiates a new filter parameter.
 	 */
@@ -111,6 +111,8 @@ public abstract class BaseParameter implements Serializable{
 	public void setPageNumber(Integer pageNumber) {
 		this.pageNumber = pageNumber;
 	}
+
+
 
 	
 	

@@ -46,6 +46,8 @@ public abstract class BaseQueryParameter<T, ID> implements Serializable {
 	private BaseParameter baseParameter;
 	
 	private EntityManager entityManager;
+	
+	private Integer fetchSize;
 
 	/**
 	 * Instantiates a new base query parameter.
@@ -208,6 +210,14 @@ public abstract class BaseQueryParameter<T, ID> implements Serializable {
 
 	public void setEntityManager(EntityManager entityManager) {
 		this.entityManager = entityManager;
+	}
+
+	public Integer getFetchSize() {
+		return fetchSize;
+	}
+
+	public void setFetchSize(Integer fetchSize) {
+		this.fetchSize = fetchSize;
 	}
 
 	
