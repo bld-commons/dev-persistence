@@ -38,6 +38,7 @@ public class NativeQueryParameter<T, ID> extends BaseQueryParameter<T, ID> {
 	private String key;
 	
 	private NamedParameterJdbcTemplate jdbcTemplate;
+	
 
 	/**
 	 * Instantiates a new native query parameter.
