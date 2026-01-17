@@ -10,6 +10,7 @@ import java.util.Map;
 
 import com.bld.commons.reflection.model.NativeQueryParameter;
 import com.bld.commons.reflection.model.QueryParameter;
+import com.bld.commons.utils.JpaRowMapper;
 import com.bld.commons.utils.PersistenceMap;
 
 
@@ -282,6 +283,8 @@ public interface JpaService<T, ID> {
 	 * @return the k
 	 */
 	public <K> K singleResultByFilter(NativeQueryParameter<K, ID> queryParameter, String sql);
+
+	public <K> List<K> findByFilter(NativeQueryParameter<K, ID> queryParameter, String sql, JpaRowMapper<K> rowMapper);
 
 //	public T findSingleResultByFilter(QueryParameter<T, ID> queryParameter, StringBuilder select);
 //

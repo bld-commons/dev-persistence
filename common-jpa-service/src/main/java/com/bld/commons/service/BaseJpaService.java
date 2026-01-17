@@ -5,7 +5,7 @@
  */
 package com.bld.commons.service;
 
-import com.bld.commons.reflection.model.BaseQueryParameter;
+import com.bld.commons.utils.JpaRowMapper;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -24,6 +24,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import com.bld.commons.exception.JpaServiceException;
 import com.bld.commons.exception.OrderByException;
+import com.bld.commons.reflection.model.BaseQueryParameter;
 import com.bld.commons.reflection.model.BuildJpqlQueryParameter;
 import com.bld.commons.reflection.model.BuildNativeQueryParameter;
 import com.bld.commons.reflection.model.ConditionsZoneModel;
@@ -392,7 +393,7 @@ public abstract class BaseJpaService<T, ID> {
 		return findSingleResultByFilter(buildQueryFilter);
 	}
 
-	protected <K> List<K> findByFilter(BuildNativeQueryParameter<K, ID> buildQueryFilter) {
+	protected <K> List<K> findByFilter(BuildNativeQueryParameter<K, ID> buildQueryFilter,JpaRowMapper<K> mapper) {
 		EntityManager em = setEntityManager(buildQueryFilter.getQueryParameter());
 		StringBuilder sql = buildNativeQuery(buildQueryFilter);
 		addOrderBy(buildQueryFilter.getQueryParameter().getListOrderBy(), sql, buildQueryFilter.getMapOrders());
@@ -407,18 +408,23 @@ public abstract class BaseJpaService<T, ID> {
 
 		List<Tuple> results = query.getResultList();
 		List<K> listK = new ArrayList<>();
-		for (Tuple row : results) {
-			List<TupleElement<?>> elements = row.getElements();
-			Map<String, Object> mapRow = new HashMap<>();
-			for (TupleElement<?> element : elements) {
-				Object value = row.get(element.getAlias());
-				if (value != null)
-					mapRow.put(element.getAlias(), value);
-			}
+		if(mapper==null) {
+			for (Tuple row : results) {
+				List<TupleElement<?>> elements = row.getElements();
+				Map<String, Object> mapRow = new HashMap<>();
+				for (TupleElement<?> element : elements) {
+					Object value = row.get(element.getAlias());
+					if (value != null)
+						mapRow.put(element.getAlias(), value);
+				}
 
-			K k = this.reflectionCommons.reflection(buildQueryFilter.getQueryParameter().getResultClass(), mapRow);
-			listK.add(k);
-		}
+				K k = this.reflectionCommons.reflection(buildQueryFilter.getQueryParameter().getResultClass(), mapRow);
+				listK.add(k);
+			}
+		}else 
+			for(int i=0; i<results.size();i++) 
+				mapper.rowMapper(listK, results.get(i), i);
+		
 		return listK;
 	}
 

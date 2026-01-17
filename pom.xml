@@ -6,7 +6,7 @@
 	<groupId>com.github.bld-commons</groupId>
 	<artifactId>dev-persistence</artifactId>
 	<packaging>pom</packaging>
-	<version>3.0.13</version>
+	<version>3.0.14</version>
 	<name>Commons Persistence</name>
 	<url>https://github.com/bld-commons/dev-persistence.git</url>
 
