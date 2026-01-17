@@ -9,9 +9,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import org.apache.commons.beanutils.PropertyUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 
 import com.bld.commons.exception.JdbcTemplateServiceException;
@@ -53,7 +53,13 @@ public abstract class JdbcTemplateServiceImpl<T, ID> extends JpaServiceImpl<T, I
 	@Override
 	public <K> List<K> jdbcFindByFilter(NativeQueryParameter<K, ID> queryParameter, String sql) {
 		BuildNativeQueryParameter<K, ID> buildQueryFilter = getBuildNativeQueryFilter(queryParameter, sql);
-		return this.jdbcFindByFilter(buildQueryFilter);
+		return this.jdbcFindByFilter(buildQueryFilter,null);
+	}
+	
+	@Override
+	public <K> List<K> jdbcFindByFilter(NativeQueryParameter<K, ID> queryParameter, String sql, RowMapper<K> mapper) {
+		BuildNativeQueryParameter<K, ID> buildQueryFilter = getBuildNativeQueryFilter(queryParameter, sql);
+		return this.jdbcFindByFilter(buildQueryFilter,mapper);
 	}
 
 	/**
@@ -67,7 +73,7 @@ public abstract class JdbcTemplateServiceImpl<T, ID> extends JpaServiceImpl<T, I
 	@Override
 	public <K> K jdbcSingleResultByFilter(NativeQueryParameter<K, ID> queryParameter, String sql) {
 		BuildNativeQueryParameter<K, ID> buildQueryFilter = getBuildNativeQueryFilter(queryParameter, sql);
-		List<K> list = this.jdbcFindByFilter(buildQueryFilter);
+		List<K> list = this.jdbcFindByFilter(buildQueryFilter,null);
 		K k = null;
 		if (list.size() > 1)
 			throw new RuntimeException("Find multiple record");
@@ -83,7 +89,7 @@ public abstract class JdbcTemplateServiceImpl<T, ID> extends JpaServiceImpl<T, I
 	 * @param buildQueryFilter the build query filter
 	 * @return the list
 	 */
-	private <K> List<K> jdbcFindByFilter(BuildNativeQueryParameter<K, ID> buildQueryFilter) {
+	private <K> List<K> jdbcFindByFilter(BuildNativeQueryParameter<K, ID> buildQueryFilter,RowMapper<K> mapper) {
 		NativeQueryParameter<K, ID> queryParameter = buildQueryFilter.getQueryParameter();
 		NamedParameterJdbcTemplate jdbcTemplate = setJdbcTemplate(queryParameter);
 		StringBuilder sql = buildNativeQuery(buildQueryFilter);
@@ -100,6 +106,26 @@ public abstract class JdbcTemplateServiceImpl<T, ID> extends JpaServiceImpl<T, I
 		parameters.putAll(parameters(queryParameter.getMapConditionsZone()));
 		Map<String,Field>mapFields=ReflectionCommons.mapFields(buildQueryFilter.getQueryParameter().getResultClass());
 		List<K> listK = new ArrayList<>();
+		if(mapper==null) {
+			extractedResult(buildQueryFilter, jdbcTemplate, parameters, select, mapFields, listK);
+		}else {
+			listK=jdbcTemplate.query(select,parameters,mapper);
+		}
+		
+//		List<Map<String, Object>> result = jdbcTemplate.queryForList(select, parameters);
+//		
+//		for (Map<String, Object> item : result) {
+//			K k = this.reflectionCommons.reflection(buildQueryFilter.getQueryParameter().getResultClass(), item);
+//			listK.add(k);
+//		}
+
+		return listK;
+	}
+
+
+	private <K> void extractedResult(BuildNativeQueryParameter<K, ID> buildQueryFilter,
+			NamedParameterJdbcTemplate jdbcTemplate, Map<String, Object> parameters, final String select,
+			Map<String, Field> mapFields, List<K> listK) {
 		jdbcTemplate.query(select,parameters, (ResultSet rs) -> {
 			ResultSetMetaData metaData = rs.getMetaData();
 			try {
@@ -115,14 +141,6 @@ public abstract class JdbcTemplateServiceImpl<T, ID> extends JpaServiceImpl<T, I
 				throw new JdbcTemplateServiceException(e);
 			}
 		});
-//		List<Map<String, Object>> result = jdbcTemplate.queryForList(select, parameters);
-//		
-//		for (Map<String, Object> item : result) {
-//			K k = this.reflectionCommons.reflection(buildQueryFilter.getQueryParameter().getResultClass(), item);
-//			listK.add(k);
-//		}
-
-		return listK;
 	}
 
 	/**

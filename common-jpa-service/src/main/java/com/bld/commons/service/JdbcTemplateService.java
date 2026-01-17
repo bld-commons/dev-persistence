@@ -2,6 +2,8 @@ package com.bld.commons.service;
 
 import java.util.List;
 
+import org.springframework.jdbc.core.RowMapper;
+
 import com.bld.commons.reflection.model.NativeQueryParameter;
 
 // TODO: Auto-generated Javadoc
@@ -32,5 +34,7 @@ public interface JdbcTemplateService<T, ID> extends JpaService<T, ID> {
 	 * @return the k
 	 */
 	public <K> K jdbcSingleResultByFilter(NativeQueryParameter<K, ID> queryParameter, String sql);
+
+	public <K> List<K> jdbcFindByFilter(NativeQueryParameter<K, ID> queryParameter, String sql, RowMapper<K> mapper);
 
 }
