@@ -27,6 +27,7 @@ import com.bld.commons.reflection.model.BuildNativeQueryParameter;
 import com.bld.commons.reflection.model.NativeQueryParameter;
 import com.bld.commons.reflection.model.QueryParameter;
 import com.bld.commons.reflection.utils.ReflectionCommons;
+import com.bld.commons.utils.JpaRowMapper;
 import com.bld.commons.utils.PersistenceMap;
 
 import jakarta.persistence.Id;
@@ -563,8 +564,14 @@ public abstract class JpaServiceImpl<T, ID> extends BaseJpaService<T, ID> implem
 	 */
 	@Override
 	public <K> List<K> findByFilter(NativeQueryParameter<K, ID> queryParameter, String sql) {
+		return this.findByFilter(queryParameter,sql,null);
+
+	}
+
+	@Override
+	public <K> List<K> findByFilter(NativeQueryParameter<K, ID> queryParameter, String sql,JpaRowMapper<K>rowMapper) {
 		BuildNativeQueryParameter<K, ID> buildQueryFilter = getBuildNativeQueryFilter(queryParameter, sql);
-		return super.findByFilter(buildQueryFilter);
+		return super.findByFilter(buildQueryFilter,rowMapper);
 
 	}
 
@@ -611,7 +618,7 @@ public abstract class JpaServiceImpl<T, ID> extends BaseJpaService<T, ID> implem
 	@Override
 	public <K> K singleResultByFilter(NativeQueryParameter<K, ID> queryParameter, String sql) {
 		BuildNativeQueryParameter<K, ID> buildQueryFilter = getBuildNativeQueryFilter(queryParameter, sql);
-		List<K> list = this.findByFilter(buildQueryFilter);
+		List<K> list = super.findByFilter(buildQueryFilter,null);
 		K k = null;
 		if (list.size() > 1)
 			throw new RuntimeException("Find multiple record");
