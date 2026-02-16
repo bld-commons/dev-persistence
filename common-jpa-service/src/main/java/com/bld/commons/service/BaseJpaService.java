@@ -226,7 +226,7 @@ public abstract class BaseJpaService<T, ID> {
 	 * @param buildQueryFilter the build query filter
 	 * @return the list
 	 */
-	public List<T> findByFilter(BuildJpqlQueryParameter<T, ID> buildQueryFilter) {
+	protected List<T> findByFilter(BuildJpqlQueryParameter<T, ID> buildQueryFilter) {
 		TypedQuery<T> query = buildQuery(buildQueryFilter, this.classEntity, false);
 		return query.getResultList();
 	}
