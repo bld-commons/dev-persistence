@@ -6,7 +6,7 @@
 	<parent>
 		<groupId>com.github.bld-commons</groupId>
 		<artifactId>dev-persistence</artifactId>
-		<version>3.0.14</version>
+		<version>3.0.15</version>
 	</parent>
 	<artifactId>processor-jpa-service</artifactId>
 	<name>Processor Jpa Service</name>
