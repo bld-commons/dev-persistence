@@ -41,7 +41,7 @@ import jakarta.persistence.Id;
  * generic types, and implement {@link #getJpaRepository()} and
  * {@link #getEntityManager()}. Everything else is handled automatically.</p>
  *
- * <h3>Extension example</h3>
+ * <p><b>Extension example</b></p>
  * <pre>{@code
  * @Service
  * public class ProductService extends JpaServiceImpl<Product, Long> {

@@ -57,7 +57,6 @@ import jakarta.persistence.TypedQuery;
  *   <li>Mapping native SQL {@link jakarta.persistence.Tuple} results to POJOs via reflection
  *       or a custom {@link com.bld.commons.utils.JpaRowMapper}.</li>
  * </ul>
- * </p>
  *
  * @param <T>  the JPA entity type
  * @param <ID> the type of the entity primary key

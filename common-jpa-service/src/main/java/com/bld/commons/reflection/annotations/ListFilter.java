@@ -22,7 +22,7 @@ import java.lang.annotation.Target;
  * it generates a JPQL condition of the form {@code AND e.field IN (:field)},
  * binding the collection directly as the named parameter value.</p>
  *
- * <h3>Example</h3>
+ * <p><b>Example</b></p>
  * <pre>{@code
  * public class OrderFilter extends BaseParameter {
  *

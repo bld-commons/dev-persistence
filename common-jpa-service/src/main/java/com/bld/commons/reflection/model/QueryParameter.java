@@ -29,9 +29,8 @@ import com.bld.commons.exception.JpaServiceException;
  *   <li><b>Manual parameters</b> – call {@link #addParameter(String, Object)} to
  *       add individual named parameters directly.</li>
  * </ol>
- * </p>
  *
- * <h3>Usage examples</h3>
+ * <p><b>Usage examples</b></p>
  * <pre>{@code
  * // Using a typed filter object
  * ProductFilter filter = new ProductFilter();
@@ -55,7 +54,6 @@ import com.bld.commons.exception.JpaServiceException;
  * @param <ID> the type of the entity primary key
  * @author Francesco Baldi
  * @see BaseParameter
- * @see JpaService#findByFilter(QueryParameter)
  */
 @SuppressWarnings("serial")
 public class QueryParameter<T, ID> extends BaseQueryParameter<T, ID> {

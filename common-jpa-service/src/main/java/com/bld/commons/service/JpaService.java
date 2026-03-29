@@ -22,7 +22,7 @@ import com.bld.commons.utils.PersistenceMap;
  * All filter-based methods build JPQL or native SQL queries at runtime by
  * inspecting the parameter object via reflection.</p>
  *
- * <h3>Basic usage</h3>
+ * <p><b>Basic usage</b></p>
  * <pre>{@code
  * // Simple CRUD
  * myService.save(entity);

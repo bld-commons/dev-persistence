@@ -23,7 +23,7 @@ import java.lang.annotation.Target;
  * <p>This annotation has {@link RetentionPolicy#SOURCE} retention — it is consumed
  * entirely at compile time and is not present in the compiled bytecode.</p>
  *
- * <h3>Example</h3>
+ * <p><b>Example</b></p>
  * <pre>{@code
  * @QueryBuilder(
  *     distinct = true,
@@ -106,7 +106,7 @@ public @interface QueryBuilder {
 	 * <p>Use the entity alias and JPA field names (not column names),
 	 * exactly as you would write them in a JPQL query.</p>
 	 *
-	 * <h4>Example</h4>
+	 * <p><b>Example</b></p>
 	 * <pre>{@code
 	 * customConditions = {
 	 *     @CustomConditionBuilder(
@@ -133,7 +133,7 @@ public @interface QueryBuilder {
 	 * <p>The same condition can be registered in multiple zones by listing multiple
 	 * keys, allowing reuse across different SQL templates.</p>
 	 *
-	 * <h4>Example</h4>
+	 * <p><b>Example</b></p>
 	 * <pre>{@code
 	 * customNativeConditions = {
 	 *     @CustomConditionBuilder(

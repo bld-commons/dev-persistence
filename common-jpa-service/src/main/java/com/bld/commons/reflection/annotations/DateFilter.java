@@ -23,7 +23,7 @@ import java.lang.annotation.Target;
  * value by the specified amount before binding it as a JPQL parameter.
  * Positive values move the date forward; negative values move it backward.</p>
  *
- * <h3>Example – find records expiring within the next 7 days</h3>
+ * <p><b>Example – find records expiring within the next 7 days</b></p>
  * <pre>{@code
  * public class ContractFilter extends BaseParameter {
  *

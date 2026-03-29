@@ -22,7 +22,7 @@ import org.springframework.web.bind.annotation.RestController;
  * picks up the proxied bean as a standard REST controller and maps its
  * {@code @RequestMapping} endpoints automatically.</p>
  *
- * <h3>Typical usage</h3>
+ * <p><b>Typical usage</b></p>
  * <pre>{@code
  * @ApiFindController
  * @ApiFind(entity = Order.class, id = Long.class)

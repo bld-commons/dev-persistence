@@ -22,7 +22,7 @@ import com.bld.commons.utils.types.UpperLowerType;
  * <p>This annotation has {@link RetentionPolicy#CLASS} retention — it is read by
  * the annotation processor and is not retained at runtime.</p>
  *
- * <h3>Example</h3>
+ * <p><b>Example</b></p>
  * <pre>{@code
  * @QueryBuilder(
  *     conditions = {
