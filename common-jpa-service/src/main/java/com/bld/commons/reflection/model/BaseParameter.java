@@ -17,8 +17,56 @@ import com.bld.commons.reflection.type.OrderType;
 import jakarta.validation.Valid;
 
 /**
- * The Class BaseFilterRequest.
+ * Base class for all typed filter objects used with {@link QueryParameter}.
  *
+ * <p>Extend this class to create a filter DTO whose non-null fields are
+ * automatically translated into JPQL WHERE conditions at runtime.
+ * Each field may be annotated with reflection annotations to customise
+ * how it is mapped:
+ * <ul>
+ *   <li>{@link com.bld.commons.reflection.annotations.DateFilter} – shifts the date value
+ *       by a configurable offset before binding it as a parameter.</li>
+ *   <li>{@link com.bld.commons.reflection.annotations.LikeString} – wraps the value in
+ *       SQL {@code LIKE} wildcards.</li>
+ *   <li>{@link com.bld.commons.reflection.annotations.ListFilter} – maps a collection to
+ *       an SQL {@code IN (…)} clause.</li>
+ *   <li>{@link com.bld.commons.reflection.annotations.IgnoreMapping} – prevents a field
+ *       from being added to the parameter map (e.g., pagination fields).</li>
+ *   <li>{@link com.bld.commons.reflection.annotations.FieldMapping} – overrides the
+ *       default parameter name with a custom one.</li>
+ * </ul>
+ * </p>
+ *
+ * <p>Pagination and sorting are built in:
+ * use {@link #setPageSize(Integer)} / {@link #setPageNumber(Integer)} for paging
+ * and {@link #addOrderBy(String, com.bld.commons.reflection.type.OrderType)} for sorting.
+ * These fields are annotated with {@code @IgnoreMapping} so they are not treated
+ * as query conditions.</p>
+ *
+ * <h3>Example</h3>
+ * <pre>{@code
+ * public class ProductFilter extends BaseParameter {
+ *
+ *     private String name;
+ *
+ *     @LikeString(likeType = LikeType.LEFT_RIGHT)
+ *     private String description;
+ *
+ *     @DateFilter(addDay = 1)
+ *     private Date expiresAfter;
+ *
+ *     @ListFilter
+ *     private List<Long> categoryIds;
+ *
+ *     // getters/setters ...
+ * }
+ * }</pre>
+ *
+ * @author Francesco Baldi
+ * @see QueryParameter
+ * @see com.bld.commons.reflection.annotations.DateFilter
+ * @see com.bld.commons.reflection.annotations.LikeString
+ * @see com.bld.commons.reflection.annotations.ListFilter
  */
 @SuppressWarnings("serial")
 public abstract class BaseParameter implements Serializable{

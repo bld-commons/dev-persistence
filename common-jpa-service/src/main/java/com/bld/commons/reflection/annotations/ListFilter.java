@@ -14,7 +14,25 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 
 /**
- * The Interface ListFilter.
+ * Marks a {@link java.util.Collection} (or array) field in a
+ * {@link com.bld.commons.reflection.model.BaseParameter} subclass as an SQL
+ * {@code IN (…)} filter.
+ *
+ * <p>When the reflection engine encounters a field annotated with {@code @ListFilter},
+ * it generates a JPQL condition of the form {@code AND e.field IN (:field)},
+ * binding the collection directly as the named parameter value.</p>
+ *
+ * <h3>Example</h3>
+ * <pre>{@code
+ * public class OrderFilter extends BaseParameter {
+ *
+ *     // generates: AND o.status IN (:statuses)
+ *     @ListFilter
+ *     private List<String> statuses;
+ * }
+ * }</pre>
+ *
+ * @author Francesco Baldi
  */
 @Retention(RUNTIME)
 @Target({FIELD,METHOD,PARAMETER})

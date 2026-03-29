@@ -17,26 +17,45 @@ import com.bld.commons.reflection.type.LikeType;
 import com.bld.commons.utils.types.UpperLowerType;
 
 /**
- * The Interface LikeString.
+ * Marks a {@link String} field in a {@link com.bld.commons.reflection.model.BaseParameter}
+ * subclass as a LIKE filter.
+ *
+ * <p>The reflection engine wraps the field value with SQL {@code %} wildcards according
+ * to the chosen {@link LikeType}, and optionally converts the value to upper- or
+ * lower-case before binding it as a JPQL parameter.</p>
+ *
+ * <h3>Example</h3>
+ * <pre>{@code
+ * public class PersonFilter extends BaseParameter {
+ *
+ *     // generates: AND LOWER(e.lastName) LIKE LOWER(:lastName)  →  '%smith%'
+ *     @LikeString(likeType = LikeType.LEFT_RIGHT, upperLowerType = UpperLowerType.LOWER)
+ *     private String lastName;
+ * }
+ * }</pre>
+ *
+ * @author Francesco Baldi
+ * @see LikeType
+ * @see com.bld.commons.utils.types.UpperLowerType
  */
 @Retention(RUNTIME)
 @Target({FIELD,METHOD,PARAMETER})
 public @interface LikeString {
-	
-	/**
-	 * Like type.
-	 *
-	 * @return the like type
-	 */
-	public LikeType likeType() default LikeType.LEFT_RIGHT; 
-	
 
-	
 	/**
-	 * Upper lower type.
+	 * Determines where the wildcard {@code %} is placed relative to the value.
+	 * Defaults to {@link LikeType#LEFT_RIGHT} ({@code '%value%'}).
 	 *
-	 * @return the upper lower type
+	 * @return the LIKE wildcard placement strategy
+	 */
+	public LikeType likeType() default LikeType.LEFT_RIGHT;
+
+	/**
+	 * Optional case transformation applied to both the parameter value and the
+	 * database column before comparison. Defaults to {@code NONE} (no transformation).
+	 *
+	 * @return the case-transformation strategy
 	 */
 	public UpperLowerType upperLowerType() default UpperLowerType.NONE;
-	
+
 }
