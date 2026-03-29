@@ -17,7 +17,7 @@ import java.lang.annotation.Target;
  * all methods of that interface inherit the entity binding unless they declare
  * their own {@code @ApiFind} at method level.</p>
  *
- * <h3>Example</h3>
+ * <p><b>Example</b></p>
  * <pre>{@code
  * @ApiFindController
  * @ApiFind(entity = Product.class, id = Long.class)

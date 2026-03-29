@@ -24,7 +24,7 @@ import com.bld.commons.utils.types.UpperLowerType;
  * to the chosen {@link LikeType}, and optionally converts the value to upper- or
  * lower-case before binding it as a JPQL parameter.</p>
  *
- * <h3>Example</h3>
+ * <p><b>Example</b></p>
  * <pre>{@code
  * public class PersonFilter extends BaseParameter {
  *

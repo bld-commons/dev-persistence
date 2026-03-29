@@ -33,7 +33,7 @@ import com.bld.commons.processor.ConditionType;
  *       {@code ${zoneName}} placeholder.</li>
  * </ul>
  *
- * <h3>Example — custom JPQL condition</h3>
+ * <p><b>Example — custom JPQL condition</b></p>
  * <p>Use the entity alias and JPA field names (not column names).</p>
  * <pre>{@code
  * @QueryBuilder(
@@ -47,7 +47,7 @@ import com.bld.commons.processor.ConditionType;
  * )
  * }</pre>
  *
- * <h3>Example — custom native SQL conditions with zones</h3>
+ * <p><b>Example — custom native SQL conditions with zones</b></p>
  * <pre>{@code
  * @QueryBuilder(
  *     customNativeConditions = {

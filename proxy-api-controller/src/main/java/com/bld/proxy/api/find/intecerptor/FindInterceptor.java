@@ -95,6 +95,8 @@ class FindInterceptor {
 	public <E, ID> Object find(Object obj, Method method, Object[] args) throws Throwable {
 		Object response = null;
 		try {
+			logger.info("[FindInterceptor] >>> find() - controller: {}, method: {}", method.getDeclaringClass().getSimpleName(), method.getName());
+
 			this.apiQuery = method.getAnnotation(ApiQuery.class);
 			ApiFind apiFind = method.getAnnotation(ApiFind.class);
 			ApiAfterFind afterFind = method.getAnnotation(ApiAfterFind.class);
@@ -105,27 +107,38 @@ class FindInterceptor {
 			Class<?> entityClass = apiFind.entity();
 			Class<?> idClass = apiFind.id();
 			Class<?> outputClass = method.getReturnType();
+
+			logger.debug("[FindInterceptor] entity: {}, idClass: {}, outputClass: {}", entityClass.getSimpleName(), idClass.getSimpleName(), outputClass.getSimpleName());
+
 			this.getParameters(this.method.getParameters(), args, RequestBody.class, AuthenticationPrincipal.class);
+			logger.debug("[FindInterceptor] @RequestBody present: {}, @AuthenticationPrincipal present: {}", map.containsKey(RequestBody.class), map.containsKey(AuthenticationPrincipal.class));
+
 			Assert.isTrue(!(this.apiQuery != null && StringUtils.isBlank(this.apiQuery.value()) && !this.apiQuery.jpql()), "For native query the field \"value\" can not be blank into ApiQuery");
 
-			if (this.apiQuery == null || this.apiQuery.jpql())
+			if (this.apiQuery == null || this.apiQuery.jpql()) {
+				logger.debug("[FindInterceptor] Query type: JPQL");
 				response = this.jpqlQuery(entityClass, idClass, outputClass);
-			else {
+			} else {
 				Class<?> modelClass = modelClass(method);
 				if (modelClass == null)
 					modelClass = outputClass;
+				logger.debug("[FindInterceptor] Query type: NATIVE SQL, sql: {}, modelClass: {}", this.apiQuery.value(), modelClass.getSimpleName());
 				response = this.nativeQuery(entityClass, idClass, outputClass, modelClass);
 			}
-			if(afterFind!=null) {
-				AfterFind<Object> beanAfterFind=(AfterFind<Object>) this.applicationContext.getBean(afterFind.value());
-				response=beanAfterFind.after(response, this.args);
+
+			if (afterFind != null) {
+				logger.debug("[FindInterceptor] Executing @ApiAfterFind hook: {}", afterFind.value().getSimpleName());
+				AfterFind<Object> beanAfterFind = (AfterFind<Object>) this.applicationContext.getBean(afterFind.value());
+				response = beanAfterFind.after(response, this.args);
+				logger.debug("[FindInterceptor] @ApiAfterFind hook completed");
 			}
-				
+
+			logger.info("[FindInterceptor] <<< find() completed - method: {}", method.getName());
 		} catch (Exception e) {
-			logger.error(ExceptionUtils.getStackTrace(e));
+			logger.error("[FindInterceptor] Error in method: {}.{} - {}", method.getDeclaringClass().getSimpleName(), method.getName(), ExceptionUtils.getStackTrace(e));
 			throw e;
 		}
-		
+
 		return response;
 	}
 
@@ -134,30 +147,43 @@ class FindInterceptor {
 		this.apiMapper = method.getAnnotation(ApiMapper.class);
 		if (this.apiMapper == null)
 			this.apiMapper = method.getDeclaringClass().getAnnotation(ApiMapper.class);
+		logger.debug("[FindInterceptor] @ApiMapper: {}", this.apiMapper != null ? this.apiMapper.value().getSimpleName() : "none");
+
 		QueryParameter<E, ID> queryParameter = new QueryParameter<>();
 		addBodyParameter(queryParameter);
 		queryParameter(queryParameter);
 		this.addUserDetails(queryParameter);
+		logger.debug("[FindInterceptor] QueryParameter built - parameters: {}, nullables: {}, pageable: {}", queryParameter.getParameters().keySet(), queryParameter.getNullables(), queryParameter.getPageable() != null ? "page=" + queryParameter.getPageable().getPageNumber() + " size=" + queryParameter.getPageable().getPageSize() : "none");
+
 		firstStep(queryParameter);
 		JpaService<E, ID> jpaService = jpaService(entityClass, idClass);
 		Class<?> modelClass = modelClass(method);
-		if (Number.class.isAssignableFrom(outputClass))
-			response = this.countByFilter(queryParameter, jpaService);
-		else if (modelClass != null) {
+		logger.debug("[FindInterceptor] Resolved modelClass: {}", modelClass != null ? modelClass.getSimpleName() : "none (using outputClass)");
 
-			if (CollectionResponse.class.isAssignableFrom(outputClass))
+		if (Number.class.isAssignableFrom(outputClass)) {
+			logger.debug("[FindInterceptor] Execution path: COUNT");
+			response = this.countByFilter(queryParameter, jpaService);
+		} else if (modelClass != null) {
+			if (CollectionResponse.class.isAssignableFrom(outputClass)) {
+				logger.debug("[FindInterceptor] Execution path: COLLECTION_RESPONSE");
 				response = collectionResponse(queryParameter, jpaService, entityClass, modelClass);
-			else if (Collection.class.isAssignableFrom(outputClass)) {
+			} else if (Collection.class.isAssignableFrom(outputClass)) {
+				logger.debug("[FindInterceptor] Execution path: COLLECTION");
 				response = collection(queryParameter, jpaService, entityClass, (Class<? extends Collection<?>>) outputClass, modelClass);
 			} else if (ObjectResponse.class.isAssignableFrom(outputClass)) {
-				if (Number.class.isAssignableFrom(modelClass))
+				if (Number.class.isAssignableFrom(modelClass)) {
+					logger.debug("[FindInterceptor] Execution path: OBJECT_RESPONSE (count)");
 					response = new ObjectResponse<>(this.countByFilter(queryParameter, jpaService));
-				else
+				} else {
+					logger.debug("[FindInterceptor] Execution path: OBJECT_RESPONSE (single)");
 					response = new ObjectResponse<>(this.singleResultByFilter(queryParameter, jpaService, entityClass, modelClass));
+				}
 			}
-		} else
+		} else {
+			logger.debug("[FindInterceptor] Execution path: SINGLE_RESULT");
 			response = this.singleResultByFilter(queryParameter, jpaService, entityClass, outputClass);
-		
+		}
+
 		return response;
 	}
 
@@ -180,23 +206,34 @@ class FindInterceptor {
 		this.addBodyParameter(queryParameter);
 		this.queryParameter(queryParameter);
 		this.addUserDetails(queryParameter);
+		logger.debug("[FindInterceptor] NativeQueryParameter built - zones: {}, pageable: {}", queryParameter.getMapConditionsZone().keySet(), queryParameter.getPageable() != null ? "page=" + queryParameter.getPageable().getPageNumber() + " size=" + queryParameter.getPageable().getPageSize() : "none");
+
 		this.firstStep(queryParameter);
 		JpaService<E, ID> jpaService = jpaService(entityClass, idClass);
-		if (Number.class.isAssignableFrom(outputClass))
+
+		if (Number.class.isAssignableFrom(outputClass)) {
+			logger.debug("[FindInterceptor] Native execution path: COUNT");
 			response = this.countByFilter(queryParameter, jpaService);
-		else if (modelClass != null) {
-			if (CollectionResponse.class.isAssignableFrom(outputClass))
+		} else if (modelClass != null) {
+			if (CollectionResponse.class.isAssignableFrom(outputClass)) {
+				logger.debug("[FindInterceptor] Native execution path: COLLECTION_RESPONSE");
 				response = collectionResponse(queryParameter, jpaService);
-			else if (Collection.class.isAssignableFrom(outputClass)) {
+			} else if (Collection.class.isAssignableFrom(outputClass)) {
+				logger.debug("[FindInterceptor] Native execution path: COLLECTION");
 				response = collection(queryParameter, jpaService, (Class<? extends Collection<?>>) outputClass);
 			} else if (ObjectResponse.class.isAssignableFrom(outputClass)) {
-				if (Number.class.isAssignableFrom(modelClass))
+				if (Number.class.isAssignableFrom(modelClass)) {
+					logger.debug("[FindInterceptor] Native execution path: OBJECT_RESPONSE (count)");
 					response = new ObjectResponse<>(this.countByFilter(queryParameter, jpaService));
-				else
+				} else {
+					logger.debug("[FindInterceptor] Native execution path: OBJECT_RESPONSE (single)");
 					response = new ObjectResponse<>(this.singreResultByFilter(queryParameter, jpaService));
+				}
 			}
-		} else
+		} else {
+			logger.debug("[FindInterceptor] Native execution path: SINGLE_RESULT");
 			response = this.singreResultByFilter(queryParameter, jpaService);
+		}
 		return response;
 	}
 
@@ -257,12 +294,13 @@ class FindInterceptor {
 
 	}
 
-	private <E,ID>void firstStep(BaseQueryParameter<E, ID> queryParameter) throws Exception {
+	private <E, ID> void firstStep(BaseQueryParameter<E, ID> queryParameter) throws Exception {
 		if (method.isAnnotationPresent(ApiBeforeFind.class)) {
 			ApiBeforeFind apiBeforeFind = method.getAnnotation(ApiBeforeFind.class);
-			BeforeFind<E,ID> beforeFind = (BeforeFind<E, ID>) this.applicationContext.getBean(apiBeforeFind.value());
+			logger.debug("[FindInterceptor] Executing @ApiBeforeFind hook: {}", apiBeforeFind.value().getSimpleName());
+			BeforeFind<E, ID> beforeFind = (BeforeFind<E, ID>) this.applicationContext.getBean(apiBeforeFind.value());
 			beforeFind.before(queryParameter, this.args);
-			
+			logger.debug("[FindInterceptor] @ApiBeforeFind hook completed");
 		}
 	}
 
@@ -293,19 +331,28 @@ class FindInterceptor {
 								LikeString likeString = parameter.getAnnotation(LikeString.class);
 								value = ReflectionCommons.value(value, dateFilter, likeString);
 
-								if (value instanceof Boolean && (Boolean) value && parameter.isAnnotationPresent(ListFilter.class))
+								if (value instanceof Boolean && (Boolean) value && parameter.isAnnotationPresent(ListFilter.class)) {
+									logger.debug("[FindInterceptor] Adding native nullable parameter: '{}' zone: {}", name, conditionsZones != null ? conditionsZones.value() : "none");
 									queryParameter.addNullable(name, conditionsZones);
-								else if (value.getClass().isArray()) {
+								} else if (value.getClass().isArray()) {
 									Object[] array = (Object[]) value;
+									logger.debug("[FindInterceptor] Adding native array parameter: '{}' size={} zone: {}", name, array.length, conditionsZones != null ? conditionsZones.value() : "none");
 									queryParameter.addParameter(name, Arrays.asList(array), conditionsZones);
-								} else
+								} else {
+									logger.debug("[FindInterceptor] Adding native parameter: '{}' = {} zone: {}", name, value, conditionsZones != null ? conditionsZones.value() : "none");
 									queryParameter.addParameter(name, value, conditionsZones);
-							} else if (parameter.isAnnotationPresent(FilterNullValue.class) && parameter.getAnnotation(FilterNullValue.class).value())
+								}
+							} else if (parameter.isAnnotationPresent(FilterNullValue.class) && parameter.getAnnotation(FilterNullValue.class).value()) {
+								logger.debug("[FindInterceptor] Adding native @FilterNullValue parameter: '{}' zone: {}", name, conditionsZones != null ? conditionsZones.value() : "none");
 								queryParameter.addParameter(name, ReflectionCommons.initTypedParameterValue(ReflectionCommons.mapType.get(parameter.getType()), value), conditionsZones);
-							else if (conditionsZones != null)
+							} else if (conditionsZones != null) {
+								logger.debug("[FindInterceptor] Adding empty zone for parameter: '{}' zone: {}", name, conditionsZones.value());
 								queryParameter.addEmptyZones(conditionsZones);
+							} else {
+								logger.debug("[FindInterceptor] Native parameter '{}' is null/blank - skipped", name);
+							}
 						} catch (Exception e) {
-							logger.warn("Error converting data to map");
+							logger.warn("[FindInterceptor] Error converting parameter '{}' to map: {}", name, e.getMessage());
 						}
 					} else {
 						mapPagination.put(name, value);
@@ -335,15 +382,23 @@ class FindInterceptor {
 							LikeString likeString = parameter.getAnnotation(LikeString.class);
 							value = ReflectionCommons.value(value, dateFilter, likeString);
 
-							if (value instanceof Boolean && (Boolean) value && parameter.isAnnotationPresent(ListFilter.class))
+							if (value instanceof Boolean && (Boolean) value && parameter.isAnnotationPresent(ListFilter.class)) {
+								logger.debug("[FindInterceptor] Adding nullable parameter: '{}'", name);
 								queryParameter.addNullable(name);
-							else if (value.getClass().isArray()) {
+							} else if (value.getClass().isArray()) {
 								Object[] array = (Object[]) value;
+								logger.debug("[FindInterceptor] Adding array parameter: '{}' size={}", name, array.length);
 								queryParameter.addParameter(name, Arrays.asList(array));
-							} else
+							} else {
+								logger.debug("[FindInterceptor] Adding parameter: '{}' = {}", name, value);
 								queryParameter.addParameter(name, value);
-						} else if (parameter.isAnnotationPresent(FilterNullValue.class) && parameter.getAnnotation(FilterNullValue.class).value())
+							}
+						} else if (parameter.isAnnotationPresent(FilterNullValue.class) && parameter.getAnnotation(FilterNullValue.class).value()) {
+							logger.debug("[FindInterceptor] Adding @FilterNullValue parameter: '{}'", name);
 							queryParameter.addParameter(name, ReflectionCommons.initTypedParameterValue(ReflectionCommons.mapType.get(parameter.getType()), value));
+						} else {
+							logger.debug("[FindInterceptor] Parameter '{}' is null/blank - skipped", name);
+						}
 					} else
 						mapPagination.put(name, value);
 				}
@@ -415,12 +470,14 @@ class FindInterceptor {
 			totalCount = jpaService.countByFilter(queryParameter);
 		else
 			totalCount = jpaService.countByFilter(queryParameter, this.apiQuery.value());
+		logger.debug("[FindInterceptor] countByFilter (JPQL) result: {}", totalCount);
 		return totalCount;
 	}
 
 	private <K, E, ID> Long countByFilter(NativeQueryParameter<K, ID> queryParameter, JpaService<E, ID> jpaService) {
 		Long totalCount = 0L;
 		totalCount = jpaService.countByFilter(queryParameter, this.apiQuery.value());
+		logger.debug("[FindInterceptor] countByFilter (native) result: {}", totalCount);
 		return totalCount;
 	}
 
@@ -443,16 +500,20 @@ class FindInterceptor {
 			entities = jpaService.findByFilter(queryParameter);
 		else
 			entities = jpaService.findByFilter(queryParameter, this.apiQuery.value());
+		logger.debug("[FindInterceptor] findByFilter returned {} entity/entities of type {}", entities.size(), entityClass.getSimpleName());
+
 		List<M> models = new ArrayList<>();
 		if (this.apiMapper == null)
 			throw new ApiFindException("The class to convert the entity to output is not declared");
 		try {
 			Object mapper = this.applicationContext.getBean(this.apiMapper.value());
 			Method mapperMethod = methodMapper(entityClass, modelClass);
+			logger.debug("[FindInterceptor] Mapping {} entities with {}.{}()", entities.size(), this.apiMapper.value().getSimpleName(), mapperMethod.getName());
 			for (E entity : entities)
 				models.add((M) mapperMethod.invoke(mapper, entity));
+			logger.debug("[FindInterceptor] Mapping completed - {} model(s) of type {} produced", models.size(), modelClass.getSimpleName());
 		} catch (NoSuchMethodException e) {
-			logger.error("Method mapper is not found");
+			logger.error("[FindInterceptor] Method mapper is not found in {}", this.apiMapper.value().getSimpleName());
 			throw new ApiFindException("Method mapper is not found", e);
 		}
 
@@ -471,6 +532,8 @@ class FindInterceptor {
 			entity = jpaService.singleResultByFilter(queryParameter);
 		else
 			entity = jpaService.singleResultByFilter(queryParameter, this.apiQuery.value());
+		logger.debug("[FindInterceptor] singleResultByFilter returned: {}", entity != null ? entityClass.getSimpleName() + " found" : "null (not found)");
+
 		M model = null;
 		if (entity != null) {
 			if (this.apiMapper == null)
@@ -478,28 +541,27 @@ class FindInterceptor {
 			try {
 				Object mapper = this.applicationContext.getBean(this.apiMapper.value());
 				Method mapperMethod = methodMapper(entityClass, modelClass);
+				logger.debug("[FindInterceptor] Mapping entity with {}.{}()", this.apiMapper.value().getSimpleName(), mapperMethod.getName());
 				model = (M) mapperMethod.invoke(mapper, entity);
 			} catch (NoSuchMethodException e) {
-				logger.error("Method mapper is not found");
+				logger.error("[FindInterceptor] Method mapper is not found in {}", this.apiMapper.value().getSimpleName());
 				throw new ApiFindException("Method mapper is not found", e);
 			}
-
 		}
 
 		return model;
 	}
 
 	private <P, O> Method methodMapper(Class<P> parameterClass, Class<O> outputClass) throws Exception {
-
-		Class<?> bean = null;
-		String methodName = null;
-		bean = this.apiMapper.value();
-		methodName = this.apiMapper.method();
+		Class<?> bean = this.apiMapper.value();
+		String methodName = this.apiMapper.method();
+		logger.debug("[FindInterceptor] Resolving mapper method - mapperClass: {}, requestedMethod: '{}'", bean.getSimpleName(), StringUtils.isBlank(methodName) ? "(auto-detect)" : methodName);
 		Method method = null;
 		try {
 			method = StringUtils.isBlank(methodName) ? findMethod(bean, parameterClass, outputClass) : bean.getMethod(methodName, parameterClass);
+			logger.debug("[FindInterceptor] Mapper method resolved: {}.{}({})", bean.getSimpleName(), method.getName(), parameterClass.getSimpleName());
 		} catch (NoSuchMethodException e) {
-			logger.error("Method mapper is not found");
+			logger.error("[FindInterceptor] Method mapper not found in {} for input: {} -> output: {}", bean.getSimpleName(), parameterClass.getSimpleName(), outputClass.getSimpleName());
 			throw new ApiFindException("Method mapper is not found", e);
 		}
 		return method;

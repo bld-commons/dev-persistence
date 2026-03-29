@@ -19,7 +19,7 @@ import com.bld.proxy.api.find.BeforeFind;
  *
  * <p>Typical use cases: input enrichment, security checks, audit logging.</p>
  *
- * <h3>Example</h3>
+ * <p><b>Example</b></p>
  * <pre>{@code
  * @ApiFindController
  * public interface OrderController {

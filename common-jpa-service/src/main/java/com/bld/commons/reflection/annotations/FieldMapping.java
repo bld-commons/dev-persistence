@@ -15,7 +15,7 @@ import java.lang.annotation.Target;
  * becomes {@code :firstName}). Use {@code @FieldMapping} when the JPQL
  * parameter name must differ from the Java field name.</p>
  *
- * <h3>Example</h3>
+ * <p><b>Example</b></p>
  * <pre>{@code
  * public class UserFilter extends BaseParameter {
  *

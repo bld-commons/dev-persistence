@@ -30,7 +30,6 @@ import org.apache.commons.collections4.MapUtils;
  *   <li>A one-to-many join map that instructs the service to add JOIN FETCH
  *       clauses only when the corresponding filter parameter is present.</li>
  * </ul>
- * </p>
  *
  * <p>Application code does not interact with this class directly;
  * it is autowired into {@link JpaServiceImpl} and invoked internally.</p>

@@ -17,7 +17,7 @@ import com.bld.proxy.api.find.AfterFind;
  * list of results before returning the response, allowing post-processing such as
  * enrichment, filtering, or side effects.</p>
  *
- * <h3>Example</h3>
+ * <p><b>Example</b></p>
  * <pre>{@code
  * @ApiFindController
  * public interface OrderController {

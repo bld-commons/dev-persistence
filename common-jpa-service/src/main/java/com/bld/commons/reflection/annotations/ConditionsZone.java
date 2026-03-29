@@ -23,7 +23,7 @@ import java.lang.annotation.Target;
  * <p>This mechanism allows the same SQL template to have multiple independently
  * activated WHERE blocks, each controlled by a separate group of filter fields.</p>
  *
- * <h3>Example</h3>
+ * <p><b>Example</b></p>
  * <pre>{@code
  * // Define a custom zone annotation
  * @ConditionsZone(key = "dateRange", initWhere = true)

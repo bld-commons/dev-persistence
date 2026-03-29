@@ -18,7 +18,7 @@ import java.lang.annotation.Target;
  * the framework uses the first compatible single-argument method found on the
  * mapper class.</p>
  *
- * <h3>Example</h3>
+ * <p><b>Example</b></p>
  * <pre>{@code
  * @ApiFindController
  * public interface ProductController {

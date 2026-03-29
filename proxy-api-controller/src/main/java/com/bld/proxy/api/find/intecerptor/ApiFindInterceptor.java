@@ -23,7 +23,7 @@ public class ApiFindInterceptor implements InvocationHandler {
 	public Object invoke(Object obj, Method method, Object[] args) throws Throwable {
 		if ("hashCode".equalsIgnoreCase(method.getName()))
 			return 0;
-		logger.info("invoke");
+		logger.info("[ApiFindInterceptor] Invoking proxy method: {}.{}", method.getDeclaringClass().getSimpleName(), method.getName());
 		FindInterceptor findInterceptor = this.applicationContext.getBean(FindInterceptor.class);
 		return findInterceptor.find(obj, method, args);
 	}

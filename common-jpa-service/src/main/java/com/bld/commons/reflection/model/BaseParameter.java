@@ -35,7 +35,6 @@ import jakarta.validation.Valid;
  *   <li>{@link com.bld.commons.reflection.annotations.FieldMapping} – overrides the
  *       default parameter name with a custom one.</li>
  * </ul>
- * </p>
  *
  * <p>Pagination and sorting are built in:
  * use {@link #setPageSize(Integer)} / {@link #setPageNumber(Integer)} for paging
@@ -43,7 +42,7 @@ import jakarta.validation.Valid;
  * These fields are annotated with {@code @IgnoreMapping} so they are not treated
  * as query conditions.</p>
  *
- * <h3>Example</h3>
+ * <p><b>Example</b></p>
  * <pre>{@code
  * public class ProductFilter extends BaseParameter {
  *
