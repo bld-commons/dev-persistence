@@ -40,10 +40,30 @@ import jakarta.persistence.TupleElement;
 import jakarta.persistence.TypedQuery;
 
 /**
- * The Class BaseJpaService.
+ * Low-level base class responsible for building and executing JPQL and native SQL
+ * queries against the JPA {@link EntityManager}.
  *
- * @param <T>  the generic type
- * @param <ID> the generic type
+ * <p>This class is not meant to be extended directly by application code.
+ * Use {@link JpaServiceImpl} instead, which adds the Spring Data repository layer
+ * and the public {@link JpaService} API on top of this class.</p>
+ *
+ * <p>Core responsibilities:
+ * <ul>
+ *   <li>Building the WHERE clause from the {@link QueryParameter} parameter map.</li>
+ *   <li>Appending ORDER BY clauses from the ordered list of {@link com.bld.commons.reflection.model.OrderBy} items.</li>
+ *   <li>Injecting the correct JOIN fragments for {@code @OneToMany} / {@code @ManyToMany}
+ *       relationships only when the related filter parameter is actually present.</li>
+ *   <li>Handling pagination via JPA {@code setFirstResult} / {@code setMaxResults}.</li>
+ *   <li>Mapping native SQL {@link jakarta.persistence.Tuple} results to POJOs via reflection
+ *       or a custom {@link com.bld.commons.utils.JpaRowMapper}.</li>
+ * </ul>
+ * </p>
+ *
+ * @param <T>  the JPA entity type
+ * @param <ID> the type of the entity primary key
+ * @author Francesco Baldi
+ * @see JpaServiceImpl
+ * @see QueryJpql
  */
 @SuppressWarnings("unchecked")
 public abstract class BaseJpaService<T, ID> {

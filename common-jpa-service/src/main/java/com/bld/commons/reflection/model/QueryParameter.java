@@ -19,10 +19,43 @@ import org.apache.commons.lang3.StringUtils;
 import com.bld.commons.exception.JpaServiceException;
 
 /**
- * The Class QueryFilter.
+ * Encapsulates all input needed to execute a dynamic JPQL query for entity type {@code T}.
  *
- * @param <T>  the generic type
- * @param <ID> the generic type
+ * <p>A {@code QueryParameter} can be populated in two ways:
+ * <ol>
+ *   <li><b>Structured filter object</b> – wrap a {@link BaseParameter} subclass.
+ *       The framework introspects it at runtime via reflection and extracts
+ *       non-null fields into the internal parameter map.</li>
+ *   <li><b>Manual parameters</b> – call {@link #addParameter(String, Object)} to
+ *       add individual named parameters directly.</li>
+ * </ol>
+ * </p>
+ *
+ * <h3>Usage examples</h3>
+ * <pre>{@code
+ * // Using a typed filter object
+ * ProductFilter filter = new ProductFilter();
+ * filter.setName("Widget");
+ * filter.addOrderBy("name", OrderType.ASC);
+ * filter.setPageSize(20);
+ * filter.setPageNumber(0);
+ * QueryParameter<Product, Long> qp = new QueryParameter<>(filter);
+ *
+ * // Manual parameter
+ * QueryParameter<Product, Long> qp = new QueryParameter<>();
+ * qp.addParameter("categoryId", 5L);
+ * qp.addNullable("deletedAt");   // always include "IS NULL" condition
+ * }</pre>
+ *
+ * <p>Nullable parameters (added via {@link #addNullable(String)}) are always
+ * appended to the WHERE clause regardless of the parameter value, which is
+ * useful for "IS NULL" conditions.</p>
+ *
+ * @param <T>  the JPA entity type
+ * @param <ID> the type of the entity primary key
+ * @author Francesco Baldi
+ * @see BaseParameter
+ * @see JpaService#findByFilter(QueryParameter)
  */
 @SuppressWarnings("serial")
 public class QueryParameter<T, ID> extends BaseQueryParameter<T, ID> {

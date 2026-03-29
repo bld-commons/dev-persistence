@@ -13,9 +13,31 @@ import java.util.Map;
 import org.apache.commons.collections4.MapUtils;
 
 /**
- * The Class QueryJpql.
+ * Abstract holder for all the pre-built JPQL/SQL strings and condition maps
+ * associated with a specific JPA entity.
  *
- * @param <T> the generic type
+ * <p>Concrete subclasses are generated at compile time by the
+ * {@code processor-jpa-service} annotation processor when it encounters
+ * a service interface annotated with {@code @QueryBuilder}. The generated class
+ * (e.g., {@code ProductQueryJpqlImpl}) contains:
+ * <ul>
+ *   <li>Static {@code SELECT}, {@code COUNT}, {@code DELETE}, and
+ *       {@code SELECT id} JPQL strings.</li>
+ *   <li>A static condition map ({@code Map<String, String>}) where each entry
+ *       maps a parameter name to its JPQL condition fragment (e.g.,
+ *       {@code "name" → "AND e.name = :name"}).</li>
+ *   <li>A static order map ({@code Map<String, String>}) for sort key resolution.</li>
+ *   <li>A one-to-many join map that instructs the service to add JOIN FETCH
+ *       clauses only when the corresponding filter parameter is present.</li>
+ * </ul>
+ * </p>
+ *
+ * <p>Application code does not interact with this class directly;
+ * it is autowired into {@link JpaServiceImpl} and invoked internally.</p>
+ *
+ * @param <T> the JPA entity type this query provider belongs to
+ * @author Francesco Baldi
+ * @see JpaServiceImpl
  */
 public abstract class QueryJpql<T> {
 

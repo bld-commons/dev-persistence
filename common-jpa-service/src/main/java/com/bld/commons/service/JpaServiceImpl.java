@@ -33,10 +33,33 @@ import com.bld.commons.utils.PersistenceMap;
 import jakarta.persistence.Id;
 
 /**
- * The Class BaseEntityServiceImpl.
+ * Abstract implementation of {@link JpaService} that wires together Spring Data JPA
+ * repositories, the generated {@link QueryJpql} query provider, and the runtime
+ * reflection engine ({@link ReflectionCommons}) to execute dynamic queries.
  *
- * @param <T>  the generic type
- * @param <ID> the generic type
+ * <p>Concrete service classes must extend this class, declare the entity and ID
+ * generic types, and implement {@link #getJpaRepository()} and
+ * {@link #getEntityManager()}. Everything else is handled automatically.</p>
+ *
+ * <h3>Extension example</h3>
+ * <pre>{@code
+ * @Service
+ * public class ProductService extends JpaServiceImpl<Product, Long> {
+ *
+ *     @Autowired private ProductRepository repository;
+ *     @Autowired private EntityManager em;
+ *
+ *     @Override protected JpaRepository<Product, Long> getJpaRepository() { return repository; }
+ *     @Override protected EntityManager getEntityManager() { return em; }
+ * }
+ * }</pre>
+ *
+ * @param <T>  the JPA entity type
+ * @param <ID> the type of the entity primary key
+ * @author Francesco Baldi
+ * @see JpaService
+ * @see BaseJpaService
+ * @see QueryJpql
  */
 @SuppressWarnings("unchecked")
 public abstract class JpaServiceImpl<T, ID> extends BaseJpaService<T, ID> implements JpaService<T, ID> {
