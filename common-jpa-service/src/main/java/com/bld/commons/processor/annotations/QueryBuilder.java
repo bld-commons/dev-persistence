@@ -27,13 +27,15 @@ import java.lang.annotation.Target;
  * <pre>{@code
  * @QueryBuilder(
  *     distinct = true,
- *     joins    = { "LEFT JOIN FETCH e.category" },
+ *     // dot-notation path: always generates
+ *     //   join fetch product.category category
+ *     joins = { "product.category" },
  *     conditions = {
- *         @ConditionBuilder(field = "e.name",   operation = OperationType.LIKE,   parameter = "name"),
- *         @ConditionBuilder(field = "e.active", operation = OperationType.EQUALS, parameter = "active")
+ *         @ConditionBuilder(field = "product.name",   operation = OperationType.LIKE,   parameter = "name"),
+ *         @ConditionBuilder(field = "product.active", operation = OperationType.EQUALS, parameter = "active")
  *     },
  *     jpaOrder = {
- *         @JpqlOrderBuilder(sortKey = "name", field = "e.name")
+ *         @JpqlOrderBuilder(sortKey = "name", field = "product.name")
  *     }
  * )
  * public interface ProductService extends JpaService<Product, Long> { }
@@ -58,12 +60,26 @@ public @interface QueryBuilder {
 	public boolean distinct() default true;
 
 	/**
-	 * Static JOIN / JOIN FETCH fragments always appended to the FROM clause,
-	 * regardless of which filter parameters are active.
-	 * For conditional joins (applied only when a parameter is present) use the
-	 * one-to-many join map instead.
+	 * Dot-notation relationship paths to eagerly join via {@code JOIN FETCH} in every
+	 * query generated for this entity, regardless of which filter parameters are active.
 	 *
-	 * @return array of JPQL join fragments
+	 * <p>Each entry is a chain of JPA relationship field names starting from the root
+	 * entity alias. The processor traverses the path and generates one {@code JOIN FETCH}
+	 * clause per hop, automatically deriving each alias from the field name.</p>
+	 *
+	 * <p>For example, given the entity alias {@code genere} and the path
+	 * {@code "genere.postazioneCucina.ristorante"}, the processor generates:</p>
+	 * <pre>{@code
+	 * join fetch genere.postazioneCucina postazioneCucina
+	 * join fetch postazioneCucina.ristorante ristorante
+	 * }</pre>
+	 *
+	 * <p>These joins are <strong>always</strong> present in the FROM clause.
+	 * For <em>conditional</em> joins — added only when the corresponding filter parameter
+	 * is non-null — the processor instead generates a {@code mapOneToMany()} method that
+	 * uses {@code LEFT JOIN FETCH} keyed by the filter parameter name.</p>
+	 *
+	 * @return array of dot-notation relationship paths to always join
 	 */
 	public String[] joins() default {};
 
@@ -77,17 +93,65 @@ public @interface QueryBuilder {
 	public ConditionBuilder[] conditions() default {};
 
 	/**
-	 * Custom JPQL conditions expressed as raw JPQL fragments.
-	 * Use these when the standard {@link ConditionBuilder} operations are insufficient.
+	 * Hand-written JPQL condition fragments added to the generated condition map.
+	 *
+	 * <p>Use when {@link ConditionBuilder} operations (EQUALS, LIKE, IN, …) are not
+	 * expressive enough — for example subqueries, {@code BETWEEN} ranges, or any
+	 * JPQL expression that cannot be derived automatically from a field + operation pair.
+	 * The raw {@link CustomConditionBuilder#condition()} string is inserted verbatim
+	 * into {@code MAP_CONDITIONS} (or {@code MAP_DELETE_CONDITIONS} when
+	 * {@link CustomConditionBuilder#type()} is {@link com.bld.commons.processor.ConditionType#DELETE})
+	 * and is appended to the WHERE clause when the named parameter is non-null.</p>
+	 *
+	 * <p>Use the entity alias and JPA field names (not column names),
+	 * exactly as you would write them in a JPQL query.</p>
+	 *
+	 * <h4>Example</h4>
+	 * <pre>{@code
+	 * customConditions = {
+	 *     @CustomConditionBuilder(
+	 *         condition = "and genere.idGenere in (:genereId)",
+	 *         parameter = "genereId"
+	 *         // type defaults to SELECT → MAP_CONDITIONS
+	 *     )
+	 * }
+	 * }</pre>
 	 *
 	 * @return array of custom JPQL condition builders
 	 */
 	public CustomConditionBuilder[] customConditions() default {};
 
 	/**
-	 * Custom native SQL conditions expressed as raw SQL fragments.
+	 * Hand-written native SQL condition fragments grouped into named zones.
 	 *
-	 * @return array of custom native condition builders
+	 * <p>Each entry specifies the raw SQL fragment and the zone(s) it belongs to via
+	 * {@link CustomConditionBuilder#keys()}. The processor generates one sub-map per
+	 * zone key inside {@code MAP_NATIVE_CONDITIONS}. At runtime, each zone's conditions
+	 * are collected and substituted into the SQL template through the matching
+	 * {@code ${zoneName}} placeholder.</p>
+	 *
+	 * <p>The same condition can be registered in multiple zones by listing multiple
+	 * keys, allowing reuse across different SQL templates.</p>
+	 *
+	 * <h4>Example</h4>
+	 * <pre>{@code
+	 * customNativeConditions = {
+	 *     @CustomConditionBuilder(
+	 *         condition = "and (g.id_genere, pc.id_postazione_cucina) in (:genereTuple)",
+	 *         parameter = "genereTuple",
+	 *         keys      = {"zone1", "zone2"}
+	 *     ),
+	 *     @CustomConditionBuilder(
+	 *         condition = "and g.id_genere in (:idGenere)",
+	 *         parameter = "idGenere",
+	 *         keys      = {"zone1", "zone2"}
+	 *     )
+	 * }
+	 * // SQL template must expose the placeholder:
+	 * // SELECT g.* FROM genere g ${zone1}
+	 * }</pre>
+	 *
+	 * @return array of custom native SQL condition builders
 	 */
 	public CustomConditionBuilder[] customNativeConditions() default {};
 

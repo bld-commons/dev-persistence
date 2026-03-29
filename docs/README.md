@@ -293,34 +293,41 @@ Add it to your project as an annotation processor dependency:
 
 ### @QueryBuilder
 
-Place on the service interface to trigger code generation:
+Place on the service (interface or class) to trigger code generation:
 
 ```java
 @QueryBuilder(
     distinct = true,
-    joins    = { "LEFT JOIN FETCH p.category" },
+
+    // dot-notation relationship path — always generates:
+    //   join fetch product.category category
+    // For multi-hop paths, e.g. "product.category.department":
+    //   join fetch product.category category
+    //   join fetch category.department department
+    joins = { "product.category" },
+
     conditions = {
         @ConditionBuilder(
-            field     = "p.name",
-            operation = OperationType.LIKE,
-            parameter = "name",
+            field      = "product.name",
+            operation  = OperationType.LIKE,
+            parameter  = "name",
             upperLower = UpperLowerType.LOWER
         ),
         @ConditionBuilder(
-            field     = "p.active",
+            field     = "product.active",
             operation = OperationType.EQUALS,
             parameter = "active"
         ),
         @ConditionBuilder(
-            field     = "p.deletedAt",
+            field     = "product.deletedAt",
             operation = OperationType.EQUALS,
             parameter = "deletedAt",
-            nullable  = true           // always append even if value is null
+            nullable  = true           // always appended even when value is null
         )
     },
     jpaOrder = {
-        @JpqlOrderBuilder(sortKey = "name",      field = "p.name"),
-        @JpqlOrderBuilder(sortKey = "createdAt", field = "p.createdAt")
+        @JpqlOrderBuilder(sortKey = "name",      field = "product.name"),
+        @JpqlOrderBuilder(sortKey = "createdAt", field = "product.createdAt")
     }
 )
 public interface ProductService extends JpaService<Product, Long> { }
@@ -328,42 +335,171 @@ public interface ProductService extends JpaService<Product, Long> { }
 
 ### @ConditionBuilder
 
-Each `@ConditionBuilder` defines one WHERE condition:
+Each `@ConditionBuilder` defines one WHERE condition where the processor derives
+the JPQL fragment automatically from a field path and an operation type:
 
 | Attribute | Type | Description |
 |---|---|---|
-| `field` | `String` | JPQL field path, e.g., `"e.name"` or `"e.address.city"` |
+| `field` | `String` | JPQL field path, e.g., `"product.name"` or `"product.address.city"` |
 | `operation` | `OperationType` | `EQUALS`, `LIKE`, `IN`, `RANGE`, `NOT_EQUALS`, `IS_NULL`, … |
 | `parameter` | `String` | Named parameter key, e.g., `"name"` → `:name` |
 | `upperLower` | `UpperLowerType` | `NONE`, `UPPER`, `LOWER` — case transform |
 | `nullable` | `boolean` | If `true`, always included even when parameter is `null` |
 
+---
+
+### @CustomConditionBuilder
+
+Used inside `customConditions` (JPQL) or `customNativeConditions` (native SQL) when
+the standard operation types of `@ConditionBuilder` are not expressive enough.
+You write the raw condition fragment directly.
+
+| Attribute | Type | Description |
+|---|---|---|
+| `condition` | `String` | The raw JPQL or SQL fragment, including the leading `AND`/`OR` |
+| `parameter` | `String` | Named parameter key that activates this condition when non-null |
+| `type` | `ConditionType` | `SELECT` (default) → `MAP_CONDITIONS`; `DELETE` → `MAP_DELETE_CONDITIONS` |
+| `keys` | `String[]` | Zone names for native queries (see below); defaults to `{"default"}` |
+
+#### customConditions — raw JPQL
+
+The condition is added to `MAP_CONDITIONS` (JPQL) and appended to the WHERE clause
+when the named parameter is present. Use the entity alias and JPA field names
+(not column names), exactly as you would write them in a JPQL query.
+
+```java
+@QueryBuilder(
+    customConditions = {
+        @CustomConditionBuilder(
+            condition = "and genere.idGenere in (:genereId)",
+            parameter = "genereId"
+            // type defaults to ConditionType.SELECT → goes into MAP_CONDITIONS
+            // keys not needed for JPQL conditions
+        )
+    }
+)
+```
+
+The processor adds this entry to `MAP_CONDITIONS`:
+
+```java
+map.put("genereId", " and genere.idGenere in (:genereId) ");
+```
+
+At runtime, the condition is appended to the WHERE clause only when
+`genereId` is non-null in the `QueryParameter`.
+
+#### customNativeConditions — raw SQL with zones
+
+The condition is added to one or more zone sub-maps inside `MAP_NATIVE_CONDITIONS`.
+At runtime each zone is substituted into the SQL template via the `${zoneName}` placeholder.
+
+```java
+@QueryBuilder(
+    customNativeConditions = {
+        // Tuple comparison — impossible to express with @ConditionBuilder
+        @CustomConditionBuilder(
+            condition = "and (g.id_genere, pc.id_postazione_cucina) in (:genereTuple)",
+            parameter = "genereTuple",
+            keys      = {"zone1", "zone2"}   // registered in both zones
+        ),
+        @CustomConditionBuilder(
+            condition = "and g.id_genere in (:idGenere)",
+            parameter = "idGenere",
+            keys      = {"zone1", "zone2"}
+        )
+    }
+)
+```
+
+Generated maps (from the real `GenereQueryJpqlImpl`):
+
+```java
+private static Map<String, String> getZone1() {
+    Map<String, String> map = new HashMap<>();
+    map.put("genereTuple", " and (g.id_genere, pc.id_postazione_cucina) in (:genereTuple) ");
+    map.put("idGenere",    " and g.id_genere in (:idGenere) ");
+    return map;
+}
+
+private static Map<String, String> getZone2() { /* identical */ }
+
+private static Map<String, Map<String, String>> getMapNativeConditions() {
+    Map<String, Map<String, String>> map = new HashMap<>();
+    map.put("zone1", getZone1());
+    map.put("zone2", getZone2());
+    return map;
+}
+```
+
+SQL template usage:
+
+```sql
+SELECT g.*, pc.id_postazione_cucina
+FROM   genere g
+JOIN   postazione_cucina pc ON pc.id_postazione_cucina = g.id_postazione_cucina
+${zone1}
+```
+
+At runtime, if `genereTuple` is non-null, the zone expands to:
+
+```sql
+and (g.id_genere, pc.id_postazione_cucina) in (:genereTuple)
+```
+
+---
+
 ### Generated Code
 
-The processor produces a class like:
+The processor produces a class like (based on the real `GenereQueryJpqlImpl` generated output):
 
 ```java
 @Component
 public class ProductQueryJpqlImpl extends QueryJpql<Product> {
 
-    private static final Map<String, String> MAP_CONDITIONS = Map.of(
-        "name",      "\nAND LOWER(p.name) LIKE LOWER(:name)",
-        "active",    "\nAND p.active = :active",
-        "deletedAt", "\nAND p.deletedAt IS NULL"
-    );
+    // FROM clause: the processor walks "product.category" and generates one
+    // JOIN FETCH per hop, using the field name as alias
+    private static final String FROM_BY_FILTER =
+        " From Product product " +
+        " join fetch product.category category ";
 
     private static final String SELECT_BY_FILTER =
-        "SELECT DISTINCT p FROM Product p LEFT JOIN FETCH p.category\n";
+        "select distinct product" + FROM_BY_FILTER;
 
     private static final String COUNT_BY_FILTER =
-        "SELECT DISTINCT COUNT(p) FROM Product p LEFT JOIN FETCH p.category\n";
+        "select distinct count(product)" + FROM_BY_FILTER;
 
-    @Override public String selectByFilter()         { return SELECT_BY_FILTER; }
-    @Override public String countByFilter()          { return COUNT_BY_FILTER; }
-    @Override public Map<String, String> mapConditions() { return MAP_CONDITIONS; }
+    private static final String SELECT_ID_BY_FILTER =
+        "select distinct product.id " + FROM_BY_FILTER;
+
+    private static final String DELETE_BY_FILTER =
+        "delete from Product product ";
+
+    // Conditions added only when the parameter is non-null (or nullable = true)
+    private static Map<String, String> getMapConditions() {
+        Map<String, String> map = new HashMap<>();
+        map.put("name",   " and upper(product.name) like :name ");
+        map.put("active", " and product.active = :active ");
+        return map;
+    }
+
+    // Conditional LEFT JOIN FETCH — added to the query only when the
+    // related filter parameter (e.g. "tagIds") is present
+    @Override
+    public void mapOneToMany() {
+        addJoinOneToMany("tagIds", " left join fetch product.tags tags ");
+    }
+
+    @Override public String selectByFilter()              { return SELECT_BY_FILTER; }
+    @Override public String countByFilter()               { return COUNT_BY_FILTER; }
+    @Override public Map<String, String> mapConditions()  { return MAP_CONDITIONS; }
     // ...
 }
 ```
+
+> **Key distinction:**
+> - `joins` → **always-present** `JOIN FETCH` (eager, unconditional) — path traversal generates one clause per hop
+> - `mapOneToMany()` → **conditional** `LEFT JOIN FETCH` — added only when the named filter parameter is non-null, preventing unnecessary joins and N+1 issues
 
 ---
 
@@ -572,13 +708,14 @@ public class Product {
 ```java
 @QueryBuilder(
     distinct = true,
-    joins    = { "LEFT JOIN FETCH p.category" },
+    // dot-notation path → always generates: join fetch product.category category
+    joins = { "product.category" },
     conditions = {
-        @ConditionBuilder(field = "p.name",   operation = OperationType.LIKE,   parameter = "name"),
-        @ConditionBuilder(field = "p.active", operation = OperationType.EQUALS, parameter = "active")
+        @ConditionBuilder(field = "product.name",   operation = OperationType.LIKE,   parameter = "name"),
+        @ConditionBuilder(field = "product.active", operation = OperationType.EQUALS, parameter = "active")
     },
     jpaOrder = {
-        @JpqlOrderBuilder(sortKey = "name", field = "p.name")
+        @JpqlOrderBuilder(sortKey = "name", field = "product.name")
     }
 )
 public interface ProductService extends JpaService<Product, Long> { }
