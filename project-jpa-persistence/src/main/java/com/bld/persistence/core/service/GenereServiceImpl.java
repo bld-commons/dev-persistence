@@ -15,7 +15,10 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @Transactional
-@QueryBuilder(customNativeConditions = {
+@QueryBuilder(
+		joins = {"genere.postazioneCucina.ristorante"},
+		customConditions = {@CustomConditionBuilder(condition = "and genere.idGenere in (:genereId)", parameter = "genereId")},
+		customNativeConditions = {
 		@CustomConditionBuilder(condition = "and (g.id_genere,pc.id_postazione_cucina) in (:genereTuple)", parameter = "genereTuple",keys = {"zone1","zone2"}),
 @CustomConditionBuilder(condition = "and g.id_genere in (:idGenere)", parameter = "idGenere",keys = {"zone1","zone2"})
 })
