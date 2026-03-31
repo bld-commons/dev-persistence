@@ -178,7 +178,7 @@ Map { "name" → "Widget", "active" → true }
 WHERE  AND e.name LIKE :name
   AND  AND e.active = :active
     ↓ parameter binding
-SELECT DISTINCT p FROM Product p WHERE AND p.name LIKE :name AND p.active = :active
+SELECT DISTINCT product FROM Product product WHERE AND product.name LIKE :name AND product.active = :active
 ```
 
 ---
@@ -190,7 +190,7 @@ Extend `BaseParameter` to create a typed filter object:
 ```java
 public class ProductFilter extends BaseParameter {
 
-    // Plain equality: AND p.name = :name
+    // Plain equality: AND product.name = :name
     private String name;
 
     // LIKE with wildcard on both sides, case-insensitive

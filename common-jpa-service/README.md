@@ -105,11 +105,11 @@ Concrete service classes extend `JpaServiceImpl<T, ID>` and implement two abstra
 @QueryBuilder(
     distinct = true,
     conditions = {
-        @ConditionBuilder(field = "p.name", operation = OperationType.LIKE, parameter = "name"),
-        @ConditionBuilder(field = "p.active", operation = OperationType.EQUALS, parameter = "active")
+        @ConditionBuilder(field = "product.name", operation = OperationType.LIKE, parameter = "name"),
+        @ConditionBuilder(field = "product.active", operation = OperationType.EQUALS, parameter = "active")
     },
     jpaOrder = {
-        @JpqlOrderBuilder(sortKey = "name", field = "p.name")
+        @JpqlOrderBuilder(sortKey = "name", field = "product.name")
     }
 )
 public class ProductServiceImpl
