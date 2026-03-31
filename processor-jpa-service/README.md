@@ -106,7 +106,7 @@ Defines a single JPQL WHERE condition. Used inside `@QueryBuilder#conditions()`.
 
 ```java
 @ConditionBuilder(
-    field      = "p.name",
+    field      = "product.name",
     operation  = OperationType.LIKE,
     parameter  = "name",
     upperLower = UpperLowerType.LOWER,
@@ -203,8 +203,8 @@ Map logical sort keys (used in `OrderBy` objects) to JPQL field expressions or n
 
 ```java
 jpaOrder = {
-    @JpqlOrderBuilder(sortKey = "name",  field = "p.name"),
-    @JpqlOrderBuilder(sortKey = "price", field = "p.unitPrice")
+    @JpqlOrderBuilder(sortKey = "name",  field = "product.name"),
+    @JpqlOrderBuilder(sortKey = "price", field = "product.unitPrice")
 }
 
 nativeOrder = {
@@ -212,7 +212,7 @@ nativeOrder = {
 }
 ```
 
-At runtime, `OrderBy("name", OrderType.ASC)` in the filter is resolved to `ORDER BY p.name ASC`.
+At runtime, `OrderBy("name", OrderType.ASC)` in the filter is resolved to `ORDER BY product.name ASC`.
 
 ---
 
