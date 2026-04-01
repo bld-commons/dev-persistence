@@ -14,12 +14,39 @@ import com.bld.commons.utils.data.BaseModel;
 import com.bld.commons.utils.data.CollectionResponse;
 import com.bld.commons.utils.data.ObjectResponse;
 
+/**
+ * Abstract base controller that wires a {@link JpaService} to standard search
+ * endpoints exposed as Spring MVC handler methods.
+ *
+ * <p>Subclasses inherit the core query execution logic (find, count, single-result)
+ * and only need to implement {@link #modelMapper()} to supply the correct
+ * {@link ModelMapper} instance for the target entity type.</p>
+ *
+ * <p>This class does not expose any HTTP endpoints directly; endpoint mappings are
+ * declared in concrete subclasses (e.g., {@link PerformanceSearchController}).</p>
+ *
+ * @param <E>  the JPA entity type
+ * @param <ID> the primary-key type of the entity
+ * @param <M>  the DTO / model type returned to callers
+ * @param <P>  the filter / parameter type accepted by endpoints
+ * @param <MM> the {@link ModelMapper} implementation used to convert entities to models
+ * @author Francesco Baldi
+ * @see PerformanceSearchController
+ * @see ModelMapper
+ */
 public abstract class BaseSearchController<E, ID, M extends BaseModel<ID>, P extends BaseParameter, MM extends ModelMapper<E, M>> {
 
 	/** The jpa service. */
 	@Autowired
 	protected JpaService<E, ID> jpaService;
-	
+
+	/**
+	 * Executes a paginated find query and maps the results to the model type.
+	 *
+	 * @param baseParameter the filter and pagination parameters
+	 * @return a {@link CollectionResponse} containing the mapped models and the total count
+	 * @throws Exception if the query or mapping fails
+	 */
 	protected CollectionResponse<M> findByFilter(P baseParameter) throws Exception {
 		QueryParameter<E, ID> queryFilter = new QueryParameter<>(baseParameter);
 		CollectionResponse<M> response = new CollectionResponse<>();
@@ -46,6 +73,13 @@ public abstract class BaseSearchController<E, ID, M extends BaseModel<ID>, P ext
 	
 
 
+	/**
+	 * Returns the total number of records that match the given filter.
+	 *
+	 * @param baseParameter the filter parameters
+	 * @return an {@link ObjectResponse} wrapping the count value
+	 * @throws Exception if the query fails
+	 */
 	protected ObjectResponse<Long> countByFilter(@RequestBody P baseParameter) throws Exception {
 		QueryParameter<E, ID> queryFilter = new QueryParameter<>(baseParameter);
 		Long count = this.jpaService.countByFilter(queryFilter);
@@ -55,6 +89,13 @@ public abstract class BaseSearchController<E, ID, M extends BaseModel<ID>, P ext
 	
 
 
+	/**
+	 * Returns a single entity that matches the given filter, mapped to the model type.
+	 *
+	 * @param baseParameter the filter parameters; must identify a unique record
+	 * @return an {@link ObjectResponse} wrapping the matched model
+	 * @throws Exception if the query fails or returns more than one result
+	 */
 	protected ObjectResponse<M> singleResultFindByFilter(@RequestBody P baseParameter) throws Exception{
 		QueryParameter<E, ID>query=new QueryParameter<>(baseParameter);
 		ObjectResponse<M> response = new ObjectResponse<>();
@@ -63,6 +104,11 @@ public abstract class BaseSearchController<E, ID, M extends BaseModel<ID>, P ext
 		return response;
 	}
 
+	/**
+	 * Returns the {@link ModelMapper} instance used to convert entities to models.
+	 *
+	 * @return the model mapper; must not be {@code null}
+	 */
 	protected abstract MM modelMapper();
 
 	

@@ -16,13 +16,22 @@ Core runtime module of the dev-persistence framework. Provides the service abstr
    - [IDFilterParameter](#idfilterparameter)
    - [Filter Annotations](#filter-annotations)
 5. [QueryParameter](#queryparameter)
+   - [TupleParameter and @TupleComparison](#tupleparameter-and-tuplecomparison)
 6. [Native SQL Queries](#native-sql-queries)
    - [NativeQueryParameter](#nativequeryparameter)
    - [Zone-based conditions](#zone-based-conditions)
 7. [QueryJpql](#queryjpql)
 8. [Custom Row Mapping](#custom-row-mapping)
+   - [JpaRowMapper](#jparowmapper)
+   - [JdbcRowMapper](#jdbcrowmapper)
+   - [ResultMapper and @ResultMapping](#resultmapper-and-resultmapping)
+   - [@IgnoreResultSet](#ignoreresultset)
 9. [JdbcTemplateService](#jdbctemplateservice)
-10. [Real-world examples](#real-world-examples)
+10. [Abstract Search Controllers](#abstract-search-controllers)
+    - [BaseSearchController](#basesearchcontroller)
+    - [PerformanceSearchController](#performancesearchcontroller)
+    - [ModelMapper and PerformanceModelMapper](#modelmapper-and-performancemodelmapper)
+11. [Real-world examples](#real-world-examples)
     - [Service with complex conditions and cross-relationship navigation](#service-with-complex-conditions-and-cross-relationship-navigation)
     - [Service with native SQL zone conditions](#service-with-native-sql-zone-conditions)
     - [Filter with date ranges, LIKE, and zone annotations](#filter-with-date-ranges-like-and-zone-annotations)
@@ -721,7 +730,9 @@ For native queries the same process runs against `MAP_NATIVE_CONDITIONS[zoneName
 
 ## Custom Row Mapping
 
-For native SQL queries requiring custom Tuple-to-object mapping, implement `JpaRowMapper<K>`:
+### JpaRowMapper
+
+For JPA `Tuple`-based native queries that need custom row-to-object mapping, implement `JpaRowMapper<K>`:
 
 ```java
 @FunctionalInterface
@@ -730,7 +741,7 @@ public interface JpaRowMapper<K> {
 }
 ```
 
-Example usage:
+The framework calls `rowMapper` once per row in the result set, passing the accumulating list, the current `Tuple`, and the zero-based row index.
 
 ```java
 List<ProductDto> results = productService.findNativeByFilter(nqp, (list, row, i) -> {
@@ -739,6 +750,76 @@ List<ProductDto> results = productService.findNativeByFilter(nqp, (list, row, i)
     dto.setName(row.get("name", String.class));
     list.add(dto);
 });
+```
+
+### JdbcRowMapper
+
+For pure JDBC queries (via `JdbcTemplateService`), implement `JdbcRowMapper<K>`:
+
+```java
+@FunctionalInterface
+public interface JdbcRowMapper<K> {
+    void rowMapper(List<K> list, ResultSet row, int i);
+}
+```
+
+Works identically to `JpaRowMapper` but receives a JDBC `ResultSet` instead of a JPA `Tuple`:
+
+```java
+List<ReportRow> rows = reportService.findNativeByFilter(nqp, (list, rs, i) -> {
+    ReportRow row = new ReportRow();
+    row.setId(rs.getLong("id"));
+    row.setAmount(rs.getBigDecimal("amount"));
+    list.add(row);
+});
+```
+
+### ResultMapper and @ResultMapping
+
+When a native query result model contains a field that cannot be mapped automatically from the column value (e.g., an enum, a JSON blob, or a composite type), implement `ResultMapper<T>` and bind it to the field with `@ResultMapping`.
+
+```java
+// 1. Implement the converter
+public class StatusMapper implements ResultMapper<StatusEnum> {
+
+    @Override
+    public StatusEnum mapToData(Map<String, Object> map) {
+        return StatusEnum.fromCode((String) map.get("status_code"));
+    }
+}
+
+// 2. Annotate the field on the result model
+public class OrderSummary {
+
+    private Long id;
+    private String name;
+
+    @ResultMapping(StatusMapper.class)   // custom conversion for this field
+    private StatusEnum status;
+}
+```
+
+The reflection engine skips automatic binding for fields annotated with `@ResultMapping` and delegates to the specified `ResultMapper` instead.
+
+`ResultMapper` attributes:
+
+| Attribute | Type | Description |
+|-----------|------|-------------|
+| `value` | `Class<? extends ResultMapper<?>>` | The converter class to use; instantiated by the framework |
+
+### @IgnoreResultSet
+
+Marks a field to be excluded entirely from the automatic result-set mapping. Use this for fields that are computed at service level or populated after the query rather than from the SQL result.
+
+```java
+public class ProductSummary {
+
+    private String name;
+    private BigDecimal price;
+
+    @IgnoreResultSet           // populated by a post-processing step, not from the query
+    private String displayLabel;
+}
 ```
 
 ---
@@ -756,6 +837,123 @@ public class ReportServiceImpl extends JdbcTemplateServiceImpl<ReportDto, Long>
 ```
 
 `JdbcTemplateService<T, ID>` mirrors the `JpaService` API but executes queries via `NamedParameterJdbcTemplate`.
+
+---
+
+## Abstract Search Controllers
+
+`common-jpa-service` ships two abstract Spring MVC controller base classes that wire a `JpaService` to standard REST endpoints out of the box.  Subclass them when you need a traditional `@RestController` class instead of (or alongside) the `proxy-api-controller` dynamic proxy approach.
+
+### BaseSearchController
+
+`BaseSearchController<E, ID, M, P, MM>` provides three protected methods (search, count, single-result) already wired to the injected `JpaService`. Subclasses expose them as HTTP endpoints and provide the `ModelMapper`:
+
+```java
+@RestController
+@RequestMapping("/api/products")
+public class ProductController
+        extends BaseSearchController<Product, Long, ProductDto, ProductFilter, ProductMapper> {
+
+    @PostMapping("/search")
+    @ResponseBody
+    @Transactional
+    public CollectionResponse<ProductDto> search(@RequestBody ProductFilter filter) throws Exception {
+        return super.findByFilter(filter);
+    }
+
+    @PostMapping("/count")
+    @ResponseBody
+    @Transactional
+    public ObjectResponse<Long> count(@RequestBody ProductFilter filter) throws Exception {
+        return super.countByFilter(filter);
+    }
+
+    @PostMapping("/search/single")
+    @ResponseBody
+    @Transactional
+    public ObjectResponse<ProductDto> single(@RequestBody ProductFilter filter) throws Exception {
+        return super.singleResultFindByFilter(filter);
+    }
+
+    @Override
+    protected ProductMapper modelMapper() {
+        return this.modelMapper;  // inject via @Autowired
+    }
+}
+```
+
+Generic type parameters:
+
+| Parameter | Role |
+|-----------|------|
+| `E` | JPA entity type |
+| `ID` | Primary-key type |
+| `M` | Full DTO / model type |
+| `P` | Filter type (`BaseParameter` subclass) |
+| `MM` | `ModelMapper<E, M>` implementation |
+
+### PerformanceSearchController
+
+`PerformanceSearchController<E, ID, M, PM, P>` extends `BaseSearchController` and adds a second search endpoint (`/performance/search`) that returns a lighter `PM` model. Use this when list views only need a subset of the entity's fields and you want to avoid transferring the full model payload.
+
+```java
+@RestController
+@RequestMapping("/api/products")
+public class ProductController
+        extends PerformanceSearchController<Product, Long, ProductDto, ProductSummaryDto, ProductFilter> {
+
+    // POST /api/products/search          → List<ProductDto>       (full model)
+    // POST /api/products/performance/search → List<ProductSummaryDto> (lightweight)
+    // POST /api/products/count           → ObjectResponse<Long>
+    // POST /api/products/search/single-result → ObjectResponse<ProductDto>
+}
+```
+
+All four endpoints are inherited and require no additional code in the subclass.
+
+Generic type parameters:
+
+| Parameter | Role |
+|-----------|------|
+| `E` | JPA entity type |
+| `ID` | Primary-key type |
+| `M` | Full DTO / model type (for `/search`) |
+| `PM` | Lightweight performance model (for `/performance/search`) |
+| `P` | Filter type |
+
+### ModelMapper and PerformanceModelMapper
+
+`ModelMapper<E, M>` is the single-method interface used by `BaseSearchController` to convert entities to models:
+
+```java
+public interface ModelMapper<E, M> {
+    M convertToModel(E entity);
+}
+```
+
+`PerformanceModelMapper<E, M, PM>` extends it with a second conversion method for the lightweight model:
+
+```java
+public interface PerformanceModelMapper<E, M extends BaseModel<?>, PM extends BaseModel<?>>
+        extends ModelMapper<E, M> {
+
+    PM convertToPerformanceModel(E entity);
+}
+```
+
+Typically implemented with MapStruct:
+
+```java
+@Mapper(componentModel = "spring")
+public interface ProductMapper extends PerformanceModelMapper<Product, ProductDto, ProductSummaryDto> {
+
+    @Override
+    ProductDto convertToModel(Product entity);
+
+    @Override
+    ProductSummaryDto convertToPerformanceModel(Product entity);
+}
+```
 
 ---
 
@@ -960,3 +1158,56 @@ The parameter names must match the names declared in `@ConditionBuilder(paramete
 ```java
 qp.addParameter(ExApplicationQueryJpql.idProjectGrant, projectIds);
 ```
+
+---
+
+### TupleParameter and @TupleComparison
+
+`TupleParameter` represents a multi-column row-value comparison for use in `IN` clauses. It is the standard way to express conditions like `(col1, col2) IN ((v1a, v2a), (v1b, v2b))` in JPQL or native SQL.
+
+**Requirements:** at least two parameter names must be declared (fewer than two throws `JpaServiceException` at construction time).
+
+```java
+// Create a tuple parameter with two columns
+TupleParameter tp = new TupleParameter(new String[]{"productId", "warehouseId"});
+
+// Add one or more row tuples to compare against
+tp.setObjects(new Object[]{1L, 10L});
+tp.setObjects(new Object[]{2L, 10L});
+
+// Add to the query parameter
+QueryParameter<Inventory, Long> qp = new QueryParameter<>();
+qp.addParameter("productWarehouse", tp);
+```
+
+In combination with a `@CustomConditionBuilder` the generated condition is injected at runtime:
+
+```java
+@QueryBuilder(
+    customConditions = {
+        @CustomConditionBuilder(
+            condition = "and (inventory.productId, inventory.warehouseId) in (:productWarehouse)",
+            parameter = "productWarehouse"
+        )
+    }
+)
+public class InventoryServiceImpl extends JpaServiceImpl<Inventory, Long> implements InventoryService { ... }
+```
+
+**`@TupleComparison`** is the declarative equivalent: annotate a `TupleParameter` field on a `BaseParameter` subclass so the reflection engine populates and routes it automatically.
+
+```java
+public class InventoryFilter extends BaseParameter {
+
+    @TupleComparison({"productId", "warehouseId"})
+    private TupleParameter productWarehouse;
+
+    // getters / setters
+}
+```
+
+`@TupleComparison` attributes:
+
+| Attribute | Type | Description |
+|-----------|------|-------------|
+| `value` | `String[]` | Named parameters forming the tuple; must contain at least two elements |

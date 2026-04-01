@@ -1,6 +1,6 @@
 # dev-persistence — Developer Documentation
 
-**Version:** 3.0.15 | **Java:** 17+ | **Spring Boot:** 3.x | **License:** MIT
+**Version:** 3.0.16 | **Java:** 17+ | **Spring Boot:** 3.x | **License:** MIT
 
 A multi-module framework that eliminates JPA boilerplate through compile-time code
 generation and runtime dynamic query building.
@@ -808,4 +808,119 @@ proxy-api-controller
 
 ---
 
-*Documentation generated for dev-persistence v3.0.15 — Francesco Baldi*
+---
+
+## Abstract Search Controllers
+
+`common-jpa-service` ships two abstract base controllers that expose standard REST endpoints already wired to a `JpaService`.
+
+### BaseSearchController
+
+Provides `findByFilter`, `countByFilter`, and `singleResultFindByFilter` as protected methods. Subclasses declare them as HTTP endpoints and supply the `ModelMapper`:
+
+```java
+public abstract class BaseSearchController<E, ID, M extends BaseModel<ID>,
+        P extends BaseParameter, MM extends ModelMapper<E, M>> {
+
+    @Autowired
+    protected JpaService<E, ID> jpaService;
+
+    protected CollectionResponse<M> findByFilter(P baseParameter) throws Exception { ... }
+    protected ObjectResponse<Long>  countByFilter(P baseParameter) throws Exception { ... }
+    protected ObjectResponse<M>     singleResultFindByFilter(P baseParameter) throws Exception { ... }
+    protected abstract MM modelMapper();
+}
+```
+
+### PerformanceSearchController
+
+Extends `BaseSearchController` and adds a `POST /performance/search` endpoint returning a lighter `PM` model alongside the standard `POST /search` endpoint:
+
+```java
+public abstract class PerformanceSearchController<E, ID,
+        M extends BaseModel<ID>, PM extends BaseModel<ID>,
+        P extends BaseParameter>
+        extends BaseSearchController<E, ID, M, P, PerformanceModelMapper<E, M, PM>> {
+
+    // POST /search             → CollectionResponse<M>
+    // POST /performance/search → CollectionResponse<PM>
+    // POST /count              → ObjectResponse<Long>
+    // POST /search/single-result → ObjectResponse<M>
+}
+```
+
+---
+
+## Custom Row Mapping
+
+### JpaRowMapper / JdbcRowMapper
+
+Functional interfaces for manual row mapping in native queries:
+
+```java
+// JPA Tuple-based
+JpaRowMapper<ProductDto> jpaMapper = (list, row, i) -> {
+    list.add(new ProductDto(row.get("id", Long.class), row.get("name", String.class)));
+};
+
+// JDBC ResultSet-based
+JdbcRowMapper<ReportRow> jdbcMapper = (list, rs, i) -> {
+    list.add(new ReportRow(rs.getLong("id"), rs.getBigDecimal("amount")));
+};
+```
+
+### @ResultMapping / @IgnoreResultSet
+
+Control how native query result columns are mapped to model fields:
+
+| Annotation | Effect |
+|------------|--------|
+| `@ResultMapping(MyMapper.class)` | Delegates field conversion to a custom `ResultMapper<T>` |
+| `@IgnoreResultSet` | Skips the field entirely during automatic result-set mapping |
+
+```java
+public class OrderSummary {
+
+    private Long id;
+
+    @ResultMapping(StatusMapper.class)   // custom conversion
+    private StatusEnum status;
+
+    @IgnoreResultSet                     // populated after the query
+    private String displayLabel;
+}
+```
+
+---
+
+## TupleParameter and @TupleComparison
+
+For multi-column `IN` comparisons (row-value semantics):
+
+```java
+// Programmatic
+TupleParameter tp = new TupleParameter(new String[]{"productId", "warehouseId"});
+tp.setObjects(new Object[]{1L, 10L}, new Object[]{2L, 10L});
+qp.addParameter("productWarehouse", tp);
+
+// Declarative (in a filter class)
+@TupleComparison({"productId", "warehouseId"})
+private TupleParameter productWarehouse;
+```
+
+---
+
+## proxy-api-controller — Internal Components
+
+| Component | Description |
+|-----------|-------------|
+| `ApiFindRegistrar` | Spring `ImportBeanDefinitionRegistrar`; discovers `@ApiFindController` interfaces and registers them as proxy beans |
+| `ProxyConfig` | Factory Spring bean; wraps `Proxy.newProxyInstance()` with the `ApiFindInterceptor` |
+| `ApiFindInterceptor` | Singleton `InvocationHandler`; routes every call to a fresh `FindInterceptor` prototype |
+| `FindInterceptor` | Prototype component; full pipeline: parameter extraction → `BeforeFind` → query → mapping → `AfterFind` |
+| `ParameterDetails` | Internal value object: `Parameter` + runtime value + positional index |
+| `ApiFindException` | Unchecked exception for proxy pipeline failures |
+
+---
+
+*Documentation generated for dev-persistence v3.0.16 — Francesco Baldi*

@@ -58,6 +58,32 @@ import com.bld.proxy.api.find.config.DefaultOrderBy;
 import com.bld.proxy.api.find.data.ParameterDetails;
 import com.bld.proxy.api.find.exception.ApiFindException;
 
+/**
+ * Prototype-scoped Spring component that executes the actual query logic
+ * for each proxied {@code @ApiFindController} method call.
+ *
+ * <p>Instantiated fresh for every request by {@link ApiFindInterceptor}, this
+ * class is responsible for:</p>
+ * <ol>
+ *   <li>Resolving the {@link com.bld.commons.service.JpaService} for the target
+ *       entity from the Spring context.</li>
+ *   <li>Building a {@link com.bld.commons.reflection.model.QueryParameter} or
+ *       {@link com.bld.commons.reflection.model.NativeQueryParameter} from the
+ *       controller method parameters.</li>
+ *   <li>Executing the optional {@link com.bld.proxy.api.find.BeforeFind} hook.</li>
+ *   <li>Delegating to the appropriate service method (find, count, single result).</li>
+ *   <li>Mapping entities to DTOs via the mapper specified in
+ *       {@link com.bld.proxy.api.find.annotations.ApiMapper}.</li>
+ *   <li>Executing the optional {@link com.bld.proxy.api.find.AfterFind} hook.</li>
+ * </ol>
+ *
+ * <p>This class is package-private; callers interact with the framework through
+ * {@link ApiFindInterceptor}.</p>
+ *
+ * @author Francesco Baldi
+ * @see ApiFindInterceptor
+ * @see com.bld.proxy.api.find.annotations.ApiFindController
+ */
 @Component
 @Scope("prototype")
 @SuppressWarnings("unchecked")
