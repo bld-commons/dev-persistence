@@ -128,3 +128,39 @@ Vedi [project-jpa-persistence](project-jpa-persistence/README.it.md) per un esem
 ## Documentazione completa
 
 La documentazione dettagliata di ogni modulo si trova nel proprio README (link nella tabella sopra). La cartella `docs/` contiene un riferimento esteso che copre l'intera API.
+
+---
+
+## Componenti aggiuntivi
+
+### Controller astratti (common-jpa-service)
+
+| Classe | Descrizione |
+|--------|-------------|
+| `BaseSearchController<E,ID,M,P,MM>` | Controller REST astratto con endpoint `/search`, `/count`, `/search/single-result` già cablati al `JpaService`. La sottoclasse fornisce solo il `ModelMapper`. |
+| `PerformanceSearchController<E,ID,M,PM,P>` | Estende `BaseSearchController` aggiungendo un endpoint `/performance/search` che restituisce un modello leggero `PM`. |
+| `ModelMapper<E,M>` | Interfaccia per la conversione entità → DTO. |
+| `PerformanceModelMapper<E,M,PM>` | Estende `ModelMapper` aggiungendo `convertToPerformanceModel()` per il modello leggero. |
+
+### Mapping risultati nativi (common-jpa-service)
+
+| Classe / Annotazione | Descrizione |
+|----------------------|-------------|
+| `JpaRowMapper<K>` | Interfaccia funzionale per il mapping personalizzato di righe JPA `Tuple` |
+| `JdbcRowMapper<K>` | Interfaccia funzionale per il mapping personalizzato di righe JDBC `ResultSet` |
+| `ResultMapper<T>` | Converte una `Map<String,Object>` (riga risultato) in un tipo tipizzato |
+| `@ResultMapping` | Collega un campo del modello al `ResultMapper` da usare |
+| `@IgnoreResultSet` | Esclude un campo dal mapping automatico del risultato |
+| `TupleParameter` | Confronto tuple multi-colonna per clausole `IN` su più colonne |
+| `@TupleComparison` | Annotazione dichiarativa per legare un campo `TupleParameter` al motore di reflection |
+
+### Componenti interni (proxy-api-controller)
+
+| Classe | Descrizione |
+|--------|-------------|
+| `ApiFindRegistrar` | Scansiona il classpath per interfacce `@ApiFindController` e le registra come bean Spring |
+| `ProxyConfig` | Factory Spring che crea istanze proxy dinamiche JDK |
+| `ApiFindInterceptor` | `InvocationHandler` singleton delegato per ogni chiamata proxy |
+| `FindInterceptor` | Componente prototype che esegue l'intera pipeline: estrazione parametri → hook → query → mapping |
+| `ParameterDetails` | Value object interno con `Parameter`, valore runtime e indice posizionale |
+| `ApiFindException` | Eccezione unchecked lanciata in caso di errore nella pipeline proxy |

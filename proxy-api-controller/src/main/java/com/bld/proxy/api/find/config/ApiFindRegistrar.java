@@ -26,6 +26,21 @@ import org.springframework.util.StringUtils;
 import com.bld.proxy.api.find.annotations.ApiFindController;
 import com.bld.proxy.api.find.config.annotation.EnableProxyApiController;
 
+/**
+ * Spring {@link ImportBeanDefinitionRegistrar} that scans the classpath for
+ * interfaces annotated with {@link ApiFindController} and registers each one as
+ * a Spring bean backed by a JDK dynamic proxy.
+ *
+ * <p>This registrar is activated when a configuration class is annotated with
+ * {@link com.bld.proxy.api.find.config.annotation.EnableProxyApiController}.
+ * For each discovered interface it creates a {@link org.springframework.beans.factory.config.BeanDefinition}
+ * whose factory method is {@link com.bld.proxy.api.find.config.ProxyConfig#newProxyInstance(Class)},
+ * so the proxy instance is created and wired by Spring at startup.</p>
+ *
+ * @author Francesco Baldi
+ * @see com.bld.proxy.api.find.config.annotation.EnableProxyApiController
+ * @see com.bld.proxy.api.find.config.ProxyConfig
+ */
 public class ApiFindRegistrar implements ImportBeanDefinitionRegistrar, EnvironmentAware, ResourceLoaderAware {
 
 	private static final String PROXY_CONFIG = "proxyConfig";

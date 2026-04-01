@@ -15,13 +15,16 @@ Runtime REST controller framework that generates fully functional Spring MVC end
    - [@ApiBeforeFind](#apibeforefind)
    - [@ApiAfterFind](#apiafterfind)
    - [@ApiQuery](#apiquery)
+   - [@DefaultOrderBy](#defaultorderby)
 4. [Hook interfaces](#hook-interfaces)
    - [BeforeFind](#beforefind)
    - [AfterFind](#afterfind)
 5. [Method parameter binding](#method-parameter-binding)
 6. [Response containers](#response-containers)
 7. [Execution flow](#execution-flow)
-8. [Real-world examples](#real-world-examples)
+8. [Internal components](#internal-components)
+9. [Error handling](#error-handling)
+10. [Real-world examples](#real-world-examples)
    - [Basic controller with security and caching](#basic-controller-with-security-and-caching)
    - [Method-level annotation overrides](#method-level-annotation-overrides)
    - [Named query with @ApiQuery](#named-query-with-apiquery)
@@ -211,9 +214,33 @@ When `@ApiQuery` is present with a value, the framework executes that JPQL strin
 
 | Attribute | Type | Default | Description |
 |-----------|------|---------|-------------|
-| `value` | `String` | `""` | Named query key defined on the service interface |
-| `jpql` | `boolean` | `true` | `true` for JPQL, `false` for native SQL |
+| `value` | `String` | `""` | The query string to execute (native SQL or JPQL depending on `jpql`) |
+| `jpql` | `boolean` | `false` | `false` (default) = native SQL; `true` = JPQL dynamic mode (auto-build JPQL from `value`) |
 | `orderBy` | `@DefaultOrderBy[]` | `{}` | Default sort orders applied when no `OrderBy` is in the filter |
+
+> **Important:** `jpql = false` (default) runs `value` as a native SQL string via `NativeQueryParameter`. `jpql = true` runs the auto-generated JPQL pipeline; in this case `value` is the JPQL string, or leave it blank to let the framework generate the WHERE clause automatically.
+
+### @DefaultOrderBy
+
+Defines a single default `ORDER BY` clause item used inside `@ApiQuery#orderBy()`. Multiple entries produce a multi-column sort applied when the caller provides no explicit sort key.
+
+```java
+@PostMapping("/products/all")
+@ApiQuery(
+    value  = "SELECT p FROM Product p WHERE p.active = true",
+    jpql   = true,
+    orderBy = {
+        @DefaultOrderBy(value = "p.name", orderType = OrderType.asc),
+        @DefaultOrderBy(value = "p.price", orderType = OrderType.desc)
+    }
+)
+CollectionResponse<ProductDto> findAll();
+```
+
+| Attribute | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `value` | `String` | — | JPQL or SQL sort expression (e.g., `"p.name"`, `"price"`) |
+| `orderType` | `OrderType` | `OrderType.asc` | Sort direction (`asc` or `desc`) |
 
 ---
 
@@ -401,6 +428,83 @@ FindInterceptor.find()
   ├─ Map results via @ApiMapper (if present)
   │
   └─ Wrap in response container and return
+```
+
+---
+
+## Internal components
+
+Understanding the internal classes is useful when extending or debugging the framework.
+
+| Class | Role |
+|-------|------|
+| `EnableProxyApiController` | Entry-point annotation; imports `ProxyApiFindConfig` and `ApiFindRegistrar` |
+| `ApiFindRegistrar` | `ImportBeanDefinitionRegistrar` that scans the classpath for `@ApiFindController` interfaces and registers each as a Spring bean via `ProxyConfig.newProxyInstance()` |
+| `ProxyApiFindConfig` | Spring `@Configuration` that activates component scanning for the `com.bld.proxy.api.find` package and enables common utilities |
+| `ProxyConfig` | Spring `@Component` factory that creates JDK dynamic proxy instances for `@ApiFindController` interfaces using `ApiFindInterceptor` as the `InvocationHandler` |
+| `ApiFindInterceptor` | Singleton `InvocationHandler` registered on every proxy; retrieves a fresh `FindInterceptor` prototype bean per invocation and delegates to it |
+| `FindInterceptor` | Prototype-scoped component that performs the actual query: parameter extraction → `BeforeFind` hook → query execution → mapper invocation → `AfterFind` hook |
+| `ParameterDetails` | Internal value object capturing a method parameter's `java.lang.reflect.Parameter`, its runtime value, and its position index |
+| `ApiFindException` | Unchecked runtime exception thrown when proxy invocation or mapper resolution fails |
+
+### Registration flow (startup)
+
+```
+@EnableProxyApiController
+  └─ imports ApiFindRegistrar
+       └─ scans packages for @ApiFindController interfaces
+            └─ for each interface:
+                 BeanDefinitionBuilder.setFactoryMethodOnBean("newProxyInstance", "proxyConfig")
+                 → ProxyConfig.newProxyInstance(interfaceClass)
+                 → Proxy.newProxyInstance(..., ApiFindInterceptor)
+                 → bean registered in Spring context as the interface type
+```
+
+### Request handling flow (runtime)
+
+```
+HTTP request
+  → proxy method call
+  → ApiFindInterceptor.invoke()                      [singleton]
+      → applicationContext.getBean(FindInterceptor)  [new prototype per request]
+      → FindInterceptor.find()
+          → extract @RequestBody / @RequestParam / @PathVariable parameters
+          → resolve @ApiFind entity + id types
+          → invoke @ApiBeforeFind hook (if present)
+          → build QueryParameter or NativeQueryParameter
+          → resolve JpaService<E,ID> via ResolvableType
+          → execute: findByFilter / countByFilter / singleResultByFilter
+          → apply @ApiMapper (entity → DTO via mapper bean)
+          → invoke @ApiAfterFind hook (if present)
+          → return wrapped response
+```
+
+---
+
+## Error handling
+
+The framework throws `ApiFindException` (unchecked) in the following situations:
+
+| Scenario | Message |
+|----------|---------|
+| `@ApiFind` annotation missing on interface and method | `NullPointerException` on `apiFind.entity()` — ensure `@ApiFind` is present |
+| `@ApiMapper` missing when result needs mapping | `"The class to convert the entity to output is not declared"` |
+| Mapper method not found for the entity/model pair | `"Method mapper is not found"` |
+| Multiple compatible mapper methods found | `"More compatible methods were found in the mapping class, use @ApiMethodMapper or @ApiMapper to select the method name"` |
+| `@ApiQuery` native SQL with blank `value` | `"For native query the field 'value' can not be blank into ApiQuery"` |
+
+**Standard exception handling:** `ApiFindException` extends `RuntimeException`. Configure a Spring `@ControllerAdvice` / `@RestControllerAdvice` to map it to an HTTP error response:
+
+```java
+@RestControllerAdvice
+public class GlobalExceptionHandler {
+
+    @ExceptionHandler(ApiFindException.class)
+    public ResponseEntity<ErrorResponse> handleApiFindException(ApiFindException ex) {
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(new ErrorResponse(ex.getMessage()));
+    }
+}
 ```
 
 ---
