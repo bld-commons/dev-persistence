@@ -218,76 +218,255 @@ At runtime, `OrderBy("name", OrderType.ASC)` in the filter is resolved to `ORDER
 
 ## Generated code
 
+For each `@QueryBuilder`-annotated class the processor generates **two files** in `target/generated-sources/annotations`:
+
+| Generated file | Purpose |
+|---|---|
+| `*QueryJpql.java` | Interface with `public static final String` constants for every parameter and sort key name |
+| `*QueryJpqlImpl.java` | `@Component` that extends `QueryJpql<T>`, implements the interface, and holds all pre-built strings and maps |
+
+---
+
 ### Example input
 
 ```java
+@Service
+@Transactional
 @QueryBuilder(
-    distinct   = true,
-    joins      = { "order.customer" },
     conditions = {
-        @ConditionBuilder(field = "order.status",   operation = OperationType.EQUALS, parameter = "status"),
-        @ConditionBuilder(field = "order.customer.email", operation = OperationType.LIKE, parameter = "email",
-                          upperLower = UpperLowerType.LOWER)
-    },
-    customConditions = {
-        @CustomConditionBuilder(condition = "and order.total > :minTotal", parameter = "minTotal")
+        @ConditionBuilder(field = "exApplication.name",
+                          operation = OperationType.IN, parameter = "applicationsName"),
+        @ConditionBuilder(field = "exApplication.exProject.idProject",
+                          operation = OperationType.IN, parameter = "idProjectGrant"),
+        @ConditionBuilder(field = "exApplication.exProject.idProject",
+                          operation = OperationType.IN, parameter = "idProject"),
+        @ConditionBuilder(field = "exApplication.exEnvironment.idEnvironment",
+                          operation = OperationType.IN, parameter = "idEnvironment"),
+        @ConditionBuilder(field = "exApplication.name",
+                          operation = OperationType.NOT_IN, parameter = "notInName"),
     },
     jpaOrder = {
-        @JpqlOrderBuilder(sortKey = "date", field = "order.createdAt")
+        @JpqlOrderBuilder(key = "desApplicationType",
+                          order = "exApplication.exApplicationType.desApplicationType")
+    },
+    customNativeConditions = {
+        @CustomConditionBuilder(condition = " and upper(eu.email)=:email ",
+                                parameter = "email", keys = "appCondition")
+    },
+    nativeOrder = {
+        @NativeOrderBuilder(key = "name", order = "ea.name")
     }
 )
-public interface OrderService extends JpaService<Order, Long> { }
+public class ExApplicationServiceImpl extends JpaServiceImpl<ExApplication, Integer>
+        implements ExApplicationService { ... }
 ```
 
-### Example output (simplified)
+---
+
+### Generated output
+
+#### `ExApplicationQueryJpql.java` — constants interface
+
+One `String` constant per parameter name and per sort key. Referenced in hook implementations and manual `QueryParameter` calls to avoid hardcoded strings.
+
+```java
+public interface ExApplicationQueryJpql {
+
+    // Parameter name constants — one per @ConditionBuilder.parameter + base entity fields
+    String applicationsName    = "applicationsName";
+    String idProjectGrant      = "idProjectGrant";
+    String idProject           = "idProject";
+    String idEnvironment       = "idEnvironment";
+    String notInName           = "notInName";
+    String email               = "email";       // from customNativeConditions
+    String name                = "name";        // from base entity fields
+    String id                  = "id";
+    String idApplication       = "idApplication";
+    String updateTime          = "updateTime";
+    String updateTimeFrom      = "updateTimeFrom";
+    String updateTimeTo        = "updateTimeTo";
+    String createTime          = "createTime";
+    String createTimeFrom      = "createTimeFrom";
+    String createTimeTo        = "createTimeTo";
+    // ...
+
+    // Sort key constants (prefixed ord_)
+    String ord_desApplicationType = "desApplicationType";  // from @JpqlOrderBuilder
+    String ord_name               = "name";                // from @NativeOrderBuilder
+}
+```
+
+#### `ExApplicationQueryJpqlImpl.java` — full generated class
 
 ```java
 @Component
-public class OrderQueryJpqlImpl extends QueryJpql<Order> {
+public class ExApplicationQueryJpqlImpl
+        extends QueryJpql<ExApplication>
+        implements ExApplicationQueryJpql {
 
-    private static final String SELECT =
-        "select distinct order from Order order " +
-        "join fetch order.customer customer " +
-        "${joinZone} where 1=1 ";
+    // ── Static maps (initialised once at class-load time) ───────────────────
+    private final static Map<String,String>              MAP_CONDITIONS        = getMapConditions();
+    private final static Map<String,String>              MAP_DELETE_CONDITIONS = getMapDeleteConditions();
+    private final static Map<String,Map<String,String>>  MAP_NATIVE_CONDITIONS = getMapNativeConditions();
+    private final static Map<String,String>              MAP_NATIVE_ORDERS     = getMapNativeOrders();
+    private final static Map<String,String>              MAP_JPA_ORDERS        = getMapJpaOrders();
 
-    private static final String COUNT =
-        "select count(distinct order) from Order order " +
-        "join fetch order.customer customer " +
-        "${joinZone} where 1=1 ";
+    // ── Base JPQL strings ────────────────────────────────────────────────────
+    // FROM includes all mandatory JOIN FETCH clauses derived from the entity's @ManyToOne fields.
+    // The processor walks the entity graph and generates one JOIN FETCH per relationship
+    // that is not a @OneToMany / @ManyToMany (those go into mapOneToMany() instead).
 
-    private static final String DELETE =
-        "delete from Order order where 1=1 ";
+    private final static String FROM_BY_FILTER =
+        " From ExApplication exApplication " +
+        " join fetch exApplication.exProject exProject " +
+        " join fetch exApplication.exEnvironment exEnvironment " +
+        " join fetch exApplication.exApplicationType exApplicationType ";
 
-    private static final Map<String, String> MAP_CONDITIONS = new HashMap<>();
-    private static final Map<String, String> MAP_DELETE_CONDITIONS = new HashMap<>();
-    private static final Map<String, String> MAP_JPA_ORDERS = new HashMap<>();
+    private final static String SELECT_BY_FILTER    = "select distinct exApplication" + FROM_BY_FILTER;
+    private final static String COUNT_BY_FILTER     = "select distinct count(exApplication)" + FROM_BY_FILTER;
+    private final static String SELECT_ID_BY_FILTER = "select distinct exApplication.idApplication " + FROM_BY_FILTER;
+    private final static String DELETE_BY_FILTER    = "delete from ExApplication exApplication ";
+    // Note: DELETE has no JOIN FETCH — relationships are navigated inline in MAP_DELETE_CONDITIONS.
 
-    static {
-        MAP_CONDITIONS.put("status",   "and order.status = :status");
-        MAP_CONDITIONS.put("email",    "and LOWER(order.customer.email) LIKE LOWER(:email)");
-        MAP_CONDITIONS.put("minTotal", "and order.total > :minTotal");
+    // ── MAP_CONDITIONS — active during SELECT / COUNT queries ────────────────
+    // Key   = parameter name
+    // Value = JPQL fragment appended to WHERE when the parameter is non-null
+    //
+    // Two sub-maps are merged:
+    //   getMapBaseConditions() — auto-generated from the entity's own fields
+    //   explicit entries       — generated from each @ConditionBuilder
+    //
+    // In SELECT queries, relationship aliases from FROM_BY_FILTER are reused directly
+    // (e.g. "exProject" instead of "exApplication.exProject").
 
-        MAP_JPA_ORDERS.put("date", "order.createdAt");
+    private static Map<String,String> getMapConditions() {
+        Map<String,String> map = getMapBaseConditions();
+        map.put(applicationsName, " and ((exApplication.name)  in (:applicationsName) )");
+        map.put(notInName,        " and ((exApplication.name)  not in (:notInName) )");
+        map.put(idProject,        " and (exProject.idProject  in (:idProject) )");
+        map.put(idEnvironment,    " and (exEnvironment.idEnvironment  in (:idEnvironment) )");
+        map.put(idProjectGrant,   " and (exProject.idProject  in (:idProjectGrant) )");
+        return map;
     }
 
-    @Override
-    public String selectByFilter()  { return SELECT; }
-    @Override
-    public String countByFilter()   { return COUNT; }
-    @Override
-    public String deleteByFilter()  { return DELETE; }
-    @Override
-    public Map<String, String> mapConditions()  { return MAP_CONDITIONS; }
-    @Override
-    public Map<String, String> mapJpaOrders()   { return MAP_JPA_ORDERS; }
+    // Auto-generated base conditions — entity-level fields that are always available
+    private static Map<String,String> getMapBaseConditions() {
+        Map<String,String> map = new HashMap<>();
+        map.put(name,           " and upper(exApplication.name) like :name ");
+        map.put(id,             " and exApplication.idApplication in (:id) ");
+        map.put(idApplication,  " and exApplication.idApplication in (:idApplication) ");
+        map.put(updateTimeFrom, " and :updateTimeFrom<=exApplication.updateTime ");
+        map.put(updateTimeTo,   " and exApplication.updateTime<=:updateTimeTo ");
+        map.put(createTimeFrom, " and :createTimeFrom<=exApplication.createTime ");
+        map.put(createTimeTo,   " and exApplication.createTime<=:createTimeTo ");
+        return map;
+    }
+
+    // ── MAP_DELETE_CONDITIONS — active during DELETE queries ─────────────────
+    // Identical structure to MAP_CONDITIONS but without join-fetched aliases.
+    // DELETE JPQL cannot use JOIN FETCH, so every relationship is navigated
+    // from the root entity alias using the full dot-notation path.
+
+    private static Map<String,String> getMapDeleteConditions() {
+        Map<String,String> map = getMapBaseConditions();
+        // Compare with MAP_CONDITIONS:
+        //   SELECT: "exProject.idProject in (:idProject)"       ← uses fetched alias
+        //   DELETE: "exApplication.exProject.idProject in (:idProject)"  ← full path
+        map.put(idProject,      " and (exApplication.exProject.idProject  in (:idProject) )");
+        map.put(idEnvironment,  " and (exApplication.exEnvironment.idEnvironment  in (:idEnvironment) )");
+        map.put(idProjectGrant, " and (exApplication.exProject.idProject  in (:idProjectGrant) )");
+        map.put(applicationsName," and ((exApplication.name)  in (:applicationsName) ) ");
+        map.put(notInName,       " and ((exApplication.name)  not in (:notInName) ) ");
+        return map;
+    }
+
+    // ── MAP_NATIVE_CONDITIONS — per-zone native SQL conditions ───────────────
+    // Outer key = zone name (must match ${zoneName} in the SQL template string)
+    // Inner map = parameter name → SQL fragment injected into that zone when non-null
+    // Generated from @QueryBuilder#customNativeConditions with matching keys.
+
+    private static Map<String,Map<String,String>> getMapNativeConditions() {
+        Map<String,Map<String,String>> map = new HashMap<>();
+        map.put("appCondition", getAppCondition());
+        return map;
+    }
+
+    private static Map<String,String> getAppCondition() {
+        Map<String,String> map = new HashMap<>();
+        map.put(email, " and upper(eu.email)=:email ");
+        return map;
+    }
+
+    // ── MAP_NATIVE_ORDERS — native SQL sort keys ─────────────────────────────
+    // Key   = logical sort key (from @NativeOrderBuilder.key)
+    // Value = SQL column expression used in ORDER BY
+
+    private static Map<String,String> getMapNativeOrders() {
+        Map<String,String> map = new HashMap<>();
+        map.put(ord_name, " ea.name ");
+        return map;
+    }
+
+    // ── MAP_JPA_ORDERS — JPQL sort keys ──────────────────────────────────────
+    // Auto-generated for every reachable field via join-fetched aliases + explicit @JpqlOrderBuilder entries.
+    // Key   = sort key string (from OrderBy.sortKey in the filter)
+    // Value = JPQL field expression for ORDER BY
+
+    private static Map<String,String> getMapJpaOrders() {
+        Map<String,String> map = new HashMap<>();
+        // Auto-generated from join-fetched paths:
+        map.put("exApplication.name",          "exApplication.name");
+        map.put("exProject.idProject",         "exProject.idProject");
+        map.put("exEnvironment.idEnvironment", "exEnvironment.idEnvironment");
+        map.put("exEnvironment.envName",       "exEnvironment.envName");
+        map.put("exProject.prjName",           "exProject.prjName");
+        // Explicit entry from @JpqlOrderBuilder:
+        map.put(ord_desApplicationType,        " exApplicationType.desApplicationType ");
+        return map;
+    }
+
+    // ── mapOneToMany() — conditional LEFT JOIN FETCH ──────────────────────────
+    // Called lazily the first time getMapOneToMany() is accessed.
+    // Each entry registers a LEFT JOIN FETCH that is added to the SELECT/COUNT query
+    // ONLY when the corresponding parameter is non-null in the filter.
+    // This prevents Cartesian products for collections that are not being filtered on.
 
     @Override
     public void mapOneToMany() {
-        // Adds LEFT JOIN FETCH entries for @OneToMany/@ManyToMany fields
-        // keyed by the filter parameter name — added only when that parameter is non-null
+        addJoinOneToMany(idApplicationServer,
+            " left join fetch exApplication.exApplicationServers exApplicationServers ");
+        addJoinOneToMany(idServiceRest,
+            " left join fetch exApplication.exServiceRests exServiceRests ");
+        // If the filter has idApplicationServer → the JOIN FETCH is added automatically.
+        // If it is null → no join, no Cartesian product.
     }
+
+    // ── Bridge methods ────────────────────────────────────────────────────────
+
+    @Override public String selectByFilter()                        { return SELECT_BY_FILTER; }
+    @Override public String selectIdByFilter()                      { return SELECT_ID_BY_FILTER; }
+    @Override public String countByFilter()                         { return COUNT_BY_FILTER; }
+    @Override public String deleteByFilter()                        { return DELETE_BY_FILTER; }
+    @Override public Map<String,String> mapConditions()             { return MAP_CONDITIONS; }
+    @Override public Map<String,String> mapDeleteConditions()       { return MAP_DELETE_CONDITIONS; }
+    @Override public Map<String,Map<String,String>> mapNativeConditions() { return MAP_NATIVE_CONDITIONS; }
+    @Override public Map<String,String> mapNativeOrders()           { return MAP_NATIVE_ORDERS; }
+    @Override public Map<String,String> mapJpaOrders()              { return MAP_JPA_ORDERS; }
 }
 ```
+
+---
+
+### Key differences between MAP_CONDITIONS and MAP_DELETE_CONDITIONS
+
+The same `@ConditionBuilder` generates **two different condition strings** — one for SELECT and one for DELETE:
+
+| Query type | Path used | Example |
+|---|---|---|
+| SELECT / COUNT | Short alias from JOIN FETCH | `exProject.idProject in (:idProject)` |
+| DELETE | Full path from root alias | `exApplication.exProject.idProject in (:idProject)` |
+
+This is because DELETE JPQL cannot contain JOIN FETCH clauses, so the processor automatically rewrites every condition to use the full dot-notation path starting from the root entity alias.
 
 ---
 
