@@ -21,7 +21,14 @@ Runtime REST controller framework that generates fully functional Spring MVC end
 5. [Method parameter binding](#method-parameter-binding)
 6. [Response containers](#response-containers)
 7. [Execution flow](#execution-flow)
-8. [Complete example](#complete-example)
+8. [Real-world examples](#real-world-examples)
+   - [Basic controller with security and caching](#basic-controller-with-security-and-caching)
+   - [Method-level annotation overrides](#method-level-annotation-overrides)
+   - [Named query with @ApiQuery](#named-query-with-apiquery)
+   - [BeforeFind hook with @AuthenticationPrincipal](#beforefind-hook-with-authenticationprincipal)
+   - [AfterFind hook to enrich results](#afterfind-hook-to-enrich-results)
+   - [Filter class with IDFilterParameter](#filter-class-with-idfilterparameter)
+9. [Complete end-to-end example](#complete-end-to-end-example)
 
 ---
 
@@ -80,6 +87,8 @@ public interface ProductController {
 
 The interface is registered as a `@RestController` bean via `ApiFindRegistrar`. The proxy intercepts all method calls and routes them through `FindInterceptor`.
 
+Any Spring annotation that works on a `@RestController` class can be placed on the interface or its methods: `@Transactional`, `@PreAuthorize`, `@Cacheable`, etc.
+
 ### @ApiFind
 
 Binds a controller interface or method to a specific JPA entity and its primary-key type.
@@ -92,16 +101,24 @@ Can be placed at **type level** (inherited by all methods) or at **method level*
 
 ```java
 @ApiFindController
-@ApiFind(entity = Product.class, id = Long.class)   // default for all methods
-@RequestMapping("/api/products")
-public interface ProductController {
+@ApiFind(entity = ExApplication.class, id = Integer.class)
+@RequestMapping("/api-exception/exception-audit")
+public interface ExceptionAuditProxyController {
 
+    // Uses type-level binding → queries ExExceptionAudit
     @PostMapping("/search")
-    List<ProductDto> search(@RequestBody ProductFilter filter);
+    CollectionResponse<ExceptionAuditModel> findByFilter(@RequestBody ExceptionAuditFilter filter,
+        @AuthenticationPrincipal @IgnoreMapping ExUserSecurity exUserSecurity);
 
-    @PostMapping("/orders/search")
-    @ApiFind(entity = Order.class, id = Long.class)  // overrides at method level
-    List<OrderDto> searchOrders(@RequestBody OrderFilter filter);
+    // Overrides entity at method level → queries ExUserAssigned instead
+    @PostMapping("/search/by-user")
+    @ApiFind(entity = ExUserAssigned.class, id = Integer.class)
+    @ApiMapper(value = ExExceptionAuditMapper.class, method = "convertToModel")
+    CollectionResponse<ExceptionAuditModel> findByUser(
+        @RequestBody ExceptionAuditFilter filter,
+        @AuthenticationPrincipal @Param("email")
+        @LikeString(likeType = LikeType.NONE, upperLowerType = UpperLowerType.UPPER)
+        ExUserSecurity exUserSecurity);
 }
 ```
 
@@ -120,24 +137,44 @@ Specifies the mapper class (and optionally a specific method) to use for convert
 
 If `method` is blank, the framework auto-resolves the first single-argument method on the mapper class whose parameter type matches the entity. The mapper bean is retrieved from the Spring context.
 
+Can be placed at **type level** (applies to all methods) or at **method level** (overrides the type-level mapper for that method):
+
+```java
+@ApiFindController
+@ApiFind(entity = ExApplication.class, id = Integer.class)
+@ApiMapper(ExApplicationMapper.class)               // default mapper for all methods
+@RequestMapping("/api-exception/application")
+public interface ApplicationProxyController {
+
+    @PostMapping("/search")
+    CollectionResponse<ApplicationModel> findByFilter(@RequestBody ApplicationFilter filter);
+
+    @PostMapping("/search/by-user")
+    @ApiFind(entity = ExUserAssigned.class, id = Integer.class)
+    @ApiMapper(value = ExExceptionAuditMapper.class, method = "convertToModel") // override
+    CollectionResponse<ExceptionAuditModel> findByUser(@RequestBody ExceptionAuditFilter filter,
+        @AuthenticationPrincipal ExUserSecurity user);
+}
+```
+
 | Attribute | Type | Default | Description |
 |-----------|------|---------|-------------|
 | `value` | `Class<?>` | — | The mapper class (retrieved from Spring context) |
 | `method` | `String` | `""` | Method name (auto-resolved if blank) |
-
-Can be placed at type or method level.
 
 ### @ApiBeforeFind
 
 Registers a `BeforeFind` hook that runs **before** the query is executed.
 
 ```java
-@PostMapping("/search")
-@ApiBeforeFind(TenantInjector.class)
-List<ProductDto> search(@RequestBody ProductFilter filter);
+@PostMapping("/grant/search")
+@ApiBeforeFind(GrantHandlerFindRequest.class)
+CollectionResponse<ApplicationModel> findByFilter(
+    @RequestBody ApplicationFilter filter,
+    @AuthenticationPrincipal @IgnoreMapping ExUserSecurity exUserSecurity);
 ```
 
-The `BeforeFind` implementation receives the current `BaseQueryParameter` (allowing you to add parameters, modify the filter, enforce security constraints, etc.) and the raw method arguments.
+The `BeforeFind` implementation receives the current `BaseQueryParameter` (allowing you to add parameters, modify the filter, enforce security constraints, etc.) and the raw method arguments. The extra method arguments (e.g., `@AuthenticationPrincipal`) are passed as `args` in order.
 
 | Attribute | Type | Description |
 |-----------|------|-------------|
@@ -148,9 +185,9 @@ The `BeforeFind` implementation receives the current `BaseQueryParameter` (allow
 Registers an `AfterFind` hook that runs **after** the query results are returned.
 
 ```java
-@PostMapping("/search")
-@ApiAfterFind(OrderEnricher.class)
-List<OrderDto> search(@RequestBody OrderFilter filter);
+@PostMapping("/search/id")
+@ApiAfterFind(UserHandlerFindRequest.class)
+ObjectResponse<UserModel> findById(@RequestBody @Valid IdUserFilter idUserFilter);
 ```
 
 The `AfterFind` implementation receives the result object and the raw method arguments, and can modify or replace the result.
@@ -161,11 +198,20 @@ The `AfterFind` implementation receives the result object and the raw method arg
 
 ### @ApiQuery
 
-Optionally placed on a method to customize how the query is executed. When absent, the framework uses the standard `findByFilter` path.
+Optionally placed on a method to execute a named JPQL query instead of the standard `findByFilter` path. The named query string is typically defined as a constant on the service interface.
+
+```java
+@PostMapping("/all/names")
+@PreAuthorize("hasAuthority('OWNER')")
+@ApiQuery(value = ExApplicationService.NAME_APPLICATION, orderBy = @DefaultOrderBy("name"))
+CollectionResponse<ApplicationModel> searchName();
+```
+
+When `@ApiQuery` is present with a value, the framework executes that JPQL string directly. The `orderBy` attribute injects a default sort when the request carries no `OrderBy` parameters.
 
 | Attribute | Type | Default | Description |
 |-----------|------|---------|-------------|
-| `value` | `String` | `""` | Custom JPQL or native SQL string |
+| `value` | `String` | `""` | Named query key defined on the service interface |
 | `jpql` | `boolean` | `true` | `true` for JPQL, `false` for native SQL |
 | `orderBy` | `@DefaultOrderBy[]` | `{}` | Default sort orders applied when no `OrderBy` is in the filter |
 
@@ -183,19 +229,28 @@ public interface BeforeFind<E, ID> {
 
 Implement this interface to run logic before the query. The `parameters` object is mutable — you can add named parameters, set pagination, or inject security constraints.
 
+**Real example — injecting IDs from a security-resolved lookup:**
+
 ```java
 @Component
-public class TenantInjector implements BeforeFind<Product, Long> {
+public class GrantHandlerFindRequest implements BeforeFind<ExApplication, Integer> {
 
     @Autowired
-    private TenantContext tenantContext;
+    private ExProjectService exProjectService;
 
     @Override
-    public void before(BaseQueryParameter<Product, Long> parameters, Object... args) {
-        parameters.addParameter("tenantId", tenantContext.getCurrentTenantId());
+    public void before(BaseQueryParameter<ExApplication, Integer> parameters, Object... args) {
+        // args[0] is the @AuthenticationPrincipal passed to the controller method
+        ExUserSecurity exUserSecurity = (ExUserSecurity) args[0];
+        parameters.addParameter(
+            ExApplicationQueryJpql.idProjectGrant,
+            exProjectService.findIdProjectByEmail(exUserSecurity.getUsername())
+        );
     }
 }
 ```
+
+The `args` array contains the method arguments **in declaration order**, excluding parameters annotated with `@IgnoreMapping` (which are stripped before building the query parameter map) — they are still passed to hooks.
 
 ### AfterFind
 
@@ -207,17 +262,37 @@ public interface AfterFind<T> {
 
 Implement this interface to post-process results. The return value replaces the original result.
 
+**Real example — enriching a single-result response with additional data:**
+
 ```java
 @Component
-public class OrderEnricher implements AfterFind<List<OrderDto>> {
+public class UserHandlerFindRequest implements AfterFind<ObjectResponse<UserModel>> {
 
     @Autowired
-    private InventoryService inventoryService;
+    private ExAssUserRoleService exAssUserRoleService;
+
+    @Autowired
+    private ExProjectService exProjectService;
 
     @Override
-    public List<OrderDto> after(List<OrderDto> result, Object... args) {
-        result.forEach(dto -> dto.setAvailable(inventoryService.isAvailable(dto.getProductId())));
-        return result;
+    public ObjectResponse<UserModel> after(ObjectResponse<UserModel> response, Object... args) {
+        IdUserFilter filter = (IdUserFilter) args[0];
+
+        // Load role from a separate query
+        QueryParameter<ExAssUserRole, ExAssUserRolePK> queryUserRole = new QueryParameter<>();
+        queryUserRole.addParameter(ExAssUserRoleQueryJpql.idUser, response.getData().getId());
+        ExAssUserRole userRole = exAssUserRoleService.singleResultByFilter(queryUserRole);
+
+        response.getData().setIdRole(userRole.getId().getIdRole());
+        response.getData().setPriority(userRole.getExRole().getPriority());
+
+        // Load project associations
+        List<Integer> idProjects = exProjectService.findIdProjectByIdUser(filter.getIdUser());
+        if (CollectionUtils.isEmpty(idProjects))
+            idProjects.add(-1);
+        response.getData().setIdProject(idProjects);
+
+        return response;
     }
 }
 ```
@@ -230,12 +305,42 @@ The interceptor extracts values from Spring MVC method parameters based on their
 
 | Spring annotation | Binding |
 |-------------------|---------|
-| `@RequestBody` | Treated as a `BaseParameter` filter or added directly to the query |
+| `@RequestBody` | Treated as a `BaseParameter` filter; all non-null fields become query parameters |
 | `@RequestParam` | Added as a named parameter |
 | `@PathVariable` | Added as a named parameter |
-| `@AuthenticationPrincipal` | Passed to BeforeFind/AfterFind hooks as an extra arg |
+| `@AuthenticationPrincipal` | Passed to hooks as an element of `args` — not added to the query parameter map |
 | `@RequestAttribute` | Added as a named parameter |
+| `@IgnoreMapping` | Prevents the parameter from being added to the query map, but still forwarded to hooks |
 | None (no annotation) | Ignored |
+
+### @IgnoreMapping on method parameters
+
+`@IgnoreMapping` can be placed on a method parameter to prevent the framework from treating it as a query filter, while still making it available to `BeforeFind`/`AfterFind` hooks via `args`. This is the standard pattern for `@AuthenticationPrincipal`:
+
+```java
+@PostMapping("/search")
+CollectionResponse<ExceptionAuditModel> findByFilter(
+    @RequestBody ExceptionAuditFilter filter,
+    @AuthenticationPrincipal @IgnoreMapping ExUserSecurity exUserSecurity);
+    //                        ↑ passed to hooks but never added to the WHERE clause
+```
+
+### @ConditionsZones on method parameters
+
+When a method parameter (e.g., `@AuthenticationPrincipal`) should contribute to a **zone-based native SQL condition**, annotate it with `@ConditionsZones` to route its value to the correct zone:
+
+```java
+@PostMapping("/grant/all/names")
+@ApiQuery(value = ExApplicationService.NAME_APPLICATION, orderBy = @DefaultOrderBy("name"))
+CollectionResponse<ApplicationModel> searchName(
+    @AuthenticationPrincipal
+    @Param("email")
+    @ConditionsZones(@ConditionsZone(key = "appCondition"))
+    @LikeString(upperLowerType = UpperLowerType.UPPER, likeType = LikeType.NONE)
+    ExUserSecurity exUserSecurity);
+```
+
+Here `exUserSecurity` is bound as the `email` parameter (via `@Param`) and routed to the `appCondition` zone in the native SQL template.
 
 ---
 
@@ -249,7 +354,16 @@ The interceptor determines how to wrap the result based on the method's declared
 | `T` (single object) | Returns the single result (calls `singleResultByFilter`) |
 | `long` / `Long` / `Number` | Executes `countByFilter` and returns the count |
 | `CollectionResponse<T>` | Returns a wrapper with `items`, `totalCount`, `pageNumber`, `pageSize` |
-| `ObjectResponse<T>` | Returns a wrapper with `item` (single result or count) |
+| `ObjectResponse<T>` | Returns a wrapper with `item` (single result) |
+
+`CollectionResponse` is the standard choice for paginated lists. `ObjectResponse` is used for single-item lookups where you need a consistent JSON wrapper:
+
+```java
+// Returns { "data": {...}, "status": ... }
+@PostMapping("/search/id")
+ObjectResponse<ApplicationModel> singleResultFindByFilter(
+    @RequestBody @Valid IdApplicationFilter baseParameter);
+```
 
 ---
 
@@ -265,17 +379,24 @@ ApiFindInterceptor.invoke()
 FindInterceptor.find()
   │
   ├─ Extract parameters (@RequestBody, @RequestParam, @PathVariable, ...)
+  │   - @IgnoreMapping params skipped for query map, kept for hooks
+  │   - @ConditionsZones params routed to named zones
   │
   ├─ Invoke @ApiBeforeFind hook (if present)
+  │   - passes BaseQueryParameter + all method args
   │
   ├─ Build QueryParameter or NativeQueryParameter
   │
   ├─ Resolve JpaService<Entity, ID> from Spring context
   │   using ResolvableType with generic bounds
   │
-  ├─ Execute query (findByFilter / countByFilter / singleResult / ...)
+  ├─ Execute query based on return type:
+  │   - CollectionResponse / List  → findByFilter
+  │   - ObjectResponse / T         → singleResultByFilter
+  │   - long / Long                → countByFilter
   │
   ├─ Invoke @ApiAfterFind hook (if present)
+  │   - passes result + all method args
   │
   ├─ Map results via @ApiMapper (if present)
   │
@@ -284,7 +405,238 @@ FindInterceptor.find()
 
 ---
 
-## Complete example
+## Real-world examples
+
+### Basic controller with security and caching
+
+A controller exposing two search endpoints for the same entity. Standard Spring annotations (`@PreAuthorize`, `@Cacheable`, `@Transactional`) work directly on the interface methods.
+
+```java
+@ApiFindController
+@RequestMapping("/api-exception/application")
+@Transactional(rollbackFor = Exception.class)
+@ApiFind(entity = ExApplication.class, id = Integer.class)
+@ApiMapper(ExApplicationMapper.class)
+public interface ApplicationProxyController {
+
+    @PostMapping(path = "/search",
+        consumes = MediaType.APPLICATION_JSON_VALUE,
+        produces = MediaType.APPLICATION_JSON_VALUE)
+    @ResponseBody
+    @Cacheable("listApplication")
+    @PreAuthorize("hasAuthority('OWNER')")
+    CollectionResponse<ApplicationModel> findByFilter(@RequestBody ApplicationFilter filter);
+
+    @PostMapping(path = "/search/id",
+        consumes = MediaType.APPLICATION_JSON_VALUE,
+        produces = MediaType.APPLICATION_JSON_VALUE)
+    @ResponseBody
+    ObjectResponse<ApplicationModel> singleResultFindByFilter(
+        @RequestBody @Valid IdApplicationFilter baseParameter);
+}
+```
+
+### Method-level annotation overrides
+
+`@ApiFind` and `@ApiMapper` can be overridden at method level. Here the type-level binding targets `ExExceptionAudit`, but one method queries `ExUserAssigned` and uses a specific mapper method:
+
+```java
+@ApiFindController
+@ApiFind(entity = ExExceptionAudit.class, id = Integer.class)
+@ApiMapper(ExExceptionAuditMapper.class)
+@RequestMapping("/api-exception/exception-audit")
+public interface ExceptionAuditProxyController {
+
+    // Uses type-level entity and mapper
+    @PostMapping(path = "/search",
+        consumes = MediaType.APPLICATION_JSON_VALUE,
+        produces = MediaType.APPLICATION_JSON_VALUE)
+    @ResponseBody
+    CollectionResponse<ExceptionAuditModel> findByFilter(
+        @RequestBody ExceptionAuditFilter filter,
+        @AuthenticationPrincipal @IgnoreMapping ExUserSecurity exUserSecurity);
+
+    // Overrides entity → queries ExUserAssigned
+    // Overrides mapper method → calls convertToModel instead of auto-resolved method
+    @PostMapping(path = "/search/by-user",
+        consumes = MediaType.APPLICATION_JSON_VALUE,
+        produces = MediaType.APPLICATION_JSON_VALUE)
+    @ResponseBody
+    @ApiFind(entity = ExUserAssigned.class, id = Integer.class)
+    @ApiMapper(value = ExExceptionAuditMapper.class, method = "convertToModel")
+    CollectionResponse<ExceptionAuditModel> findByUser(
+        @RequestBody ExceptionAuditFilter filter,
+        @AuthenticationPrincipal
+        @Param("email")
+        @LikeString(likeType = LikeType.NONE, upperLowerType = UpperLowerType.UPPER)
+        ExUserSecurity exUserSecurity);
+
+    // Single result by ID
+    @PostMapping(path = "/search/id",
+        consumes = MediaType.APPLICATION_JSON_VALUE,
+        produces = MediaType.APPLICATION_JSON_VALUE)
+    @ResponseBody
+    ObjectResponse<ExceptionAuditModel> searchById(@RequestBody IdExceptionAuditModel baseParameter);
+}
+```
+
+### Named query with @ApiQuery
+
+When the standard filter-based path is insufficient, `@ApiQuery` executes a fixed JPQL string defined as a constant on the service interface. `@DefaultOrderBy` sets the sort when the client provides none.
+
+```java
+// On the service interface:
+public interface ExApplicationService extends JpaService<ExApplication, Integer> {
+    String NAME_APPLICATION = "ExApplication.findNamesByUser";
+    // ...
+}
+
+// In the controller:
+@ApiFindController
+@ApiFind(entity = ExApplication.class, id = Integer.class)
+@ApiMapper(ExApplicationMapper.class)
+@RequestMapping("/api-exception/application")
+public interface ApplicationProxyController {
+
+    // No @RequestBody — method takes no filter input
+    @PostMapping(path = "/all/names",
+        consumes = MediaType.APPLICATION_JSON_VALUE,
+        produces = MediaType.APPLICATION_JSON_VALUE)
+    @PreAuthorize("hasAuthority('OWNER')")
+    @ApiQuery(value = ExApplicationService.NAME_APPLICATION, orderBy = @DefaultOrderBy("name"))
+    @ResponseBody
+    CollectionResponse<ApplicationModel> searchName();
+
+    // Same query but restricted to the authenticated user's applications via @ConditionsZone
+    @PostMapping(path = "/grant/all/names",
+        consumes = MediaType.APPLICATION_JSON_VALUE,
+        produces = MediaType.APPLICATION_JSON_VALUE)
+    @Cacheable("allNames-user")
+    @ApiQuery(value = ExApplicationService.NAME_APPLICATION, orderBy = @DefaultOrderBy("name"))
+    @ResponseBody
+    CollectionResponse<ApplicationModel> searchName(
+        @AuthenticationPrincipal
+        @Param("email")
+        @ConditionsZones(@ConditionsZone(key = "appCondition"))
+        @LikeString(upperLowerType = UpperLowerType.UPPER, likeType = LikeType.NONE)
+        ExUserSecurity exUserSecurity);
+}
+```
+
+### BeforeFind hook with @AuthenticationPrincipal
+
+A `BeforeFind` hook is the standard way to inject security-derived parameters (IDs, tenant context, etc.) into the query **before** it runs. The authenticated principal is passed via `args[0]`:
+
+```java
+// Controller method — hook declared, principal marked @IgnoreMapping
+@PostMapping(path = "/grant/search",
+    consumes = MediaType.APPLICATION_JSON_VALUE,
+    produces = MediaType.APPLICATION_JSON_VALUE)
+@ApiBeforeFind(GrantHandlerFindRequest.class)
+CollectionResponse<ApplicationModel> findByFilter(
+    @RequestBody ApplicationFilter filter,
+    @AuthenticationPrincipal @IgnoreMapping ExUserSecurity exUserSecurity);
+
+// Hook implementation — resolves allowed IDs from the authenticated user's email
+@Component
+public class GrantHandlerFindRequest implements BeforeFind<ExApplication, Integer> {
+
+    @Autowired
+    private ExProjectService exProjectService;
+
+    @Override
+    public void before(BaseQueryParameter<ExApplication, Integer> parameters, Object... args) {
+        ExUserSecurity exUserSecurity = (ExUserSecurity) args[0];
+        parameters.addParameter(
+            ExApplicationQueryJpql.idProjectGrant,
+            exProjectService.findIdProjectByEmail(exUserSecurity.getUsername())
+        );
+    }
+}
+```
+
+The `GrantHandlerFindRequest` bean injects a list of project IDs the authenticated user has access to. The `@QueryBuilder` on the service declares a matching `@ConditionBuilder` that activates this parameter in the WHERE clause.
+
+### AfterFind hook to enrich results
+
+`AfterFind` runs after the query completes and can call other services to enrich the response. The request body (`args[0]`) and other method arguments are available:
+
+```java
+// Controller method — hook declared on the method
+@PostMapping(path = "/search/id",
+    consumes = MediaType.APPLICATION_JSON_VALUE,
+    produces = MediaType.APPLICATION_JSON_VALUE)
+@ApiAfterFind(UserHandlerFindRequest.class)
+ObjectResponse<UserModel> findById(@RequestBody @Valid IdUserFilter idUserFilter);
+
+// Hook implementation — loads role and projects and enriches the response
+@Component
+public class UserHandlerFindRequest implements AfterFind<ObjectResponse<UserModel>> {
+
+    @Autowired
+    private ExAssUserRoleService exAssUserRoleService;
+
+    @Autowired
+    private ExProjectService exProjectService;
+
+    @Override
+    public ObjectResponse<UserModel> after(ObjectResponse<UserModel> response, Object... args) {
+        IdUserFilter filter = (IdUserFilter) args[0];
+
+        QueryParameter<ExAssUserRole, ExAssUserRolePK> queryUserRole = new QueryParameter<>();
+        queryUserRole.addParameter(ExAssUserRoleQueryJpql.idUser, response.getData().getId());
+        ExAssUserRole userRole = exAssUserRoleService.singleResultByFilter(queryUserRole);
+
+        response.getData().setIdRole(userRole.getId().getIdRole());
+        response.getData().setPriority(userRole.getExRole().getPriority());
+
+        List<Integer> idProjects = exProjectService.findIdProjectByIdUser(filter.getIdUser());
+        if (CollectionUtils.isEmpty(idProjects))
+            idProjects.add(-1);
+        response.getData().setIdProject(idProjects);
+
+        return response;
+    }
+}
+```
+
+### Filter class with IDFilterParameter
+
+`IDFilterParameter<ID>` is a convenience base class that adds an `id` list field (bound to an `IN (...)` condition). Override the JSON property name to give it a domain-specific name:
+
+```java
+public class ApplicationFilter extends IDFilterParameter<Integer> {
+
+    @LikeString(upperLowerType = UpperLowerType.UPPER, likeType = LikeType.NONE)
+    private String name;
+
+    private List<Integer> idEnvironment;
+
+    private List<Integer> idProject;
+
+    // This field is populated by GrantHandlerFindRequest — hidden from JSON deserialization
+    @JsonIgnoreProperties("idProjectGrant")
+    private List<Integer> idProjectGrant;
+
+    @LikeString
+    private String version;
+
+    // Rename the inherited 'id' field in JSON to the domain name
+    @Override
+    @JsonProperty("idApplication")
+    public List<Integer> getId() { return super.getId(); }
+
+    @Override
+    @JsonProperty("idApplication")
+    public void setId(List<Integer> id) { super.setId(id); }
+}
+```
+
+---
+
+## Complete end-to-end example
+
+This example shows the full stack: entity, service, filter, mapper, and controller.
 
 **Entity**
 
@@ -297,34 +649,45 @@ public class Product {
     private Long id;
     private String name;
     private Boolean active;
-    // ...
+    // getters / setters
 }
 ```
 
-**Service interface + implementation (generated by jpa-service-plugin-generator)**
+**Service interface and implementation**
+
+The `@QueryBuilder` annotation on the implementation drives compile-time JPQL generation. Field paths follow JPQL dot-notation and can traverse multiple relationships.
 
 ```java
-@QueryBuilder(
-    distinct = true,
-    conditions = {
-        @ConditionBuilder(field = "product.name",   operation = OperationType.LIKE,   parameter = "name",
-                          upperLower = UpperLowerType.LOWER),
-        @ConditionBuilder(field = "product.active", operation = OperationType.EQUALS, parameter = "active")
-    },
-    jpaOrder = {
-        @JpqlOrderBuilder(sortKey = "name", field = "product.name")
-    }
-)
 public interface ProductService extends JpaService<Product, Long> { }
 
 @Service
 @Transactional
-public class ProductServiceImpl extends JpaServiceImpl<Product, Long> implements ProductService {
+@QueryBuilder(
+    distinct = true,
+    conditions = {
+        @ConditionBuilder(field = "product.name",   operation = OperationType.LIKE,
+                          parameter = "name",       upperLower = UpperLowerType.LOWER),
+        @ConditionBuilder(field = "product.active", operation = OperationType.EQUAL,
+                          parameter = "active"),
+        @ConditionBuilder(field = "product.category.idCategory", operation = OperationType.IN,
+                          parameter = "idCategory")
+    },
+    jpaOrder = {
+        @JpqlOrderBuilder(key = "name",     order = "product.name"),
+        @JpqlOrderBuilder(key = "category", order = "product.category.name")
+    }
+)
+public class ProductServiceImpl
+        extends JpaServiceImpl<Product, Long>
+        implements ProductService {
+
     @Autowired private ProductRepository productRepository;
     @PersistenceContext private EntityManager entityManager;
 
-    @Override protected JpaRepository<Product, Long> getJpaRepository() { return productRepository; }
-    @Override protected EntityManager getEntityManager() { return entityManager; }
+    @Override
+    protected JpaRepository<Product, Long> getJpaRepository() { return productRepository; }
+    @Override
+    protected EntityManager getEntityManager() { return entityManager; }
 }
 ```
 
@@ -332,9 +695,15 @@ public class ProductServiceImpl extends JpaServiceImpl<Product, Long> implements
 
 ```java
 public class ProductFilter extends BaseParameter {
+
     @LikeString(likeType = LikeType.LEFT_RIGHT, upperLowerType = UpperLowerType.LOWER)
     private String name;
+
     private Boolean active;
+
+    @ListFilter
+    private List<Long> idCategory;
+
     // getters / setters
 }
 ```
@@ -357,8 +726,17 @@ public interface ProductMapper {
 @RequestMapping("/api/products")
 public interface ProductController {
 
-    @PostMapping("/search")
-    List<ProductDto> search(@RequestBody ProductFilter filter);
+    @PostMapping(path = "/search",
+        consumes = MediaType.APPLICATION_JSON_VALUE,
+        produces = MediaType.APPLICATION_JSON_VALUE)
+    @ResponseBody
+    CollectionResponse<ProductDto> search(@RequestBody ProductFilter filter);
+
+    @PostMapping(path = "/search/id",
+        consumes = MediaType.APPLICATION_JSON_VALUE,
+        produces = MediaType.APPLICATION_JSON_VALUE)
+    @ResponseBody
+    ObjectResponse<ProductDto> findById(@RequestBody @Valid IdProductFilter filter);
 
     @GetMapping("/count")
     long count(@RequestBody ProductFilter filter);

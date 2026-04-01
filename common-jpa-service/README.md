@@ -11,7 +11,9 @@ Core runtime module of the dev-persistence framework. Provides the service abstr
 3. [Service Layer](#service-layer)
    - [JpaService interface](#jpaservice-interface)
    - [Extending JpaServiceImpl](#extending-jpaserviceimpl)
-4. [Filter Objects (BaseParameter)](#filter-objects-baseparameter)
+4. [Filter Objects](#filter-objects)
+   - [BaseParameter](#baseparameter)
+   - [IDFilterParameter](#idfilterparameter)
    - [Filter Annotations](#filter-annotations)
 5. [QueryParameter](#queryparameter)
 6. [Native SQL Queries](#native-sql-queries)
@@ -20,6 +22,11 @@ Core runtime module of the dev-persistence framework. Provides the service abstr
 7. [QueryJpql](#queryjpql)
 8. [Custom Row Mapping](#custom-row-mapping)
 9. [JdbcTemplateService](#jdbctemplateservice)
+10. [Real-world examples](#real-world-examples)
+    - [Service with complex conditions and cross-relationship navigation](#service-with-complex-conditions-and-cross-relationship-navigation)
+    - [Service with native SQL zone conditions](#service-with-native-sql-zone-conditions)
+    - [Filter with date ranges, LIKE, and zone annotations](#filter-with-date-ranges-like-and-zone-annotations)
+    - [Manual QueryParameter for programmatic queries](#manual-queryparameter-for-programmatic-queries)
 
 ---
 
@@ -105,11 +112,12 @@ Concrete service classes extend `JpaServiceImpl<T, ID>` and implement two abstra
 @QueryBuilder(
     distinct = true,
     conditions = {
-        @ConditionBuilder(field = "product.name", operation = OperationType.LIKE, parameter = "name"),
-        @ConditionBuilder(field = "product.active", operation = OperationType.EQUALS, parameter = "active")
+        @ConditionBuilder(field = "product.name", operation = OperationType.LIKE, parameter = "name",
+                          upperLower = UpperLowerType.LOWER),
+        @ConditionBuilder(field = "product.active", operation = OperationType.EQUAL, parameter = "active")
     },
     jpaOrder = {
-        @JpqlOrderBuilder(sortKey = "name", field = "product.name")
+        @JpqlOrderBuilder(key = "name", order = "product.name")
     }
 )
 public class ProductServiceImpl
@@ -138,7 +146,9 @@ The annotation processor reads `@QueryBuilder` and generates `ProductQueryJpqlIm
 
 ---
 
-## Filter Objects (BaseParameter)
+## Filter Objects
+
+### BaseParameter
 
 Create a filter DTO by extending `BaseParameter`. Any non-null field is automatically added to the WHERE clause at runtime.
 
@@ -181,19 +191,68 @@ Built-in fields (annotated with `@IgnoreMapping` so they are not treated as quer
 | `pageNumber` | Zero-based page number |
 | `orderBy` | List of `OrderBy(sortKey, OrderType)` items |
 
+### IDFilterParameter
+
+`IDFilterParameter<ID>` extends `BaseParameter` and adds a typed `List<ID> id` field that maps to an `IN (...)` condition on the entity's primary key. It is the standard base class when you need to filter by a list of IDs alongside other criteria.
+
+Override the JSON property name to match your domain naming:
+
+```java
+public class ApplicationFilter extends IDFilterParameter<Integer> {
+
+    @LikeString(upperLowerType = UpperLowerType.UPPER, likeType = LikeType.NONE)
+    private String name;
+
+    private List<Integer> idEnvironment;
+    private List<Integer> idProject;
+
+    // Expose the inherited 'id' field under the domain name in JSON
+    @Override
+    @JsonProperty("idApplication")
+    public List<Integer> getId() { return super.getId(); }
+
+    @Override
+    @JsonProperty("idApplication")
+    public void setId(List<Integer> id) { super.setId(id); }
+
+    // Convenience method
+    public void addIdApplication(Integer... ids) {
+        if (ids != null) this.getId().addAll(Arrays.asList(ids));
+    }
+}
+```
+
 ### Filter Annotations
 
 #### @DateFilter
 
-Shifts a `Date` (or `Calendar`) value by a configurable offset before binding it as a parameter.
+Shifts a `Date` (or `Calendar`) value by a configurable offset before binding it as a parameter. The most common use case is implementing from/to date range filters:
 
 ```java
-@DateFilter(addDay = 7)
-private Date expiresBy = new Date();
-// binds as: now + 7 days
+public class ExceptionAuditFilter extends IDFilterParameter<Integer> {
+
+    @DateFilter           // no offset — used as lower bound (>=)
+    private Calendar updateTimeFrom;
+
+    @DateFilter(addDay = 1)  // adds 1 day — used as upper bound (<) making the range inclusive
+    private Calendar updateTimeTo;
+
+    @DateFilter
+    private Calendar createTimeFrom;
+
+    @DateFilter(addDay = 1)
+    private Calendar createTimeTo;
+}
 ```
 
 Parameters: `addYear`, `addMonth`, `addWeek`, `addDay`, `addHour`, `addMinute`, `addSecond` (all default 0, negative values subtract).
+
+The matching `@ConditionBuilder` entries on the service use `OperationType.GREATER_EQUAL` / `OperationType.LESS` to produce the range:
+
+```java
+@ConditionBuilder(field = "entity.updateTime", operation = OperationType.GREATER_EQUAL, parameter = "updateTimeFrom"),
+@ConditionBuilder(field = "entity.updateTime", operation = OperationType.LESS,          parameter = "updateTimeTo"),
+```
 
 #### @LikeString
 
@@ -203,9 +262,13 @@ Wraps a `String` value in SQL `LIKE` wildcards.
 @LikeString(likeType = LikeType.LEFT_RIGHT, upperLowerType = UpperLowerType.LOWER)
 private String lastName;
 // generates: AND LOWER(e.lastName) LIKE LOWER(:lastName)  →  '%smith%'
+
+@LikeString(upperLowerType = UpperLowerType.UPPER, likeType = LikeType.NONE)
+private String name;
+// generates: AND UPPER(e.name) LIKE :name  (no wildcards — caller supplies them if needed)
 ```
 
-`LikeType` values: `LEFT` (`%value`), `RIGHT` (`value%`), `LEFT_RIGHT` (`%value%`).
+`LikeType` values: `LEFT` (`%value`), `RIGHT` (`value%`), `LEFT_RIGHT` (`%value%`), `NONE` (no wildcard added).
 `UpperLowerType` values: `NONE`, `UPPER`, `LOWER`.
 
 #### @ListFilter
@@ -217,6 +280,8 @@ Maps a `Collection` to an SQL `IN (…)` clause.
 private List<String> statuses;
 // generates: AND o.status IN (:statuses)
 ```
+
+Plain `List` fields (without `@ListFilter`) are also mapped to `IN` conditions when the matching `@ConditionBuilder` uses `OperationType.IN` or `OperationType.NOT_IN`. `@ListFilter` is used when you want the annotation to drive the mapping without a `@ConditionBuilder`.
 
 #### @FieldMapping
 
@@ -230,11 +295,32 @@ private String userFirstName;
 
 #### @IgnoreMapping
 
-Prevents a field from being added to the parameter map. Used on fields that should not generate WHERE conditions (e.g., display-only fields, flags).
+Prevents a field from being added to the parameter map. Used on fields that should not generate WHERE conditions (e.g., display-only fields, flags set programmatically by hooks).
 
 #### @FilterNullValue
 
 Forces a field to be included in the WHERE clause even when its value is `null` (generates an IS NULL condition).
+
+#### @ConditionsZone / @ConditionsZones
+
+Routes a field's value to a named zone in a native SQL template. Zones allow selective activation of WHERE blocks in native queries:
+
+```java
+@LikeString(upperLowerType = UpperLowerType.UPPER, likeType = LikeType.NONE)
+@ConditionsZones(@ConditionsZone(key = "appCondition"))
+private String email;
+// This field is only added when the "appCondition" zone is referenced in the native query
+```
+
+Multiple zones can be specified:
+
+```java
+@ConditionsZones({
+    @ConditionsZone(key = "zone1"),
+    @ConditionsZone(key = "zone2")
+})
+private String value;
+```
 
 ---
 
@@ -259,6 +345,15 @@ qp.addNullable("deletedAt");  // always append: AND e.deletedAt IS NULL
 ```
 
 `addNullable(name)` always appends the condition regardless of value — useful for IS NULL checks.
+
+**Manual `QueryParameter` is the standard pattern inside hook implementations:**
+
+```java
+// Inside an AfterFind hook — build a separate query to load related data
+QueryParameter<ExAssUserRole, ExAssUserRolePK> queryUserRole = new QueryParameter<>();
+queryUserRole.addParameter(ExAssUserRoleQueryJpql.idUser, response.getData().getId());
+ExAssUserRole userRole = exAssUserRoleService.singleResultByFilter(queryUserRole);
+```
 
 ---
 
@@ -295,40 +390,330 @@ List<ProductDto> results = productService.findNativeByFilter(nqp);
 
 ### Zone-based conditions
 
-Zones allow the same SQL template to have multiple independently activated WHERE blocks. Each zone corresponds to a `${zoneName}` placeholder in the SQL template.
+Zones allow the same SQL template to have multiple independently activated WHERE blocks. Each zone corresponds to a `${zoneName}` placeholder in the SQL template. A condition bound to a zone is only injected when the corresponding parameter is non-null **and** the query references that zone.
 
-Use `@ConditionsZone` to create custom zone annotations for use with `@QueryBuilder#customNativeConditions()`:
+#### Complete end-to-end example
+
+**Step 1 — Native SQL template with zone placeholder (defined as a constant on the service interface)**
 
 ```java
-@ConditionsZone(key = "dateRange", initWhere = true)
-@Retention(RUNTIME)
-@Target(FIELD)
-public @interface DateRangeZone { }
+public interface ExApplicationService extends JpaService<ExApplication, Integer> {
 
-public class ReportFilter extends BaseParameter {
-    @DateRangeZone
-    private Date from;
-
-    @DateRangeZone
-    private Date to;
+    String NAME_APPLICATION =
+        "select distinct ea.name\n" +
+        "from ex_application ea \n" +
+        "join ex_project ep on ea.id_project = ep.id_project \n" +
+        "left join (ex_ass_project_user eapu\n" +
+        "  join ex_user eu on eu.id_user = eapu.id_user) on ep.id_project = eapu.id_project\n" +
+        "${appCondition}";  // zone placeholder — replaced with conditions at runtime
 }
 ```
 
-`initWhere = true` (default) tells the framework to prepend `WHERE` or `AND` before the first condition in the zone automatically.
+When `email` is present the zone expands to `and upper(eu.email) = :email`. When absent the zone is removed entirely, returning all applications.
+
+**Step 2 — `@QueryBuilder` with `customNativeConditions` binding the SQL fragment to the zone**
+
+```java
+@Service
+@Transactional
+@QueryBuilder(
+    customNativeConditions = {
+        @CustomConditionBuilder(
+            condition = " and upper(eu.email) = :email ",  // raw SQL injected into the zone
+            parameter = "email",                           // activates only when 'email' is non-null
+            keys = "appCondition"                          // targets this specific zone
+        )
+    },
+    nativeOrder = {
+        @NativeOrderBuilder(key = "name", order = "ea.name")
+    }
+)
+public class ExApplicationServiceImpl
+        extends JpaServiceImpl<ExApplication, Integer>
+        implements ExApplicationService {
+    // ...
+}
+```
+
+**Step 3a — Filter class with `@ConditionsZones` on a field**
+
+When the zone parameter comes from a filter body field, annotate the field with `@ConditionsZones`:
+
+```java
+public class ApplicationFilter extends IDFilterParameter<Integer> {
+
+    @LikeString(upperLowerType = UpperLowerType.UPPER, likeType = LikeType.NONE)
+    @ConditionsZones(@ConditionsZone(key = "appCondition"))
+    private String email;
+    // Routed to "appCondition" zone — not used as a standard JPQL condition
+}
+```
+
+**Step 3b — Controller method parameter with `@ConditionsZones`**
+
+When the zone parameter comes from a method argument (e.g., `@AuthenticationPrincipal`), annotate the parameter directly:
+
+```java
+@PostMapping("/grant/all/names")
+@ApiQuery(value = ExApplicationService.NAME_APPLICATION, orderBy = @DefaultOrderBy("name"))
+CollectionResponse<ApplicationModel> searchName(
+    @AuthenticationPrincipal
+    @Param("email")                                          // bind as parameter named "email"
+    @ConditionsZones(@ConditionsZone(key = "appCondition"))  // route to the appCondition zone
+    @LikeString(upperLowerType = UpperLowerType.UPPER, likeType = LikeType.NONE)
+    ExUserSecurity exUserSecurity);
+```
+
+The framework extracts the authenticated user's `email` field, routes it to zone `appCondition`, and the SQL becomes:
+
+```sql
+select distinct ea.name
+from ex_application ea
+join ex_project ep on ea.id_project = ep.id_project
+left join (ex_ass_project_user eapu
+  join ex_user eu on eu.id_user = eapu.id_user) on ep.id_project = eapu.id_project
+and upper(eu.email) = :email
+```
+
+If `email` is null the `${appCondition}` placeholder is removed and all rows are returned.
+
+`initWhere = true` (default on `@ConditionsZone`) tells the framework to prepend `WHERE` or `AND` before the first condition in the zone automatically.
 
 ---
 
 ## QueryJpql
 
-`QueryJpql<T>` is the abstract holder for all pre-built JPQL/SQL strings for a specific entity. You never create subclasses manually — they are generated by `processor-jpa-service`.
+`QueryJpql<T>` is the abstract holder for all pre-built JPQL/SQL strings for a specific entity. You never create subclasses manually — they are generated by `processor-jpa-service` at compile time from the `@QueryBuilder` annotation on the `*ServiceImpl` class.
 
-The generated `*QueryJpqlImpl` class provides:
+For each `@QueryBuilder`-annotated class the processor generates **two files**:
 
-- Static JPQL strings: SELECT, COUNT, DELETE, SELECT-ID
-- Condition map: `Map<String, String>` — parameter name → JPQL condition fragment (e.g., `"name" → "AND e.name = :name"`)
-- Order map: `Map<String, String>` — sort key → JPQL field expression
-- Native condition map: `Map<String, Map<String, String>>` — zone name → condition map
-- `mapOneToMany()` — conditional LEFT JOIN FETCH, added only when the related filter parameter is non-null
+| Generated file | Purpose |
+|---|---|
+| `*QueryJpql.java` | Interface with `public static final String` constants for every parameter and sort key name |
+| `*QueryJpqlImpl.java` | `@Component` that extends `QueryJpql<T>`, implements the interface, and holds all pre-built strings and maps |
+
+---
+
+### What gets generated
+
+Given this `@QueryBuilder` on `ExApplicationServiceImpl`:
+
+```java
+@QueryBuilder(
+    conditions = {
+        @ConditionBuilder(field = "exApplication.name",
+                          operation = OperationType.IN, parameter = "applicationsName"),
+        @ConditionBuilder(field = "exApplication.exProject.idProject",
+                          operation = OperationType.IN, parameter = "idProjectGrant"),
+        @ConditionBuilder(field = "exApplication.name",
+                          operation = OperationType.NOT_IN, parameter = "notInName"),
+        @ConditionBuilder(field = "exApplication.exProject.idProject",
+                          operation = OperationType.IN, parameter = "idProject"),
+        @ConditionBuilder(field = "exApplication.exEnvironment.idEnvironment",
+                          operation = OperationType.IN, parameter = "idEnvironment"),
+    },
+    jpaOrder = {
+        @JpqlOrderBuilder(key = "desApplicationType",
+                          order = "exApplication.exApplicationType.desApplicationType")
+    },
+    customNativeConditions = {
+        @CustomConditionBuilder(condition = " and upper(eu.email)=:email ",
+                                parameter = "email", keys = "appCondition")
+    },
+    nativeOrder = {
+        @NativeOrderBuilder(key = "name", order = "ea.name")
+    }
+)
+public class ExApplicationServiceImpl extends JpaServiceImpl<ExApplication, Integer> ...
+```
+
+The processor produces:
+
+#### `ExApplicationQueryJpql.java` — constants interface
+
+```java
+public interface ExApplicationQueryJpql {
+
+    // One constant per @ConditionBuilder parameter + base fields from the entity
+    String applicationsName   = "applicationsName";
+    String idProjectGrant     = "idProjectGrant";
+    String notInName          = "notInName";
+    String idProject          = "idProject";
+    String idEnvironment      = "idEnvironment";
+    String name               = "name";
+    String email              = "email";
+    String id                 = "id";
+    String idApplication      = "idApplication";
+    String updateTime         = "updateTime";
+    String updateTimeFrom     = "updateTimeFrom";
+    String updateTimeTo       = "updateTimeTo";
+    String createTime         = "createTime";
+    String createTimeFrom     = "createTimeFrom";
+    String createTimeTo       = "createTimeTo";
+    // ...
+
+    // Sort key constants (prefixed ord_)
+    String ord_desApplicationType = "desApplicationType";
+    String ord_name               = "name";
+}
+```
+
+These constants are used in hook implementations to avoid hardcoded strings:
+
+```java
+// In GrantHandlerFindRequest:
+parameters.addParameter(ExApplicationQueryJpql.idProjectGrant, projectIds);
+//                       ↑ same string that appears in the generated WHERE condition
+```
+
+#### `ExApplicationQueryJpqlImpl.java` — implementation
+
+```java
+@Component
+public class ExApplicationQueryJpqlImpl
+        extends QueryJpql<ExApplication>
+        implements ExApplicationQueryJpql {
+
+    // ── 1. Static JPQL base strings ─────────────────────────────────────────
+
+    // FROM clause with all mandatory join fetches (derived from the entity's @ManyToOne fields)
+    private static final String FROM_BY_FILTER =
+        " From ExApplication exApplication " +
+        " join fetch exApplication.exProject exProject " +
+        " join fetch exApplication.exEnvironment exEnvironment " +
+        " join fetch exApplication.exApplicationType exApplicationType ";
+
+    private static final String SELECT_BY_FILTER  = "select distinct exApplication" + FROM_BY_FILTER;
+    private static final String COUNT_BY_FILTER   = "select distinct count(exApplication)" + FROM_BY_FILTER;
+    private static final String SELECT_ID_BY_FILTER = "select distinct exApplication.idApplication " + FROM_BY_FILTER;
+    private static final String DELETE_BY_FILTER  = "delete from ExApplication exApplication ";
+
+    // ── 2. MAP_CONDITIONS — JPQL SELECT/COUNT conditions ────────────────────
+    // Key   = parameter name (matches @ConditionBuilder.parameter)
+    // Value = JPQL condition fragment appended to the WHERE clause when the parameter is non-null
+
+    private static final Map<String,String> MAP_CONDITIONS = getMapConditions();
+
+    private static Map<String,String> getMapConditions() {
+        Map<String,String> map = getMapBaseConditions();   // fields from the entity itself
+        // Fields from @ConditionBuilder — navigating through relationships via join-fetched aliases:
+        map.put(applicationsName,    " and ((exApplication.name)  in (:applicationsName) )");
+        map.put(notInName,           " and ((exApplication.name)  not in (:notInName) )");
+        map.put(idProject,           " and (exProject.idProject  in (:idProject) )");
+        map.put(idEnvironment,       " and (exEnvironment.idEnvironment  in (:idEnvironment) )");
+        map.put(idProjectGrant,      " and (exProject.idProject  in (:idProjectGrant) )");
+        // ...
+        return map;
+    }
+
+    // Base conditions — automatically generated from entity fields + IDFilterParameter
+    private static Map<String,String> getMapBaseConditions() {
+        Map<String,String> map = new HashMap<>();
+        map.put(name,            " and upper(exApplication.name) like :name ");
+        map.put(id,              " and exApplication.idApplication in (:id) ");
+        map.put(idApplication,   " and exApplication.idApplication in (:idApplication) ");
+        map.put(updateTimeFrom,  " and :updateTimeFrom<=exApplication.updateTime ");
+        map.put(updateTimeTo,    " and exApplication.updateTime<=:updateTimeTo ");
+        map.put(createTimeFrom,  " and :createTimeFrom<=exApplication.createTime ");
+        map.put(createTimeTo,    " and exApplication.createTime<=:createTimeTo ");
+        // ...
+        return map;
+    }
+
+    // ── 3. MAP_DELETE_CONDITIONS — JPQL DELETE conditions ───────────────────
+    // Identical structure to MAP_CONDITIONS but without join-fetched aliases
+    // (DELETE queries cannot use join fetch, so relationships are navigated inline)
+
+    private static final Map<String,String> MAP_DELETE_CONDITIONS = getMapDeleteConditions();
+
+    private static Map<String,String> getMapDeleteConditions() {
+        Map<String,String> map = getMapBaseConditions();
+        map.put(idProject,      " and (exApplication.exProject.idProject  in (:idProject) )");
+        map.put(idProjectGrant, " and (exApplication.exProject.idProject  in (:idProjectGrant) )");
+        // notice the full path: exApplication.exProject.idProject vs exProject.idProject in SELECT
+        // ...
+        return map;
+    }
+
+    // ── 4. MAP_NATIVE_CONDITIONS — per-zone native SQL conditions ────────────
+    // Outer key = zone name (matches @CustomConditionBuilder.keys)
+    // Inner map = parameter name → SQL fragment injected into that zone
+
+    private static final Map<String,Map<String,String>> MAP_NATIVE_CONDITIONS = getMapNativeConditions();
+
+    private static Map<String,Map<String,String>> getMapNativeConditions() {
+        Map<String,Map<String,String>> map = new HashMap<>();
+        map.put("appCondition", getAppCondition());   // one entry per zone
+        return map;
+    }
+
+    private static Map<String,String> getAppCondition() {
+        Map<String,String> map = new HashMap<>();
+        map.put(email, " and upper(eu.email)=:email ");  // SQL fragment for this parameter
+        return map;
+    }
+
+    // ── 5. MAP_NATIVE_ORDERS — native SQL sort keys ──────────────────────────
+    // Key   = sort key string from @NativeOrderBuilder.key
+    // Value = SQL column expression used in ORDER BY
+
+    private static final Map<String,String> MAP_NATIVE_ORDERS = getMapNativeOrders();
+
+    private static Map<String,String> getMapNativeOrders() {
+        Map<String,String> map = new HashMap<>();
+        map.put(ord_name, " ea.name ");
+        return map;
+    }
+
+    // ── 6. MAP_JPA_ORDERS — JPQL sort keys ──────────────────────────────────
+    // Auto-generated for every field reachable via join-fetched aliases
+    // + explicit entries from @JpqlOrderBuilder
+
+    private static final Map<String,String> MAP_JPA_ORDERS = getMapJpaOrders();
+
+    private static Map<String,String> getMapJpaOrders() {
+        Map<String,String> map = new HashMap<>();
+        // Auto-generated from join-fetched paths:
+        map.put("exApplication.name",              "exApplication.name");
+        map.put("exProject.idProject",             "exProject.idProject");
+        map.put("exEnvironment.idEnvironment",     "exEnvironment.idEnvironment");
+        map.put("exEnvironment.envName",           "exEnvironment.envName");
+        map.put("exProject.prjName",               "exProject.prjName");
+        // Explicit entry from @JpqlOrderBuilder:
+        map.put(ord_desApplicationType,            " exApplicationType.desApplicationType ");
+        // ...
+        return map;
+    }
+
+    // ── 7. mapOneToMany() — conditional LEFT JOIN FETCH ──────────────────────
+    // Called lazily on first access. Registers joins that are added to the SELECT
+    // query ONLY when the corresponding parameter is non-null in the filter.
+    // This prevents Cartesian products for unneeded collections.
+
+    @Override
+    public void mapOneToMany() {
+        addJoinOneToMany(idApplicationServer,
+            " left join fetch exApplication.exApplicationServers exApplicationServers ");
+        addJoinOneToMany(idServiceRest,
+            " left join fetch exApplication.exServiceRests exServiceRests ");
+        // Each entry: if parameter 'idApplicationServer' is non-null → add the JOIN FETCH
+    }
+}
+```
+
+---
+
+### How the runtime uses these maps
+
+At query execution time `JpaServiceImpl` does the following:
+
+1. Iterates the active parameters from `QueryParameter`.
+2. For each parameter name, looks it up in `MAP_CONDITIONS`.
+3. If found, appends the condition fragment to the base JPQL string.
+4. Checks `mapOneToMany()` — if the parameter has a registered JOIN FETCH, adds it to the FROM clause.
+5. Builds the final ORDER BY from `MAP_JPA_ORDERS` using the sort keys in `QueryParameter.orderBy`.
+
+For native queries the same process runs against `MAP_NATIVE_CONDITIONS[zoneName]`, replacing `${zoneName}` in the SQL template with the active condition fragments for that zone.
 
 `QueryJpql` is autowired into `JpaServiceImpl` as a generic Spring bean and is not used directly by application code.
 
@@ -339,17 +724,21 @@ The generated `*QueryJpqlImpl` class provides:
 For native SQL queries requiring custom Tuple-to-object mapping, implement `JpaRowMapper<K>`:
 
 ```java
-public class ProductRowMapper implements JpaRowMapper<ProductDto> {
-    @Override
-    public ProductDto mapRow(Tuple tuple) {
-        ProductDto dto = new ProductDto();
-        dto.setId(tuple.get("id", Long.class));
-        dto.setName(tuple.get("name", String.class));
-        return dto;
-    }
+@FunctionalInterface
+public interface JpaRowMapper<K> {
+    void rowMapper(List<K> result, Tuple row, int i);
 }
+```
 
-List<ProductDto> results = productService.findNativeByFilter(nqp, new ProductRowMapper());
+Example usage:
+
+```java
+List<ProductDto> results = productService.findNativeByFilter(nqp, (list, row, i) -> {
+    ProductDto dto = new ProductDto();
+    dto.setId(row.get("id", Long.class));
+    dto.setName(row.get("name", String.class));
+    list.add(dto);
+});
 ```
 
 ---
@@ -367,3 +756,207 @@ public class ReportServiceImpl extends JdbcTemplateServiceImpl<ReportDto, Long>
 ```
 
 `JdbcTemplateService<T, ID>` mirrors the `JpaService` API but executes queries via `NamedParameterJdbcTemplate`.
+
+---
+
+## Real-world examples
+
+### Service with complex conditions and cross-relationship navigation
+
+Field paths in `@ConditionBuilder` follow JPQL dot-notation and can traverse multiple levels of relationships. All conditions are inactive by default and activate only when the corresponding filter field is non-null.
+
+```java
+@Service
+@Transactional
+@QueryBuilder(conditions = {
+    // Direct field on the entity
+    @ConditionBuilder(field = "exExceptionAudit.exServiceRest.httpMethod",
+                      operation = OperationType.IN, parameter = "method"),
+
+    // LIKE with case normalization
+    @ConditionBuilder(field = "exExceptionAudit.exServiceRest.path",
+                      operation = OperationType.LIKE, parameter = "path",
+                      upperLower = UpperLowerType.UPPER),
+
+    // Boolean equality
+    @ConditionBuilder(field = "exExceptionAudit.exServiceRest.async",
+                      operation = OperationType.EQUAL, parameter = "async"),
+
+    // Date range — lower bound
+    @ConditionBuilder(field = "exExceptionAudit.updateTime",
+                      operation = OperationType.GREATER_EQUAL, parameter = "updateTimeFrom"),
+
+    // Date range — upper bound (note: @DateFilter(addDay=1) shifts the value on the filter side)
+    @ConditionBuilder(field = "exExceptionAudit.updateTime",
+                      operation = OperationType.LESS, parameter = "updateTimeTo"),
+
+    // Navigation through 3 levels
+    @ConditionBuilder(field = "exExceptionAudit.exServiceRest.exApplication.idApplication",
+                      operation = OperationType.IN, parameter = "idApplication"),
+
+    // Navigation through 4 levels
+    @ConditionBuilder(field = "exExceptionAudit.exServiceRest.exApplication.exApplicationType.idApplicationType",
+                      operation = OperationType.IN, parameter = "idApplicationType"),
+
+    // Same parameter name, different navigation path — for grant-based filtering
+    @ConditionBuilder(field = "exExceptionAudit.exServiceRest.exApplication.exProject.idProject",
+                      operation = OperationType.IN, parameter = "idProjectGrant"),
+},
+jpaOrder = {
+    @JpqlOrderBuilder(key = "path",    order = "exExceptionAudit.exServiceRest.path"),
+    @JpqlOrderBuilder(key = "envName", order = "exExceptionAudit.exServiceRest.exApplication.exEnvironment.envName"),
+    @JpqlOrderBuilder(key = "prjName", order = "exExceptionAudit.exServiceRest.exApplication.exProject.prjName")
+})
+public class ExExceptionAuditServiceImpl
+        extends JpaServiceImpl<ExExceptionAudit, Integer>
+        implements ExExceptionAuditService {
+
+    @Autowired
+    private ExExceptionAuditRepository exExceptionAuditRepository;
+
+    @PersistenceContext
+    private EntityManager entityManager;
+
+    @Override
+    protected EntityManager getEntityManager() { return this.entityManager; }
+
+    @Override
+    protected JpaRepository<ExExceptionAudit, Integer> getJpaRepository() {
+        return this.exExceptionAuditRepository;
+    }
+}
+```
+
+### Service with native SQL zone conditions
+
+When a filter field must activate a condition only in a native SQL query (not JPQL), use `@CustomConditionBuilder` with `keys`:
+
+```java
+@Service
+@Transactional
+@QueryBuilder(
+    conditions = {
+        @ConditionBuilder(field = "exApplication.name",
+                          operation = OperationType.IN, parameter = "applicationsName"),
+        @ConditionBuilder(field = "exApplication.exProject.idProject",
+                          operation = OperationType.IN, parameter = "idProjectGrant"),
+    },
+    jpaOrder = {
+        @JpqlOrderBuilder(key = "desApplicationType",
+                          order = "exApplication.exApplicationType.desApplicationType")
+    },
+    customNativeConditions = {
+        // Activates only when "email" parameter is present AND the query references zone "appCondition"
+        @CustomConditionBuilder(
+            condition = " and upper(eu.email) = :email ",
+            parameter = "email",
+            keys = "appCondition"
+        )
+    },
+    nativeOrder = {
+        @NativeOrderBuilder(key = "name", order = "ea.name")
+    }
+)
+public class ExApplicationServiceImpl
+        extends JpaServiceImpl<ExApplication, Integer>
+        implements ExApplicationService {
+
+    @Autowired
+    private ExApplicationRepository exApplicationRepository;
+
+    @PersistenceContext
+    private EntityManager entityManager;
+
+    @Override
+    protected EntityManager getEntityManager() { return this.entityManager; }
+
+    @Override
+    protected JpaRepository<ExApplication, Integer> getJpaRepository() {
+        return this.exApplicationRepository;
+    }
+}
+```
+
+### Filter with date ranges, LIKE, and zone annotations
+
+A realistic filter showing combined use of `@DateFilter` for date ranges, `@LikeString` for text search, `@ConditionsZones` for zone routing, and `IDFilterParameter` as base class:
+
+```java
+@SuppressWarnings("serial")
+public class ExceptionAuditFilter extends IDFilterParameter<Integer> {
+
+    // Text search fields — all normalised to UPPERCASE before comparison
+    @LikeString(upperLowerType = UpperLowerType.UPPER)
+    private String path;
+
+    @LikeString(upperLowerType = UpperLowerType.UPPER)
+    private String className;
+
+    @LikeString(upperLowerType = UpperLowerType.UPPER)
+    private String methodName;
+
+    // Date range — from (no shift) / to (shifted +1 day for inclusive upper bound)
+    @DateFilter
+    private Calendar updateTimeFrom;
+
+    @DateFilter(addDay = 1)
+    private Calendar updateTimeTo;
+
+    @DateFilter
+    private Calendar createTimeFrom;
+
+    @DateFilter(addDay = 1)
+    private Calendar createTimeTo;
+
+    // List/IN conditions
+    private List<Integer> idApplication;
+    private List<Integer> idApplicationType;
+    private List<Integer> idProgressType;
+    private List<String>  method;
+
+    // Boolean conditions
+    private Boolean async;
+    private Boolean scheduled;
+
+    // Field for zone-based native SQL — not in standard JPQL path
+    @LikeString(likeType = LikeType.NONE, upperLowerType = UpperLowerType.UPPER)
+    @ConditionsZones(@ConditionsZone(key = "appCondition"))
+    private String email;
+
+    // Rename inherited 'id' to domain name in JSON
+    @Override
+    @JsonProperty("idExceptionAudit")
+    public void setId(List<Integer> id) { super.setId(id); }
+}
+```
+
+### Manual QueryParameter for programmatic queries
+
+When you need to query from inside a service or hook (not from a controller), build `QueryParameter` manually:
+
+```java
+// Lookup by a single known parameter
+QueryParameter<ExAssUserRole, ExAssUserRolePK> qp = new QueryParameter<>();
+qp.addParameter("idUser", userId);
+ExAssUserRole result = exAssUserRoleService.singleResultByFilter(qp);
+
+// Lookup with pagination and sort
+QueryParameter<ExApplication, Integer> qp2 = new QueryParameter<>();
+qp2.addParameter("idProject", projectId);
+qp2.addParameter("active", true);
+qp2.addOrderBy("name", OrderType.ASC);
+qp2.setPageSize(50);
+qp2.setPageNumber(0);
+List<ExApplication> apps = exApplicationService.findByFilter(qp2);
+
+// IS NULL check — add the parameter name to nullables
+QueryParameter<ExApplication, Integer> qp3 = new QueryParameter<>();
+qp3.addNullable("deletedAt");   // generates: AND e.deletedAt IS NULL
+List<ExApplication> active = exApplicationService.findByFilter(qp3);
+```
+
+The parameter names must match the names declared in `@ConditionBuilder(parameter = "...")` on the service implementation. Use the generated `*QueryJpql` constants to avoid hardcoded strings:
+
+```java
+qp.addParameter(ExApplicationQueryJpql.idProjectGrant, projectIds);
+```
