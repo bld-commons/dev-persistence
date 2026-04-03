@@ -258,6 +258,34 @@ qp.addParameter("price", tp);
 
 ---
 
+### Query con mappa
+
+`mapFindByFilter`, `mapKeyFindByFilter` e `mapKeyListFindByFilter` restituiscono i risultati
+come `PersistenceMap` invece di una lista. Il parametro `key` è un **percorso campo in
+dot-notation** risolto a runtime via reflection per estrarre la chiave della mappa da ciascuna entità.
+
+```java
+QueryParameter<Product, Long> qp = new QueryParameter<>();
+qp.addParameter("active", true);
+
+// Indicizzata per chiave primaria dell'entità
+PersistenceMap<Long, Product> byId = productService.mapFindByFilter(qp);
+// { 1L → Product(id=1), 2L → Product(id=2), ... }
+
+// Indicizzata per un campo di entità correlata: Product → category → categoryId
+PersistenceMap<Long, Product> byCategory =
+    productService.mapKeyFindByFilter(qp, Long.class, "category.categoryId");
+// { 10L → Product(categoryId=10), 20L → Product(categoryId=20) }
+// Se più prodotti condividono la stessa chiave, viene mantenuto l'ultimo.
+
+// Raggruppata per lo stesso campo — tutti i prodotti per categoria
+PersistenceMap<Long, List<Product>> grouped =
+    productService.mapKeyListFindByFilter(qp, Long.class, "category.categoryId");
+// { 10L → [Product(...), Product(...)], 20L → [Product(...)] }
+```
+
+---
+
 ### Query SQL nativo
 
 Per query complesse che non possono essere espresse in JPQL, usa `NativeQueryParameter`:

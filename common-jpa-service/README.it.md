@@ -90,6 +90,26 @@ public class MyApplication {
 | `mapKeyFindByFilter(QueryParameter<T,ID>)` | Risultati indicizzati per un campo chiave |
 | `mapKeyListFindByFilter(QueryParameter<T,ID>)` | Risultati raggruppati per un campo chiave |
 
+Il parametro `key` usato da `mapKeyFindByFilter` e `mapKeyListFindByFilter` è un
+**percorso campo in dot-notation** risolto a runtime via reflection — può attraversare le relazioni:
+
+```java
+QueryParameter<Product, Long> qp = new QueryParameter<>();
+qp.addParameter("active", true);
+
+// Indicizzata per chiave primaria dell'entità
+PersistenceMap<Long, Product> byId = productService.mapFindByFilter(qp);
+
+// Indicizzata per un campo di entità correlata: Product → category → categoryId
+PersistenceMap<Long, Product> byCategory =
+    productService.mapKeyFindByFilter(qp, Long.class, "category.categoryId");
+// Se più prodotti condividono la stessa chiave, viene mantenuto l'ultimo.
+
+// Raggruppata per lo stesso campo
+PersistenceMap<Long, List<Product>> grouped =
+    productService.mapKeyListFindByFilter(qp, Long.class, "category.categoryId");
+```
+
 **Query native SQL**
 
 | Metodo | Descrizione |
