@@ -539,7 +539,7 @@ public abstract class JpaServiceImpl<T, ID> extends BaseJpaService<T, ID> implem
 			J key = (J) getKey(fields, t);
 			if (!map.containsKey(key))
 				map.put(key, new ArrayList<>());
-			map.get((J) getKey(fields, t)).add(t);
+			map.get(key).add(t);
 		}
 
 		return map;

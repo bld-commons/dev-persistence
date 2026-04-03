@@ -104,6 +104,26 @@ public class MyApplication {
 | `mapKeyFindByFilter(QueryParameter<T,ID>)` | Results keyed by a field |
 | `mapKeyListFindByFilter(QueryParameter<T,ID>)` | Results grouped by a key field |
 
+The `key` parameter used by `mapKeyFindByFilter` and `mapKeyListFindByFilter` is a
+**dot-notation field path** resolved via reflection — it can traverse relationships:
+
+```java
+QueryParameter<Product, Long> qp = new QueryParameter<>();
+qp.addParameter("active", true);
+
+// Keyed by the entity's own primary key
+PersistenceMap<Long, Product> byId = productService.mapFindByFilter(qp);
+
+// Keyed by a related field: Product → category → categoryId
+PersistenceMap<Long, Product> byCategory =
+    productService.mapKeyFindByFilter(qp, Long.class, "category.categoryId");
+// If multiple products share the same key, the last one wins.
+
+// Grouped by the same field
+PersistenceMap<Long, List<Product>> grouped =
+    productService.mapKeyListFindByFilter(qp, Long.class, "category.categoryId");
+```
+
 **Native SQL queries**
 
 | Method | Description |
