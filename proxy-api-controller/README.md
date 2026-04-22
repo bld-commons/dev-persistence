@@ -736,6 +736,57 @@ public class ApplicationFilter extends IDFilterParameter<Integer> {
 }
 ```
 
+### Form parameters with @RequestParam and @RequestAttribute
+
+`@RequestParam` and `@RequestAttribute` bind individual HTTP form/query parameters directly to method arguments. This is the standard pattern when the client submits `application/x-www-form-urlencoded` data instead of a JSON body.
+
+- `@RequestParam` maps a form field (or query-string parameter) by name.
+- `@RequestAttribute` reads a request attribute set by a filter or interceptor upstream (e.g. a date header pre-parsed before the controller is reached).
+- Both support the same data-transformation annotations (`@LikeString`, `@DateFilter`, `@DateTimeZone`, etc.) as `@RequestBody` fields.
+
+The same path can expose two overloads — one for JSON, one for form data — and Spring routes the request to the correct overload based on the `Content-Type` header:
+
+```java
+@ApiFindController
+@RequestMapping("/genere/find")
+@ApiFind(entity = Genere.class, id = Long.class)
+@ApiMapper(GenereMapper.class)
+public interface GenereFindController {
+
+    // JSON variant — client sends a filter object in the request body
+    @PostMapping(path = "/collection-response/filter",
+        consumes = MediaType.APPLICATION_JSON_VALUE,
+        produces = MediaType.APPLICATION_JSON_VALUE)
+    @ResponseBody
+    CollectionResponse<GenereModel> collectionResponseByFilter(
+        @RequestBody GenereParameter parameter);
+
+    // Form variant — client sends individual form fields
+    @PostMapping(path = "/collection-response/filter",
+        consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
+        produces = MediaType.APPLICATION_JSON_VALUE)
+    @ResponseBody
+    CollectionResponse<GenereModel> collectionResponseByFilter(
+        @RequestParam("desGenere")
+        @LikeString(upperLowerType = UpperLowerType.UPPER)
+        String desGenere,
+
+        @RequestAttribute(value = "createTimestampTo", required = false)
+        @DateTimeZone(format = "yyyy-MM-dd")
+        @DateFilter(addDay = 1)
+        Date createTimestampTo);
+}
+```
+
+| `Content-Type` | Resolved method |
+|---|---|
+| `application/json` | `collectionResponseByFilter(@RequestBody ...)` |
+| `application/x-www-form-urlencoded` | `collectionResponseByFilter(@RequestParam ..., @RequestAttribute ...)` |
+
+The interceptor processes each annotated parameter independently:
+- `desGenere` is converted to uppercase before being added to the query (`@LikeString`).
+- `createTimestampTo` is formatted as `yyyy-MM-dd` and shifted forward by one day (`@DateFilter(addDay = 1)`), covering the typical "up to and including today" date-range pattern.
+
 ---
 
 ## Complete end-to-end example
