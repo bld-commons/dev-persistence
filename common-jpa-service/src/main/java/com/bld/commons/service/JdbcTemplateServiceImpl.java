@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import org.apache.commons.collections.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
@@ -76,7 +77,7 @@ public abstract class JdbcTemplateServiceImpl<T, ID> extends JpaServiceImpl<T, I
 		K k = null;
 		if (list.size() > 1)
 			throw new RuntimeException("Find multiple record");
-		else if (list != null)
+		else if (CollectionUtils.isNotEmpty(list))
 			k = list.get(0);
 		return k;
 	}

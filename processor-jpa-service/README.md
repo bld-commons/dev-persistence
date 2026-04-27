@@ -9,13 +9,15 @@ Compile-time annotation processor that reads `@QueryBuilder`-annotated service i
 1. [Overview](#overview)
 2. [Setup](#setup)
 3. [@QueryBuilder](#querybuilder)
+   - [Default conditions — auto-generated from entity fields](#default-conditions--auto-generated-from-entity-fields)
 4. [@ConditionBuilder](#conditionbuilder)
    - [OperationType reference](#operationtype-reference)
 5. [@CustomConditionBuilder](#customconditionbuilder)
 6. [@JpqlOrderBuilder and @NativeOrderBuilder](#jpqlorderbuilder-and-nativeorderbuilder)
 7. [Generated code](#generated-code)
-   - [Example input](#example-input)
-   - [Example output](#example-output)
+   - [Minimal example — default fields only](#minimal-example--default-fields-only)
+   - [Full example input](#full-example-input)
+   - [Full example output](#full-example-output)
 8. [How the processor works](#how-the-processor-works)
 
 ---
@@ -97,6 +99,38 @@ join fetch postazioneCucina.ristorante ristorante
 ```
 
 These joins are **always** present regardless of which filter parameters are active. For conditional joins (added only when a specific filter parameter is non-null), the processor uses `@OneToMany` / `@ManyToMany` relationship metadata to generate a `mapOneToMany()` entry using `LEFT JOIN FETCH`.
+
+---
+
+### Default conditions — auto-generated from entity fields
+
+When `@QueryBuilder` is placed on a service, the processor automatically generates a base condition for **every persistent field** of the mapped entity (`@Column`, `@Id`, `@EmbeddedId`, `@Enumerated`). These conditions populate `getMapBaseConditions()` and are **always available** at runtime — no `@ConditionBuilder` entry is required for them.
+
+The `OperationType` applied to each field depends on its Java type:
+
+| Java type | Default OperationType | Generated JPQL fragment | Parameter name(s) |
+|-----------|----------------------|------------------------|-------------------|
+| `String` | `LIKE` with `upper()` | `AND upper(e.field) LIKE :field` | `field` |
+| `Date`, `LocalDate`, `LocalDateTime`, … | `GREATER_EQUAL` + `LESS_EQUAL` | `AND :fieldFrom <= e.field` / `AND e.field <= :fieldTo` | `fieldFrom`, `fieldTo` |
+| `Boolean` | `EQUAL` | `AND e.field = :field` | `field` |
+| `Enum` (`@Enumerated`) | `IN` | `AND e.field IN (:field)` | `field` |
+| `@Id` / `@EmbeddedId` | `IN` | `AND e.pk IN (:id)` and `AND e.pk IN (:pkFieldName)` | `id`, `pkFieldName` |
+| Numeric and other types | `IN` | `AND e.field IN (:field)` | `field` |
+
+#### Overriding a default condition
+
+To replace the auto-generated condition for a field, declare a `@ConditionBuilder` entry in `conditions[]` using the **same parameter name** as the field. The explicit entry takes priority over the auto-generated one.
+
+```java
+// Default for String "name": AND upper(product.name) LIKE :name
+// Override to use EQUALS instead:
+@QueryBuilder(
+    conditions = {
+        @ConditionBuilder(field = "product.name", operation = OperationType.EQUALS, parameter = "name")
+    }
+)
+public interface ProductService extends JpaService<Product, Long> { }
+```
 
 ---
 
@@ -227,7 +261,148 @@ For each `@QueryBuilder`-annotated class the processor generates **two files** i
 
 ---
 
-### Example input
+### Minimal example — default fields only
+
+This example shows exactly what the processor generates when **no `@ConditionBuilder` is declared** — only the `getMapBaseConditions()` populated from the entity's own fields.
+
+#### Entity
+
+```java
+@Entity
+public class Product {
+
+    @Id
+    private Long idProduct;
+
+    @Column
+    private String name;
+
+    @Column
+    private BigDecimal price;
+
+    @Column
+    private Boolean active;
+
+    @Column
+    private LocalDate createdAt;
+
+    @Enumerated(EnumType.STRING)
+    private ProductStatus status;
+
+    @ManyToOne
+    @JoinColumn(name = "id_category")
+    private Category category;
+}
+```
+
+#### Service (minimal annotation)
+
+```java
+@Service
+@Transactional
+@QueryBuilder
+public class ProductServiceImpl extends JpaServiceImpl<Product, Long>
+        implements ProductService { }
+```
+
+#### Generated `ProductQueryJpql.java`
+
+```java
+public interface ProductQueryJpql {
+
+    // Auto-generated from @Id
+    String id           = "id";
+    String idProduct    = "idProduct";
+
+    // Auto-generated from @Column String
+    String name         = "name";
+
+    // Auto-generated from @Column BigDecimal
+    String price        = "price";
+
+    // Auto-generated from @Column Boolean
+    String active       = "active";
+
+    // Auto-generated from @Column LocalDate (two range parameters)
+    String createdAtFrom = "createdAtFrom";
+    String createdAtTo   = "createdAtTo";
+
+    // Auto-generated from @Enumerated
+    String status       = "status";
+}
+```
+
+#### Generated `ProductQueryJpqlImpl.java`
+
+```java
+@Component
+public class ProductQueryJpqlImpl
+        extends QueryJpql<Product>
+        implements ProductQueryJpql {
+
+    // FROM: one JOIN FETCH per @ManyToOne field found on the entity
+    private final static String FROM_BY_FILTER =
+        " From Product product " +
+        " join fetch product.category category ";
+
+    private final static String SELECT_BY_FILTER    = "select distinct product" + FROM_BY_FILTER;
+    private final static String COUNT_BY_FILTER     = "select distinct count(product)" + FROM_BY_FILTER;
+    private final static String SELECT_ID_BY_FILTER = "select distinct product.idProduct " + FROM_BY_FILTER;
+    private final static String DELETE_BY_FILTER    = "delete from Product product ";
+
+    private final static Map<String,String> MAP_CONDITIONS        = getMapConditions();
+    private final static Map<String,String> MAP_DELETE_CONDITIONS = getMapDeleteConditions();
+
+    // All conditions come from getMapBaseConditions() — no @ConditionBuilder was declared
+    private static Map<String,String> getMapConditions() {
+        return getMapBaseConditions();
+    }
+
+    private static Map<String,String> getMapDeleteConditions() {
+        return getMapBaseConditions();
+    }
+
+    // Auto-generated: one entry per persistent field, OperationType chosen by Java type
+    private static Map<String,String> getMapBaseConditions() {
+        Map<String,String> map = new HashMap<>();
+
+        // @Id → IN (two entries: generic "id" key + field-name key)
+        map.put(id,            " and product.idProduct in (:id) ");
+        map.put(idProduct,     " and product.idProduct in (:idProduct) ");
+
+        // String → LIKE with upper()
+        map.put(name,          " and upper(product.name) like :name ");
+
+        // Numeric (BigDecimal) → IN
+        map.put(price,         " and product.price in (:price) ");
+
+        // Boolean → EQUAL
+        map.put(active,        " and product.active = :active ");
+
+        // Date/LocalDate → GREATER_EQUAL + LESS_EQUAL (range parameters: From / To)
+        map.put(createdAtFrom, " and :createdAtFrom <= product.createdAt ");
+        map.put(createdAtTo,   " and product.createdAt <= :createdAtTo ");
+
+        // Enum → IN
+        map.put(status,        " and product.status in (:status) ");
+
+        return map;
+    }
+
+    @Override public String selectByFilter()              { return SELECT_BY_FILTER; }
+    @Override public String selectIdByFilter()            { return SELECT_ID_BY_FILTER; }
+    @Override public String countByFilter()               { return COUNT_BY_FILTER; }
+    @Override public String deleteByFilter()              { return DELETE_BY_FILTER; }
+    @Override public Map<String,String> mapConditions()   { return MAP_CONDITIONS; }
+    @Override public Map<String,String> mapDeleteConditions() { return MAP_DELETE_CONDITIONS; }
+}
+```
+
+At runtime, each condition is appended to the WHERE clause **only when the corresponding parameter in the filter object is non-null**. Fields left null in the filter are simply ignored.
+
+---
+
+### Full example input
 
 ```java
 @Service
@@ -263,7 +438,7 @@ public class ExApplicationServiceImpl extends JpaServiceImpl<ExApplication, Inte
 
 ---
 
-### Generated output
+### Full example output
 
 #### `ExApplicationQueryJpql.java` — constants interface
 

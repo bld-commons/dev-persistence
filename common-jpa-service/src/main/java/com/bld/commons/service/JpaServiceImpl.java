@@ -645,7 +645,7 @@ public abstract class JpaServiceImpl<T, ID> extends BaseJpaService<T, ID> implem
 		K k = null;
 		if (list.size() > 1)
 			throw new RuntimeException("Find multiple record");
-		else if (list != null)
+		else if (CollectionUtils.isNotEmpty(list))
 			k = list.get(0);
 		return k;
 	}
