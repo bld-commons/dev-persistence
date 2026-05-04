@@ -6,6 +6,10 @@
 package com.bld.processor.build;
 
 import java.security.Timestamp;
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
@@ -273,7 +277,7 @@ public class ClassBuilding {
 				Class<?> classFieldElement = PrimitiveType.getClass(element.asType().toString());
 				if (classFieldElement == null)
 					classFieldElement = Class.forName(element.asType().toString());
-				if (Calendar.class.isAssignableFrom(classFieldElement) || Date.class.isAssignableFrom(classFieldElement) || Timestamp.class.isAssignableFrom(classFieldElement)) {
+				if (Calendar.class.isAssignableFrom(classFieldElement) || Date.class.isAssignableFrom(classFieldElement) || Timestamp.class.isAssignableFrom(classFieldElement) || Instant.class.isAssignableFrom(classFieldElement) || LocalDate.class.isAssignableFrom(classFieldElement) || LocalDateTime.class.isAssignableFrom(classFieldElement) || OffsetDateTime.class.isAssignableFrom(classFieldElement)) {
 					mapBaseConditions.add(SPACE + "map.put(" + fieldName + "From, \" and :" + fieldName + "From<=" + fieldEntity + "." + fieldName + " \");");
 					mapBaseConditions.add(SPACE + "map.put(" + fieldName + "To, \" and " + fieldEntity + "." + fieldName + "<=:" + fieldName + "To \");");
 					mapBaseConditions.add(SPACE + "map.put(" + fieldName + ", \" and " + fieldEntity + "." + fieldName + "=:" + fieldName + " \");");

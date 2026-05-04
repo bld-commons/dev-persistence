@@ -15,6 +15,11 @@ import java.math.BigInteger;
 import java.sql.Blob;
 import java.sql.Clob;
 import java.sql.Timestamp;
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
+import java.time.ZoneId;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collection;
@@ -136,6 +141,10 @@ public class ReflectionCommons {
 		map.put(Character.class, StandardBasicTypes.CHARACTER);
 		map.put(Date.class, StandardBasicTypes.DATE);
 		map.put(Calendar.class, StandardBasicTypes.CALENDAR);
+		map.put(Instant.class, StandardBasicTypes.INSTANT);
+		map.put(LocalDate.class, StandardBasicTypes.LOCAL_DATE);
+		map.put(LocalDateTime.class, StandardBasicTypes.LOCAL_DATE_TIME);
+		map.put(OffsetDateTime.class, StandardBasicTypes.OFFSET_DATE_TIME);
 		map.put(Locale.class, StandardBasicTypes.LOCALE);
 		map.put(TimeZone.class, StandardBasicTypes.TIMEZONE);
 		map.put(Clob.class, StandardBasicTypes.CLOB);
@@ -257,6 +266,24 @@ public class ReflectionCommons {
 				value = DateUtils.sumDate((Date) ((Date) value).clone(), dateFilter.addYear(), dateFilter.addMonth(), dateFilter.addWeek(), dateFilter.addDay(), dateFilter.addHour(), dateFilter.addMinute(), dateFilter.addSecond());
 			else if (value instanceof Timestamp)
 				value = DateUtils.sumDate((Timestamp) ((Timestamp) value).clone(), dateFilter.addYear(), dateFilter.addMonth(), dateFilter.addWeek(), dateFilter.addDay(), dateFilter.addHour(), dateFilter.addMinute(), dateFilter.addSecond());
+			else if (value instanceof Instant) {
+				Date tempDate = Date.from((Instant) value);
+				tempDate = DateUtils.sumDate(tempDate, dateFilter.addYear(), dateFilter.addMonth(), dateFilter.addWeek(), dateFilter.addDay(), dateFilter.addHour(), dateFilter.addMinute(), dateFilter.addSecond());
+				value = tempDate.toInstant();
+			} else if (value instanceof LocalDate) {
+				Date tempDate = Date.from(((LocalDate) value).atStartOfDay(ZoneId.systemDefault()).toInstant());
+				tempDate = DateUtils.sumDate(tempDate, dateFilter.addYear(), dateFilter.addMonth(), dateFilter.addWeek(), dateFilter.addDay(), dateFilter.addHour(), dateFilter.addMinute(), dateFilter.addSecond());
+				value = tempDate.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+			} else if (value instanceof LocalDateTime) {
+				Date tempDate = Date.from(((LocalDateTime) value).atZone(ZoneId.systemDefault()).toInstant());
+				tempDate = DateUtils.sumDate(tempDate, dateFilter.addYear(), dateFilter.addMonth(), dateFilter.addWeek(), dateFilter.addDay(), dateFilter.addHour(), dateFilter.addMinute(), dateFilter.addSecond());
+				value = tempDate.toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime();
+			} else if (value instanceof OffsetDateTime) {
+				OffsetDateTime odt = (OffsetDateTime) value;
+				Date tempDate = Date.from(odt.toInstant());
+				tempDate = DateUtils.sumDate(tempDate, dateFilter.addYear(), dateFilter.addMonth(), dateFilter.addWeek(), dateFilter.addDay(), dateFilter.addHour(), dateFilter.addMinute(), dateFilter.addSecond());
+				value = tempDate.toInstant().atOffset(odt.getOffset());
+			}
 
 		} else if (likeString != null && value instanceof String) {
 			switch (likeString.likeType()) {
