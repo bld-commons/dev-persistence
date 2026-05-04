@@ -255,7 +255,9 @@ public class ApplicationFilter extends IDFilterParameter<Integer> {
 
 #### @DateFilter
 
-Shifts a `Date` (or `Calendar`) value by a configurable offset before binding it as a parameter. The most common use case is implementing from/to date range filters:
+Shifts a date/time value by a configurable offset before binding it as a parameter. The most common use case is implementing from/to date range filters.
+
+Supported types: `Date`, `Calendar`, `Timestamp`, `Instant`, `LocalDate`, `LocalDateTime`, `OffsetDateTime`.
 
 ```java
 public class ExceptionAuditFilter extends IDFilterParameter<Integer> {

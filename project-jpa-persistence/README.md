@@ -213,12 +213,12 @@ No implementation class is needed. The proxy intercepts every call at runtime.
     <dependency>
         <groupId>com.bld.commons</groupId>
         <artifactId>common-jpa-service</artifactId>
-        <version>3.0.16</version>
+        <version>3.0.18</version>
     </dependency>
     <dependency>
         <groupId>com.bld.commons</groupId>
         <artifactId>proxy-api-controller</artifactId>
-        <version>3.0.16</version>
+        <version>3.0.18</version>
     </dependency>
     <dependency>
         <groupId>org.springframework.boot</groupId>
@@ -258,7 +258,7 @@ No implementation class is needed. The proxy intercepts every call at runtime.
                     <path>
                         <groupId>com.bld.commons</groupId>
                         <artifactId>processor-jpa-service</artifactId>
-                        <version>3.0.16</version>
+                        <version>3.0.18</version>
                     </path>
                 </annotationProcessorPaths>
             </configuration>
@@ -267,7 +267,7 @@ No implementation class is needed. The proxy intercepts every call at runtime.
         <plugin>
             <groupId>com.bld.commons</groupId>
             <artifactId>jpa-service-plugin-generator</artifactId>
-            <version>3.0.16</version>
+            <version>3.0.18</version>
             <executions>
                 <execution>
                     <goals>

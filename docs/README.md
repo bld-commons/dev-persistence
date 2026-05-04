@@ -1,6 +1,6 @@
 # dev-persistence — Developer Documentation
 
-**Version:** 3.0.16 | **Java:** 17+ | **Spring Boot:** 3.x | **License:** MIT
+**Version:** 3.0.18 | **Java:** 17+ | **Spring Boot:** 3.x | **License:** MIT
 
 A multi-module framework that eliminates JPA boilerplate through compile-time code
 generation and runtime dynamic query building.
@@ -220,7 +220,7 @@ public class ProductFilter extends BaseParameter {
 | Annotation | Target | Effect |
 |---|---|---|
 | `@LikeString` | `String` field | Wraps value in `%…%` (configurable), optional case transform |
-| `@DateFilter` | `Date`/`Calendar` field | Shifts date by configurable offset before binding |
+| `@DateFilter` | `Date`, `Calendar`, `Timestamp`, `Instant`, `LocalDate`, `LocalDateTime`, `OffsetDateTime` field | Shifts date/time by configurable offset before binding |
 | `@ListFilter` | `Collection` / array field | Generates `IN (…)` clause |
 | `@FieldMapping(name)` | Any field | Uses `name` as the JPQL parameter name instead of field name |
 | `@IgnoreMapping` | Any field | Excludes the field from the parameter map entirely |
@@ -951,4 +951,4 @@ private TupleParameter productWarehouse;
 
 ---
 
-*Documentation generated for dev-persistence v3.0.16 — Francesco Baldi*
+*Documentation generated for dev-persistence v3.0.18 — Francesco Baldi*
