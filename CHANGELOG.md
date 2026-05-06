@@ -4,6 +4,13 @@ All notable changes to **dev-persistence** are documented in this file.
 
 ---
 
+## [3.0.19] - 2026-05-06
+
+### Changed
+- Renamed annotation `@ListFilter` → `@ConditionTrigger` (`common-jpa-service` — `com.bld.commons.reflection.annotations.ConditionTrigger`). The annotation is used to mark a `Boolean` field that, when `true`, activates a value-less JPQL condition (`IS NULL` / `IS NOT NULL`) via `QueryParameter.addNullable(fieldName)`. Old name was misleading because it suggested a `Collection`/`IN (…)` mapping, while the actual runtime behavior is a Boolean condition trigger. Updated references in `ReflectionCommons`, `FindInterceptor`, `BaseParameter` (Javadoc), and documentation. **Breaking change**: callers using `@ListFilter` must rename the import and annotation to `@ConditionTrigger`.
+
+---
+
 ## [3.0.18] - 2026-05-04
 
 ### Added
@@ -365,7 +372,7 @@ All notable changes to **dev-persistence** are documented in this file.
 
 ### Added
 - Initial public release
-- `common-jpa-service`: dynamic JPQL/native SQL query execution engine, `@DateFilter`, `@LikeString`, `@ListFilter`, `@FieldMapping`, `@IgnoreMapping`, `@FilterNullValue` annotations, `JpaService` / `JpaServiceImpl` / `BaseJpaService`, `QueryParameter`, `NativeQueryParameter`, `PersistenceMap`, `BaseSearchController`, `PerformanceSearchController`
+- `common-jpa-service`: dynamic JPQL/native SQL query execution engine, `@DateFilter`, `@LikeString`, `@ListFilter`, `@FieldMapping`, `@IgnoreMapping`, `@FilterNullValue` annotations, `JpaService` / `JpaServiceImpl` / `BaseJpaService`, `QueryParameter`, `NativeQueryParameter`, `PersistenceMap`, `BaseSearchController`, `PerformanceSearchController` (note: `@ListFilter` later renamed to `@ConditionTrigger` in 3.0.19)
 - `processor-jpa-service`: annotation processor that reads `@QueryBuilder`-annotated service interfaces and generates `*QueryJpqlImpl` classes with pre-built JPQL strings and condition maps
 - `jpa-service-plugin-generator`: Maven plugin that scaffolds `*Service`, `*ServiceImpl`, and `*Repository` for each JPA entity — `ServiceJpaGeneratorPlugin` (renamed from `ServiceJpaPlugin`)
 - `project-jpa-persistence`: example Spring Boot application demonstrating the complete framework

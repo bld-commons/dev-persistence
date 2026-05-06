@@ -171,8 +171,10 @@ public class ProductFilter extends BaseParameter {
 
     private Boolean active;
 
-    @ListFilter
     private List<Long> categoryIds;
+
+    @ConditionTrigger
+    private Boolean deletedAtIsNull;
 
     private BigDecimal minPrice;
 

@@ -37,7 +37,7 @@ import com.bld.commons.reflection.annotations.DateFilter;
 import com.bld.commons.reflection.annotations.FilterNullValue;
 import com.bld.commons.reflection.annotations.IgnoreMapping;
 import com.bld.commons.reflection.annotations.LikeString;
-import com.bld.commons.reflection.annotations.ListFilter;
+import com.bld.commons.reflection.annotations.ConditionTrigger;
 import com.bld.commons.reflection.model.BaseParameter;
 import com.bld.commons.reflection.model.BaseQueryParameter;
 import com.bld.commons.reflection.model.NativeQueryParameter;
@@ -357,7 +357,7 @@ class FindInterceptor {
 								LikeString likeString = parameter.getAnnotation(LikeString.class);
 								value = ReflectionCommons.value(value, dateFilter, likeString);
 
-								if (value instanceof Boolean && (Boolean) value && parameter.isAnnotationPresent(ListFilter.class)) {
+								if (value instanceof Boolean && (Boolean) value && parameter.isAnnotationPresent(ConditionTrigger.class)) {
 									logger.debug("[FindInterceptor] Adding native nullable parameter: '{}' zone: {}", name, conditionsZones != null ? conditionsZones.value() : "none");
 									queryParameter.addNullable(name, conditionsZones);
 								} else if (value.getClass().isArray()) {
@@ -408,7 +408,7 @@ class FindInterceptor {
 							LikeString likeString = parameter.getAnnotation(LikeString.class);
 							value = ReflectionCommons.value(value, dateFilter, likeString);
 
-							if (value instanceof Boolean && (Boolean) value && parameter.isAnnotationPresent(ListFilter.class)) {
+							if (value instanceof Boolean && (Boolean) value && parameter.isAnnotationPresent(ConditionTrigger.class)) {
 								logger.debug("[FindInterceptor] Adding nullable parameter: '{}'", name);
 								queryParameter.addNullable(name);
 							} else if (value.getClass().isArray()) {

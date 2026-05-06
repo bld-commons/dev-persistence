@@ -28,8 +28,9 @@ import jakarta.validation.Valid;
  *       by a configurable offset before binding it as a parameter.</li>
  *   <li>{@link com.bld.commons.reflection.annotations.LikeString} – wraps the value in
  *       SQL {@code LIKE} wildcards.</li>
- *   <li>{@link com.bld.commons.reflection.annotations.ListFilter} – maps a collection to
- *       an SQL {@code IN (…)} clause.</li>
+ *   <li>{@link com.bld.commons.reflection.annotations.ConditionTrigger} – marks a
+ *       {@code Boolean} field that, when {@code true}, activates a value-less
+ *       JPQL condition (e.g. {@code IS NULL} / {@code IS NOT NULL}).</li>
  *   <li>{@link com.bld.commons.reflection.annotations.IgnoreMapping} – prevents a field
  *       from being added to the parameter map (e.g., pagination fields).</li>
  *   <li>{@link com.bld.commons.reflection.annotations.FieldMapping} – overrides the
@@ -54,8 +55,8 @@ import jakarta.validation.Valid;
  *     @DateFilter(addDay = 1)
  *     private Date expiresAfter;
  *
- *     @ListFilter
- *     private List<Long> categoryIds;
+ *     @ConditionTrigger
+ *     private Boolean categoryIdsIsNull;
  *
  *     // getters/setters ...
  * }
@@ -65,7 +66,7 @@ import jakarta.validation.Valid;
  * @see QueryParameter
  * @see com.bld.commons.reflection.annotations.DateFilter
  * @see com.bld.commons.reflection.annotations.LikeString
- * @see com.bld.commons.reflection.annotations.ListFilter
+ * @see com.bld.commons.reflection.annotations.ConditionTrigger
  */
 @SuppressWarnings("serial")
 public abstract class BaseParameter implements Serializable{

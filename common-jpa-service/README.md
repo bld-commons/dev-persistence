@@ -192,8 +192,8 @@ public class ProductFilter extends BaseParameter {
     @DateFilter(addDay = 1)
     private Date expiresAfter;
 
-    @ListFilter
-    private List<Long> categoryIds;
+    @ConditionTrigger
+    private Boolean deletedAtIsNull;
 
     // getters / setters
 }
@@ -302,17 +302,33 @@ private String name;
 `LikeType` values: `LEFT` (`%value`), `RIGHT` (`value%`), `LEFT_RIGHT` (`%value%`), `NONE` (no wildcard added).
 `UpperLowerType` values: `NONE`, `UPPER`, `LOWER`.
 
-#### @ListFilter
+#### @ConditionTrigger
 
-Maps a `Collection` to an SQL `IN (…)` clause.
+Marks a `Boolean` field as a trigger for a value-less JPQL condition (`IS NULL` / `IS NOT NULL`). When the field is `true`, the engine calls `QueryParameter.addNullable(fieldName)`, activating the matching `@ConditionBuilder` that uses `OperationType.IS_NULL` or `OperationType.IS_NOT_NULL` (no parameter value is bound). When the field is `false` or `null`, the condition is skipped.
 
 ```java
-@ListFilter
-private List<String> statuses;
-// generates: AND o.status IN (:statuses)
+public class ServiceRestFilter extends BaseParameter {
+
+    @ConditionTrigger
+    private Boolean httpMethodIsNull;     // true → AND e.httpMethod IS NULL
+
+    @ConditionTrigger
+    private Boolean httpMethodIsNotNull;  // true → AND e.httpMethod IS NOT NULL
+}
 ```
 
-Plain `List` fields (without `@ListFilter`) are also mapped to `IN` conditions when the matching `@ConditionBuilder` uses `OperationType.IN` or `OperationType.NOT_IN`. `@ListFilter` is used when you want the annotation to drive the mapping without a `@ConditionBuilder`.
+Service side:
+
+```java
+@QueryBuilder(
+    conditions = {
+        @ConditionBuilder(field = "e.httpMethod", operation = OperationType.IS_NULL,     parameter = "httpMethodIsNull"),
+        @ConditionBuilder(field = "e.httpMethod", operation = OperationType.IS_NOT_NULL, parameter = "httpMethodIsNotNull")
+    }
+)
+```
+
+`Collection` / array fields are mapped to `IN` conditions automatically when the matching `@ConditionBuilder` uses `OperationType.IN` or `OperationType.NOT_IN` — no annotation required.
 
 #### @FieldMapping
 

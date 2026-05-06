@@ -201,9 +201,9 @@ public class ProductFilter extends BaseParameter {
     @DateFilter(addDay = 1)
     private Date expiresAt;
 
-    // IN clause: AND p.categoryId IN (:categoryIds)
-    @ListFilter
-    private List<Long> categoryIds;
+    // When true → activates value-less condition: AND p.deletedAt IS NULL
+    @ConditionTrigger
+    private Boolean deletedAtIsNull;
 
     // Override the JPQL parameter name
     @FieldMapping("createdBy")
@@ -221,7 +221,7 @@ public class ProductFilter extends BaseParameter {
 |---|---|---|
 | `@LikeString` | `String` field | Wraps value in `%…%` (configurable), optional case transform |
 | `@DateFilter` | `Date`, `Calendar`, `Timestamp`, `Instant`, `LocalDate`, `LocalDateTime`, `OffsetDateTime` field | Shifts date/time by configurable offset before binding |
-| `@ListFilter` | `Collection` / array field | Generates `IN (…)` clause |
+| `@ConditionTrigger` | `Boolean` field | When `true`, activates a value-less condition (`IS NULL` / `IS NOT NULL`) via `addNullable(fieldName)` |
 | `@FieldMapping(name)` | Any field | Uses `name` as the JPQL parameter name instead of field name |
 | `@IgnoreMapping` | Any field | Excludes the field from the parameter map entirely |
 | `@FilterNullValue` | Any field | Controls whether `null` values are included |

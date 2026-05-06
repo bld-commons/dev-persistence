@@ -200,9 +200,9 @@ public class ProductFilter extends BaseParameter {
     @DateFilter(addDay = 1)
     private Date expiresAt;
 
-    // Clausola IN: AND p.categoryId IN (:categoryIds)
-    @ListFilter
-    private List<Long> categoryIds;
+    // Se true → attiva condizione senza valore: AND p.deletedAt IS NULL
+    @ConditionTrigger
+    private Boolean deletedAtIsNull;
 
     // Sovrascrive il nome parametro JPQL
     @FieldMapping("createdBy")
@@ -220,7 +220,7 @@ public class ProductFilter extends BaseParameter {
 |---|---|---|
 | `@LikeString` | Campo `String` | Avvolge il valore in `%…%` (configurabile), trasformazione case opzionale |
 | `@DateFilter` | Campo `Date`/`Calendar` | Sposta la data di un offset configurabile prima del binding |
-| `@ListFilter` | Campo `Collection` / array | Genera clausola `IN (…)` |
+| `@ConditionTrigger` | Campo `Boolean` | Quando `true`, attiva condizione senza valore (`IS NULL` / `IS NOT NULL`) tramite `addNullable(fieldName)` |
 | `@FieldMapping(name)` | Qualsiasi campo | Usa `name` come nome parametro JPQL invece del nome del campo |
 | `@IgnoreMapping` | Qualsiasi campo | Esclude completamente il campo dalla mappa dei parametri |
 | `@FilterNullValue` | Qualsiasi campo | Controlla se i valori `null` sono inclusi |

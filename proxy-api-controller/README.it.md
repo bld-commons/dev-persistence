@@ -856,8 +856,10 @@ public class ProductFilter extends BaseParameter {
 
     private Boolean active;
 
-    @ListFilter
     private List<Long> idCategory;
+
+    @ConditionTrigger
+    private Boolean deletedAtIsNull;
 
     // getter / setter
 }

@@ -175,8 +175,8 @@ public class ProductFilter extends BaseParameter {
     @DateFilter(addDay = 1)
     private Date expiresAfter;
 
-    @ListFilter
-    private List<Long> categoryIds;
+    @ConditionTrigger
+    private Boolean deletedAtIsNull;
 
     // getter / setter
 }
@@ -230,15 +230,33 @@ private String lastName;
 Valori `LikeType`: `LEFT` (`%valore`), `RIGHT` (`valore%`), `LEFT_RIGHT` (`%valore%`).
 Valori `UpperLowerType`: `NONE`, `UPPER`, `LOWER`.
 
-#### @ListFilter
+#### @ConditionTrigger
 
-Mappa una `Collection` in una clausola SQL `IN (…)`.
+Marca un campo `Boolean` come trigger per una condizione JPQL senza valore (`IS NULL` / `IS NOT NULL`). Quando il valore è `true`, il motore richiama `QueryParameter.addNullable(fieldName)`, attivando il `@ConditionBuilder` corrispondente con `OperationType.IS_NULL` o `OperationType.IS_NOT_NULL` (nessun valore di parametro viene bindato). Se il campo è `false` o `null`, la condizione viene saltata.
 
 ```java
-@ListFilter
-private List<String> statuses;
-// genera: AND o.status IN (:statuses)
+public class ServiceRestFilter extends BaseParameter {
+
+    @ConditionTrigger
+    private Boolean httpMethodIsNull;     // true → AND e.httpMethod IS NULL
+
+    @ConditionTrigger
+    private Boolean httpMethodIsNotNull;  // true → AND e.httpMethod IS NOT NULL
+}
 ```
+
+Lato service:
+
+```java
+@QueryBuilder(
+    conditions = {
+        @ConditionBuilder(field = "e.httpMethod", operation = OperationType.IS_NULL,     parameter = "httpMethodIsNull"),
+        @ConditionBuilder(field = "e.httpMethod", operation = OperationType.IS_NOT_NULL, parameter = "httpMethodIsNotNull")
+    }
+)
+```
+
+I campi `Collection` / array vengono mappati automaticamente in clausole `IN` quando il `@ConditionBuilder` corrispondente usa `OperationType.IN` o `OperationType.NOT_IN` — nessuna annotazione necessaria.
 
 #### @FieldMapping
 

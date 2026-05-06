@@ -57,7 +57,7 @@ import com.bld.commons.reflection.annotations.FilterNullValue;
 import com.bld.commons.reflection.annotations.IgnoreMapping;
 import com.bld.commons.reflection.annotations.IgnoreResultSet;
 import com.bld.commons.reflection.annotations.LikeString;
-import com.bld.commons.reflection.annotations.ListFilter;
+import com.bld.commons.reflection.annotations.ConditionTrigger;
 import com.bld.commons.reflection.annotations.ResultMapping;
 import com.bld.commons.reflection.annotations.TupleComparison;
 import com.bld.commons.reflection.model.BaseParameter;
@@ -202,7 +202,7 @@ public class ReflectionCommons {
 								if (field.isAnnotationPresent(TupleComparison.class)) {
 									TupleParameter tupleParameter=this.getTupleParameter(field, value);
 									queryParameter.addParameter(field.getName(), tupleParameter);
-								} else if (value instanceof Boolean && (Boolean) value && field.isAnnotationPresent(ListFilter.class))
+								} else if (value instanceof Boolean && (Boolean) value && field.isAnnotationPresent(ConditionTrigger.class))
 									queryParameter.addNullable(field.getName());
 								else if (value.getClass().isArray()) {
 									Object[] array = (Object[]) value;
@@ -351,7 +351,7 @@ public class ReflectionCommons {
 								if (field.isAnnotationPresent(TupleComparison.class)) {
 									TupleParameter tupleParameter=this.getTupleParameter(field, value);
 									queryParameter.addParameter(field.getName(), tupleParameter, conditionsZones);
-								} else if (value instanceof Boolean && (Boolean) value && field.isAnnotationPresent(ListFilter.class))
+								} else if (value instanceof Boolean && (Boolean) value && field.isAnnotationPresent(ConditionTrigger.class))
 									queryParameter.addNullable(field.getName(), conditionsZones);
 								else if (value.getClass().isArray()) {
 									Object[] array = (Object[]) value;
