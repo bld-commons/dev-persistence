@@ -4,7 +4,12 @@
 [![Maven Central - processor-jpa-service](https://img.shields.io/maven-central/v/com.github.bld-commons/processor-jpa-service.svg?label=processor-jpa-service)](https://search.maven.org/artifact/com.github.bld-commons/processor-jpa-service)
 [![Maven Central - proxy-api-controller](https://img.shields.io/maven-central/v/com.github.bld-commons/proxy-api-controller.svg?label=proxy-api-controller)](https://search.maven.org/artifact/com.github.bld-commons/proxy-api-controller)
 [![Maven Central - jpa-service-plugin-generator](https://img.shields.io/maven-central/v/com.github.bld-commons/jpa-service-plugin-generator.svg?label=jpa-service-plugin-generator)](https://search.maven.org/artifact/com.github.bld-commons/jpa-service-plugin-generator)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Javadoc — common-jpa-service](https://javadoc.io/badge2/com.github.bld-commons/common-jpa-service/javadoc.svg)](https://javadoc.io/doc/com.github.bld-commons/common-jpa-service)
+[![Javadoc — processor-jpa-service](https://javadoc.io/badge2/com.github.bld-commons/processor-jpa-service/javadoc.svg)](https://javadoc.io/doc/com.github.bld-commons/processor-jpa-service)
+[![Javadoc — proxy-api-controller](https://javadoc.io/badge2/com.github.bld-commons/proxy-api-controller/javadoc.svg)](https://javadoc.io/doc/com.github.bld-commons/proxy-api-controller)
+[![Javadoc — jpa-service-plugin-generator](https://javadoc.io/badge2/com.github.bld-commons/jpa-service-plugin-generator/javadoc.svg)](https://javadoc.io/doc/com.github.bld-commons/jpa-service-plugin-generator)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![Java 17+](https://img.shields.io/badge/Java-17%2B-blue.svg)](https://adoptium.net/)
 
 **Version:** 3.0.18 | **Java:** 17+ | **Spring Boot:** 3.x
 
