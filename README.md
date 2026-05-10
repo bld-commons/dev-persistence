@@ -1,5 +1,11 @@
 # dev-persistence
 
+[![Maven Central - common-jpa-service](https://img.shields.io/maven-central/v/com.github.bld-commons/common-jpa-service.svg?label=common-jpa-service)](https://search.maven.org/artifact/com.github.bld-commons/common-jpa-service)
+[![Maven Central - processor-jpa-service](https://img.shields.io/maven-central/v/com.github.bld-commons/processor-jpa-service.svg?label=processor-jpa-service)](https://search.maven.org/artifact/com.github.bld-commons/processor-jpa-service)
+[![Maven Central - proxy-api-controller](https://img.shields.io/maven-central/v/com.github.bld-commons/proxy-api-controller.svg?label=proxy-api-controller)](https://search.maven.org/artifact/com.github.bld-commons/proxy-api-controller)
+[![Maven Central - jpa-service-plugin-generator](https://img.shields.io/maven-central/v/com.github.bld-commons/jpa-service-plugin-generator.svg?label=jpa-service-plugin-generator)](https://search.maven.org/artifact/com.github.bld-commons/jpa-service-plugin-generator)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
 **Version:** 3.0.18 | **Java:** 17+ | **Spring Boot:** 3.x
 
 A multi-module framework that eliminates JPA boilerplate through compile-time code generation and runtime dynamic query building.
