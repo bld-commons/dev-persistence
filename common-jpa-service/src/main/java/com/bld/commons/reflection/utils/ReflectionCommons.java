@@ -10,6 +10,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.sql.Blob;
@@ -23,14 +24,17 @@ import java.time.ZoneId;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collection;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.TimeZone;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -102,6 +106,185 @@ public class ReflectionCommons {
 
 	/** The Constant pattern. */
 	private final static Pattern pattern = Pattern.compile("\\$\\{([^}]+)\\}");
+
+	/** Cache: fields per class (including superclasses up to Object). */
+	private static final ClassValue<Set<Field>> CACHE_FIELDS = new ClassValue<>() {
+		@Override
+		protected Set<Field> computeValue(Class<?> type) {
+			Set<Field> listField = new HashSet<>();
+			Class<?> c = type;
+			do {
+				for (Field field : c.getDeclaredFields())
+					listField.add(field);
+				c = c.getSuperclass();
+			} while (c != null && c != Object.class);
+			return listField;
+		}
+	};
+
+	/** Cache: fields per class filtered by annotation type. */
+	private static final ClassValue<ConcurrentHashMap<Class<? extends Annotation>, Set<Field>>> CACHE_FIELDS_BY_ANNOTATION = new ClassValue<>() {
+		@Override
+		protected ConcurrentHashMap<Class<? extends Annotation>, Set<Field>> computeValue(Class<?> type) {
+			return new ConcurrentHashMap<>();
+		}
+	};
+
+	/** Cache: map name->field per class. */
+	private static final ClassValue<Map<String, Field>> CACHE_MAP_FIELDS = new ClassValue<>() {
+		@Override
+		protected Map<String, Field> computeValue(Class<?> type) {
+			Map<String, Field> mapField = new HashMap<>();
+			Class<?> c = type;
+			do {
+				for (Field field : c.getDeclaredFields())
+					if (!mapField.containsKey(field.getName()))
+						mapField.put(field.getName(), field);
+				c = c.getSuperclass();
+			} while (c != null && c != Object.class);
+			return mapField;
+		}
+	};
+
+	/** Cache: map name->methods per class. */
+	private static final ClassValue<Map<String, LinkedHashSet<Method>>> CACHE_MAP_METHODS = new ClassValue<>() {
+		@Override
+		protected Map<String, LinkedHashSet<Method>> computeValue(Class<?> type) {
+			Map<String, LinkedHashSet<Method>> mapMethod = new HashMap<>();
+			Class<?> c = type;
+			do {
+				for (Method method : c.getMethods()) {
+					if (!mapMethod.containsKey(method.getName()))
+						mapMethod.put(method.getName(), new LinkedHashSet<>());
+					mapMethod.get(method.getName()).add(method);
+				}
+				c = c.getSuperclass();
+			} while (c != null && c != Object.class);
+			return mapMethod;
+		}
+	};
+
+	/** Cache: unique methods per class (override-aware). */
+	private static final ClassValue<Set<Method>> CACHE_METHODS = new ClassValue<>() {
+		@Override
+		protected Set<Method> computeValue(Class<?> type) {
+			Set<Method> methods = new HashSet<>();
+			Set<MethodOverride> methodsOverride = new HashSet<>();
+			Class<?> c = type;
+			do {
+				for (Method method : c.getMethods()) {
+					MethodOverride methodOverride = new MethodOverride(method.getName(), method.getParameterTypes());
+					if (!methodsOverride.contains(methodOverride)) {
+						methods.add(method);
+						methodsOverride.add(methodOverride);
+					}
+				}
+				c = c.getSuperclass();
+			} while (c != null && c != Object.class);
+			return methods;
+		}
+	};
+
+	/** Cached BeanUtilsBean — enum-aware ConvertUtilsBean, registered once. */
+	private static final BeanUtilsBean BEAN_UTILS = createBeanUtils();
+
+	/** Cache: original column name -> camelCase field name. */
+	private static final ConcurrentHashMap<String, String> CACHE_CAMEL_CASE = new ConcurrentHashMap<>();
+
+	private static BeanUtilsBean createBeanUtils() {
+		BeanUtilsBean beanUtils = new BeanUtilsBean(new ConvertUtilsBean() {
+			@Override
+			public Object convert(String value, @SuppressWarnings("rawtypes") Class clazz) {
+				if (clazz.isEnum()) {
+					return Enum.valueOf(clazz, value);
+				} else {
+					return super.convert(value, clazz);
+				}
+			}
+		});
+		beanUtils.getConvertUtils().register(false, false, 0);
+		return beanUtils;
+	}
+
+	/** Per-field precomputed metadata for dataToMap hot path. */
+	private static final class FieldMeta {
+		final Method getter;
+		final String fieldName;
+		final IgnoreMapping ignore;
+		final DateFilter date;
+		final LikeString like;
+		final TupleComparison tuple;
+		final boolean conditionTrigger;
+		final boolean filterNullValue;
+		final ConditionsZones zones;
+		final BindableType<?> bindableType;
+
+		FieldMeta(Field field, Method getter) {
+			this.getter = getter;
+			this.fieldName = field.getName();
+			this.ignore = pickAnnotation(IgnoreMapping.class, getter, field);
+			this.date = pickAnnotation(DateFilter.class, getter, field);
+			this.like = pickAnnotation(LikeString.class, getter, field);
+			this.tuple = field.getAnnotation(TupleComparison.class);
+			this.conditionTrigger = field.isAnnotationPresent(ConditionTrigger.class);
+			FilterNullValue fnvField = field.getAnnotation(FilterNullValue.class);
+			FilterNullValue fnvMethod = getter != null ? getter.getAnnotation(FilterNullValue.class) : null;
+			this.filterNullValue = (fnvField != null && fnvField.value()) || (fnvMethod != null && fnvMethod.value());
+			this.zones = pickAnnotation(ConditionsZones.class, getter, field);
+			this.bindableType = mapType.get(field.getType());
+		}
+	}
+
+	/** Per-field precomputed metadata for mapResultSet hot path. */
+	private static final class ResultFieldMeta {
+		final String fieldName;
+		final String mappedKey;
+		final boolean isResultMapping;
+		final Class<?> fieldType;
+
+		ResultFieldMeta(Field field) {
+			this.fieldName = field.getName();
+			this.fieldType = field.getType();
+			this.isResultMapping = field.isAnnotationPresent(ResultMapping.class);
+			FieldMapping fm = field.getAnnotation(FieldMapping.class);
+			this.mappedKey = fm != null ? fm.value() : field.getName();
+		}
+	}
+
+	private static <A extends Annotation> A pickAnnotation(Class<A> annClass, Method m, Field f) {
+		if (m != null && m.isAnnotationPresent(annClass))
+			return m.getAnnotation(annClass);
+		return f.getAnnotation(annClass);
+	}
+
+	/** Cache: per-class precomputed FieldMeta list (only fields with a getter). */
+	private static final ClassValue<List<FieldMeta>> CACHE_FIELD_META = new ClassValue<>() {
+		@Override
+		protected List<FieldMeta> computeValue(Class<?> type) {
+			Set<Field> fs = fields(type);
+			Map<String, LinkedHashSet<Method>> mapMethod = mapMethods(type);
+			List<FieldMeta> list = new ArrayList<>(fs.size());
+			for (Field field : fs) {
+				Method getter = getMethod(mapMethod, field, GetSetType.get);
+				if (getter != null)
+					list.add(new FieldMeta(field, getter));
+			}
+			return list;
+		}
+	};
+
+	/** Cache: per-class precomputed ResultFieldMeta list (skips @IgnoreResultSet). */
+	private static final ClassValue<List<ResultFieldMeta>> CACHE_RESULT_META = new ClassValue<>() {
+		@Override
+		protected List<ResultFieldMeta> computeValue(Class<?> type) {
+			Set<Field> fs = fields(type);
+			List<ResultFieldMeta> list = new ArrayList<>(fs.size());
+			for (Field f : fs)
+				if (!f.isAnnotationPresent(IgnoreResultSet.class))
+					list.add(new ResultFieldMeta(f));
+			return list;
+		}
+	};
 
 	/**
 	 * Save generic.
@@ -180,50 +363,40 @@ public class ReflectionCommons {
 	 * @return the query parameter
 	 */
 	public <T, ID> QueryParameter<T, ID> dataToMap(QueryParameter<T, ID> queryParameter) {
-
 		BaseParameter obj = queryParameter.getBaseParameter();
-
 		if (obj != null) {
-			Set<Field> fields = ReflectionCommons.fields(obj.getClass());
-			Map<String, LinkedHashSet<Method>> mapMethod = ReflectionCommons.mapMethods(obj.getClass());
-			for (Field field : fields) {
-				Method method = ReflectionCommons.getMethod(mapMethod, field, GetSetType.get);
-				if (method != null) {
-					IgnoreMapping ignoreMapping = method.isAnnotationPresent(IgnoreMapping.class) ? method.getAnnotation(IgnoreMapping.class) : field.getAnnotation(IgnoreMapping.class);
-					if (ignoreMapping == null || !ignoreMapping.value()) {
-						try {
-							Object value = PropertyUtils.getProperty(obj, field.getName());
-							if (value instanceof Collection && CollectionUtils.isEmpty((Collection<?>) value))
-								value = null;
-							if (value != null && value instanceof String && StringUtils.isBlank((String) value))
-								value = null;
-							if (value != null) {
-								value = getValue(field, method, value);
-								if (field.isAnnotationPresent(TupleComparison.class)) {
-									TupleParameter tupleParameter=this.getTupleParameter(field, value);
-									queryParameter.addParameter(field.getName(), tupleParameter);
-								} else if (value instanceof Boolean && (Boolean) value && field.isAnnotationPresent(ConditionTrigger.class))
-									queryParameter.addNullable(field.getName());
-								else if (value.getClass().isArray()) {
-									Object[] array = (Object[]) value;
-									queryParameter.addParameter(field.getName(), Arrays.asList(array));
-								} else
-									queryParameter.addParameter(field.getName(), value);
-							} else if (field.isAnnotationPresent(FilterNullValue.class) && field.getAnnotation(FilterNullValue.class).value() || method.isAnnotationPresent(FilterNullValue.class) && method.getAnnotation(FilterNullValue.class).value())
-								queryParameter.addParameter(field.getName(), initTypedParameterValue(mapType.get(field.getType()), value));
-						} catch (Exception e) {
-							logger.warn("Error converting data to map");
-						}
-					}
+			for (FieldMeta meta : CACHE_FIELD_META.get(obj.getClass())) {
+				if (meta.ignore != null && meta.ignore.value())
+					continue;
+				try {
+					Object value = meta.getter.invoke(obj);
+					if (value instanceof Collection && CollectionUtils.isEmpty((Collection<?>) value))
+						value = null;
+					if (value != null && value instanceof String && StringUtils.isBlank((String) value))
+						value = null;
+					if (value != null) {
+						value = value(value, meta.date, meta.like);
+						if (meta.tuple != null) {
+							TupleParameter tupleParameter = this.getTupleParameter(meta.tuple, value);
+							queryParameter.addParameter(meta.fieldName, tupleParameter);
+						} else if (value instanceof Boolean && (Boolean) value && meta.conditionTrigger)
+							queryParameter.addNullable(meta.fieldName);
+						else if (value.getClass().isArray()) {
+							Object[] array = (Object[]) value;
+							queryParameter.addParameter(meta.fieldName, Arrays.asList(array));
+						} else
+							queryParameter.addParameter(meta.fieldName, value);
+					} else if (meta.filterNullValue)
+						queryParameter.addParameter(meta.fieldName, initTypedParameterValue(meta.bindableType, value));
+				} catch (Exception e) {
+					logger.warn("Error converting data to map");
 				}
 			}
-
 		}
 		return queryParameter;
 	}
 
-	private <T, ID> TupleParameter getTupleParameter(Field field, Object value) {
-		TupleComparison tupleComparison = field.getAnnotation(TupleComparison.class);
+	private TupleParameter getTupleParameter(TupleComparison tupleComparison, Object value) {
 		TupleParameter tuple = new TupleParameter(tupleComparison.value());
 		if (value instanceof Collection)
 			tuple.setObjects((Collection<Object>) value);
@@ -242,20 +415,6 @@ public class ReflectionCommons {
 	 */
 	public static <J> TypedParameterValue<J> initTypedParameterValue(BindableType<J> bindableType, Object value) {
 		return new TypedParameterValue<J>(bindableType, (J) value);
-	}
-
-	/**
-	 * Gets the value.
-	 *
-	 * @param field  the field
-	 * @param method the method
-	 * @param value  the value
-	 * @return the value
-	 */
-	private Object getValue(Field field, Method method, Object value) {
-		DateFilter dateFilter = method.isAnnotationPresent(DateFilter.class) ? method.getAnnotation(DateFilter.class) : field.getAnnotation(DateFilter.class);
-		LikeString likeString = method.isAnnotationPresent(LikeString.class) ? method.getAnnotation(LikeString.class) : field.getAnnotation(LikeString.class);
-		return value(value, dateFilter, likeString);
 	}
 
 	public static Object value(Object value, DateFilter dateFilter, LikeString likeString) {
@@ -327,48 +486,38 @@ public class ReflectionCommons {
 	 * @return the native query parameter
 	 */
 	public <T, ID> NativeQueryParameter<T, ID> dataToMap(NativeQueryParameter<T, ID> queryParameter) {
-
 		BaseParameter obj = queryParameter.getBaseParameter();
-
 		if (obj != null) {
-			Set<Field> fields = ReflectionCommons.fields(obj.getClass());
-			Map<String, LinkedHashSet<Method>> mapMethod = ReflectionCommons.mapMethods(obj.getClass());
-			for (Field field : fields) {
-				Method method = ReflectionCommons.getMethod(mapMethod, field, GetSetType.get);
-				if (method != null) {
-					IgnoreMapping ignoreMapping = method.isAnnotationPresent(IgnoreMapping.class) ? method.getAnnotation(IgnoreMapping.class) : field.getAnnotation(IgnoreMapping.class);
-					if (ignoreMapping == null || !ignoreMapping.value()) {
-						try {
-							Object value = PropertyUtils.getProperty(obj, field.getName());
-							ConditionsZones conditionsZones = method.isAnnotationPresent(ConditionsZones.class) ? method.getAnnotation(ConditionsZones.class) : field.getAnnotation(ConditionsZones.class);
-							if (value instanceof Collection && CollectionUtils.isEmpty((Collection<?>) value))
-								value = null;
-							if (value != null && value instanceof String && StringUtils.isBlank((String) value))
-								value = null;
-							if (value != null) {
-								value = getValue(field, method, value);
-
-								if (field.isAnnotationPresent(TupleComparison.class)) {
-									TupleParameter tupleParameter=this.getTupleParameter(field, value);
-									queryParameter.addParameter(field.getName(), tupleParameter, conditionsZones);
-								} else if (value instanceof Boolean && (Boolean) value && field.isAnnotationPresent(ConditionTrigger.class))
-									queryParameter.addNullable(field.getName(), conditionsZones);
-								else if (value.getClass().isArray()) {
-									Object[] array = (Object[]) value;
-									queryParameter.addParameter(field.getName(), Arrays.asList(array), conditionsZones);
-								} else
-									queryParameter.addParameter(field.getName(), value, conditionsZones);
-							} else if (field.isAnnotationPresent(FilterNullValue.class) && field.getAnnotation(FilterNullValue.class).value() || method.isAnnotationPresent(FilterNullValue.class) && method.getAnnotation(FilterNullValue.class).value())
-								queryParameter.addParameter(field.getName(), initTypedParameterValue(mapType.get(field.getType()), value), conditionsZones);
-							else if (conditionsZones != null)
-								queryParameter.addEmptyZones(conditionsZones);
-						} catch (Exception e) {
-							logger.warn("Error converting data to map");
-						}
-					}
+			for (FieldMeta meta : CACHE_FIELD_META.get(obj.getClass())) {
+				if (meta.ignore != null && meta.ignore.value())
+					continue;
+				try {
+					Object value = meta.getter.invoke(obj);
+					ConditionsZones conditionsZones = meta.zones;
+					if (value instanceof Collection && CollectionUtils.isEmpty((Collection<?>) value))
+						value = null;
+					if (value != null && value instanceof String && StringUtils.isBlank((String) value))
+						value = null;
+					if (value != null) {
+						value = value(value, meta.date, meta.like);
+						if (meta.tuple != null) {
+							TupleParameter tupleParameter = this.getTupleParameter(meta.tuple, value);
+							queryParameter.addParameter(meta.fieldName, tupleParameter, conditionsZones);
+						} else if (value instanceof Boolean && (Boolean) value && meta.conditionTrigger)
+							queryParameter.addNullable(meta.fieldName, conditionsZones);
+						else if (value.getClass().isArray()) {
+							Object[] array = (Object[]) value;
+							queryParameter.addParameter(meta.fieldName, Arrays.asList(array), conditionsZones);
+						} else
+							queryParameter.addParameter(meta.fieldName, value, conditionsZones);
+					} else if (meta.filterNullValue)
+						queryParameter.addParameter(meta.fieldName, initTypedParameterValue(meta.bindableType, value), conditionsZones);
+					else if (conditionsZones != null)
+						queryParameter.addEmptyZones(conditionsZones);
+				} catch (Exception e) {
+					logger.warn("Error converting data to map");
 				}
 			}
-
 		}
 		return queryParameter;
 	}
@@ -382,29 +531,16 @@ public class ReflectionCommons {
 	 * @return the t
 	 */
 	public <T> T reflection(Class<T> classT, Map<String, Object> mapResult) {
-		Map<String, Object> mapRow = new HashMap<>();
-		BeanUtilsBean beanUtils = new BeanUtilsBean(new ConvertUtilsBean() {
-			@Override
-			public Object convert(String value, @SuppressWarnings("rawtypes") Class clazz) {
-				if (clazz.isEnum()) {
-					return Enum.valueOf(clazz, value);
-				} else {
-					return super.convert(value, clazz);
-				}
-			}
-		});
-		beanUtils.getConvertUtils().register(false, false, 0);
-		for (String keyResult : mapResult.keySet()) {
-			String fieldName = CamelCaseUtils.camelCase(keyResult, true);
-			mapRow.put(fieldName, mapResult.get(keyResult));
+		Map<String, Object> mapRow = new HashMap<>(mapResult.size() * 2);
+		for (Map.Entry<String, Object> entry : mapResult.entrySet()) {
+			String fieldName = CACHE_CAMEL_CASE.computeIfAbsent(entry.getKey(), k -> CamelCaseUtils.camelCase(k, true));
+			mapRow.put(fieldName, entry.getValue());
 		}
-		T t = null;
 		try {
-			t = mapResultSet(classT, mapRow, beanUtils);
+			return mapResultSet(classT, mapRow, BEAN_UTILS);
 		} catch (Exception e) {
 			throw new RuntimeException(e);
 		}
-		return t;
 	}
 
 	/**
@@ -425,30 +561,19 @@ public class ReflectionCommons {
 	private <T> T mapResultSet(Class<T> classT, Map<String, Object> mapRow, BeanUtilsBean beanUtils)
 			throws InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException {
 		T t = classT.getConstructor().newInstance();
-		Set<Field> fields = fields(classT);
 		boolean isEmpty = true;
-		for (Field field : fields) {
-			if (!field.isAnnotationPresent(IgnoreResultSet.class)) {
-				Object value = null;
-				if (field.isAnnotationPresent(ResultMapping.class)) {
-					value = mapResultSet(field.getType(), mapRow, beanUtils);
-					if (value != null) {
-						isEmpty = false;
-						beanUtils.setProperty(t, field.getName(), value);
-					}
-				} else {
-					String key = field.getName();
-					if (field.isAnnotationPresent(FieldMapping.class))
-						key = field.getAnnotation(FieldMapping.class).value();
-					if (mapRow.containsKey(key)) {
-						value = mapRow.get(key);
-						if (value != null) {
-							isEmpty = false;
-							beanUtils.setProperty(t, field.getName(), value);
-						}
-
-					}
-
+		for (ResultFieldMeta meta : CACHE_RESULT_META.get(classT)) {
+			if (meta.isResultMapping) {
+				Object value = mapResultSet(meta.fieldType, mapRow, beanUtils);
+				if (value != null) {
+					isEmpty = false;
+					beanUtils.setProperty(t, meta.fieldName, value);
+				}
+			} else if (mapRow.containsKey(meta.mappedKey)) {
+				Object value = mapRow.get(meta.mappedKey);
+				if (value != null) {
+					isEmpty = false;
+					beanUtils.setProperty(t, meta.fieldName, value);
 				}
 			}
 		}
@@ -477,9 +602,7 @@ public class ReflectionCommons {
 	 * @return the object
 	 */
 	public static Object checkEmpty(Object obj) {
-		Set<Field> campi = new HashSet<Field>(Arrays.asList(obj.getClass().getDeclaredFields()));
-
-		for (Field f : campi) {
+		for (Field f : fields(obj.getClass())) {
 			try {
 				Object value = PropertyUtils.getProperty(obj, f.getName());
 				if (value != null) {
@@ -490,7 +613,6 @@ public class ReflectionCommons {
 				logger.warn(ExceptionUtils.getStackTrace(e));
 			}
 		}
-
 		return null;
 	}
 
@@ -525,14 +647,11 @@ public class ReflectionCommons {
 	 * @return the generic type class
 	 */
 	public static <T> Class<T> getGenericTypeClass(Class<?> clazz, int i) {
-		ParameterizedType parameterizedType = null;
-		try {
-			parameterizedType = (ParameterizedType) clazz.getGenericSuperclass();
-		} catch (Exception e) {
-			parameterizedType = (ParameterizedType) clazz.getSuperclass().getGenericSuperclass();
-		}
-		Class<T> clazzType = (Class<T>) parameterizedType.getActualTypeArguments()[i];
-		return clazzType;
+		Type generic = clazz.getGenericSuperclass();
+		ParameterizedType parameterizedType = generic instanceof ParameterizedType
+				? (ParameterizedType) generic
+				: (ParameterizedType) clazz.getSuperclass().getGenericSuperclass();
+		return (Class<T>) parameterizedType.getActualTypeArguments()[i];
 	}
 
 	/**
@@ -580,10 +699,7 @@ public class ReflectionCommons {
 	 * @return the string
 	 */
 	public static String removeExtraSpace(String join) {
-		join = join.trim();
-		if (join.contains("  "))
-			join = removeExtraSpace(join.replace("  ", " "));
-		return join;
+		return join.trim().replaceAll(" +", " ");
 	}
 
 	/**
@@ -593,14 +709,7 @@ public class ReflectionCommons {
 	 * @return the sets the
 	 */
 	public static Set<Field> fields(Class<?> classApp) {
-		Set<Field> listField = new HashSet<>();
-		do {
-			for (Field field : classApp.getDeclaredFields())
-				if (!listField.contains(field))
-					listField.add(field);
-			classApp = classApp.getSuperclass();
-		} while (classApp != null && !classApp.getName().equals(Object.class.getName()));
-		return listField;
+		return CACHE_FIELDS.get(classApp);
 	}
 
 	/**
@@ -611,17 +720,13 @@ public class ReflectionCommons {
 	 * @return the sets the
 	 */
 	public static Set<Field> fields(Class<?> classApp, Class<? extends Annotation> annotation) {
-		Set<Field> listField = new HashSet<>();
-		Set<Field> skipField = new HashSet<>();
-		do {
-			for (Field field : classApp.getDeclaredFields()) {
-				if (field.isAnnotationPresent(annotation) && !skipField.contains(field))
+		return CACHE_FIELDS_BY_ANNOTATION.get(classApp).computeIfAbsent(annotation, ann -> {
+			Set<Field> listField = new HashSet<>();
+			for (Field field : fields(classApp))
+				if (field.isAnnotationPresent(ann))
 					listField.add(field);
-				skipField.add(field);
-			}
-			classApp = classApp.getSuperclass();
-		} while (classApp != null && !classApp.getName().equals(Object.class.getName()));
-		return listField;
+			return listField;
+		});
 	}
 
 	/**
@@ -631,14 +736,7 @@ public class ReflectionCommons {
 	 * @return the map
 	 */
 	public static Map<String, Field> mapFields(Class<?> classApp) {
-		Map<String, Field> mapField = new HashMap<>();
-		do {
-			for (Field field : classApp.getDeclaredFields())
-				if (!mapField.containsKey(field.getName()))
-					mapField.put(field.getName(), field);
-			classApp = classApp.getSuperclass();
-		} while (classApp != null && !classApp.getName().equals(Object.class.getName()));
-		return mapField;
+		return CACHE_MAP_FIELDS.get(classApp);
 	}
 
 	/**
@@ -648,16 +746,7 @@ public class ReflectionCommons {
 	 * @return the map
 	 */
 	public static Map<String, LinkedHashSet<Method>> mapMethods(Class<?> classApp) {
-		Map<String, LinkedHashSet<Method>> mapMethod = new HashMap<>();
-		do {
-			for (Method method : classApp.getMethods()) {
-				if (!mapMethod.containsKey(method.getName()))
-					mapMethod.put(method.getName(), new LinkedHashSet<>());
-				mapMethod.get(method.getName()).add(method);
-			}
-			classApp = classApp.getSuperclass();
-		} while (classApp != null && !classApp.getName().equals(Object.class.getName()));
-		return mapMethod;
+		return CACHE_MAP_METHODS.get(classApp);
 	}
 
 	/**
@@ -667,21 +756,7 @@ public class ReflectionCommons {
 	 * @return the sets the
 	 */
 	public static Set<Method> methods(Class<?> classApp) {
-		Set<Method> methods = new HashSet<>();
-		Set<MethodOverride> methodsOverride = new HashSet<>();
-		do {
-			for (Method method : classApp.getMethods()) {
-				MethodOverride methodOverride = new MethodOverride(method.getName(), method.getParameterTypes());
-				if (!methodsOverride.contains(methodOverride)) {
-					methods.add(method);
-					methodsOverride.add(methodOverride);
-				}
-
-			}
-
-			classApp = classApp.getSuperclass();
-		} while (classApp != null && !classApp.getName().equals(Object.class.getName()));
-		return methods;
+		return CACHE_METHODS.get(classApp);
 	}
 
 	/**
