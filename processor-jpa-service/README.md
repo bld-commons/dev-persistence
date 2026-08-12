@@ -45,7 +45,7 @@ Add the processor as an annotation processor path in the Maven compiler plugin. 
             <path>
                 <groupId>com.bld.commons</groupId>
                 <artifactId>processor-jpa-service</artifactId>
-                <version>3.0.18</version>
+                <version>3.0.20-SNAPSHOT</version>
             </path>
         </annotationProcessorPaths>
     </configuration>

@@ -11,7 +11,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Java 17+](https://img.shields.io/badge/Java-17%2B-blue.svg)](https://adoptium.net/)
 
-**Versione:** 3.0.16 | **Java:** 17+ | **Spring Boot:** 3.x
+**Versione:** 3.0.20-SNAPSHOT | **Java:** 17+ | **Spring Boot:** 3.x
 
 Un framework multi-modulo che elimina il boilerplate JPA attraverso la generazione di codice a compile time e la costruzione dinamica delle query a runtime.
 
@@ -91,12 +91,12 @@ Aggiungi le dipendenze runtime e configura l'annotation processor nel tuo proget
     <dependency>
         <groupId>com.bld.commons</groupId>
         <artifactId>common-jpa-service</artifactId>
-        <version>3.0.16</version>
+        <version>3.0.20-SNAPSHOT</version>
     </dependency>
     <dependency>
         <groupId>com.bld.commons</groupId>
         <artifactId>proxy-api-controller</artifactId>
-        <version>3.0.16</version>
+        <version>3.0.20-SNAPSHOT</version>
     </dependency>
 </dependencies>
 
@@ -106,7 +106,7 @@ Aggiungi le dipendenze runtime e configura l'annotation processor nel tuo proget
         <plugin>
             <groupId>com.bld.commons</groupId>
             <artifactId>jpa-service-plugin-generator</artifactId>
-            <version>3.0.16</version>
+            <version>3.0.20-SNAPSHOT</version>
             <configuration>
                 <persistencePackage>com.example.domain</persistencePackage>
                 <servicePackage>com.example.service</servicePackage>
@@ -123,7 +123,7 @@ Aggiungi le dipendenze runtime e configura l'annotation processor nel tuo proget
                     <path>
                         <groupId>com.bld.commons</groupId>
                         <artifactId>processor-jpa-service</artifactId>
-                        <version>3.0.16</version>
+                        <version>3.0.20-SNAPSHOT</version>
                     </path>
                 </annotationProcessorPaths>
             </configuration>
