@@ -1,6 +1,6 @@
 # dev-persistence — Documentazione per Sviluppatori
 
-**Versione:** 3.0.20-SNAPSHOT | **Java:** 17+ | **Spring Boot:** 3.x | **Licenza:** MIT
+**Versione:** 3.0.19 | **Java:** 17+ | **Spring Boot:** 3.x | **Licenza:** MIT
 
 Un framework multi-modulo che elimina il boilerplate JPA tramite generazione di codice a tempo di compilazione e costruzione dinamica di query a runtime.
 
@@ -94,7 +94,7 @@ Aggiungi la dipendenza:
 <dependency>
     <groupId>com.github.bld-commons</groupId>
     <artifactId>common-jpa-service</artifactId>
-    <version>3.0.20-SNAPSHOT</version>
+    <version>3.0.19</version>
 </dependency>
 ```
 
@@ -313,7 +313,7 @@ Aggiungilo al progetto come dipendenza dell'annotation processor:
 <dependency>
     <groupId>com.github.bld-commons</groupId>
     <artifactId>processor-jpa-service</artifactId>
-    <version>3.0.20-SNAPSHOT</version>
+    <version>3.0.19</version>
     <scope>provided</scope>
 </dependency>
 ```
@@ -539,7 +539,7 @@ dalle classi entità.
 <plugin>
     <groupId>com.github.bld-commons</groupId>
     <artifactId>jpa-service-plugin-generator</artifactId>
-    <version>3.0.20-SNAPSHOT</version>
+    <version>3.0.19</version>
     <executions>
         <execution>
             <goals><goal>jpa-service-generator</goal></goals>
@@ -579,7 +579,7 @@ nessuna classe di implementazione richiesta.
 <dependency>
     <groupId>com.github.bld-commons</groupId>
     <artifactId>proxy-api-controller</artifactId>
-    <version>3.0.20-SNAPSHOT</version>
+    <version>3.0.19</version>
 </dependency>
 ```
 
@@ -948,4 +948,4 @@ private TupleParameter productWarehouse;
 
 ---
 
-*Documentazione generata per dev-persistence v3.0.20-SNAPSHOT — Francesco Baldi*
+*Documentazione generata per dev-persistence v3.0.19 — Francesco Baldi*

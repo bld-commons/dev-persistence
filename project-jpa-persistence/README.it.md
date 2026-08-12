@@ -215,12 +215,12 @@ Estratto del `pom.xml` che mostra la configurazione del plugin e dell'annotation
     <dependency>
         <groupId>com.bld.commons</groupId>
         <artifactId>common-jpa-service</artifactId>
-        <version>3.0.20-SNAPSHOT</version>
+        <version>3.0.19</version>
     </dependency>
     <dependency>
         <groupId>com.bld.commons</groupId>
         <artifactId>proxy-api-controller</artifactId>
-        <version>3.0.20-SNAPSHOT</version>
+        <version>3.0.19</version>
     </dependency>
     <dependency>
         <groupId>org.springframework.boot</groupId>
@@ -260,7 +260,7 @@ Estratto del `pom.xml` che mostra la configurazione del plugin e dell'annotation
                     <path>
                         <groupId>com.bld.commons</groupId>
                         <artifactId>processor-jpa-service</artifactId>
-                        <version>3.0.20-SNAPSHOT</version>
+                        <version>3.0.19</version>
                     </path>
                 </annotationProcessorPaths>
             </configuration>
@@ -269,7 +269,7 @@ Estratto del `pom.xml` che mostra la configurazione del plugin e dell'annotation
         <plugin>
             <groupId>com.bld.commons</groupId>
             <artifactId>jpa-service-plugin-generator</artifactId>
-            <version>3.0.20-SNAPSHOT</version>
+            <version>3.0.19</version>
             <executions>
                 <execution>
                     <goals>

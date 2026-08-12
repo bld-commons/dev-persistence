@@ -86,7 +86,7 @@ Add the plugin to the `<build><plugins>` section of your `pom.xml`:
 <plugin>
     <groupId>com.bld.commons</groupId>
     <artifactId>jpa-service-plugin-generator</artifactId>
-    <version>3.0.20-SNAPSHOT</version>
+    <version>3.0.19</version>
     <executions>
         <execution>
             <goals>
@@ -193,7 +193,7 @@ Once the files are generated:
             <path>
                 <groupId>com.bld.commons</groupId>
                 <artifactId>processor-jpa-service</artifactId>
-                <version>3.0.20-SNAPSHOT</version>
+                <version>3.0.19</version>
             </path>
         </annotationProcessorPaths>
     </configuration>
